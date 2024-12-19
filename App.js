@@ -12,6 +12,7 @@ import Dashboard from './screens/Dashboard';
 import VehicleDetailsScreen from './screens/recepcion/VehicleDetailsScreen';
 import FirmaScreen from './screens/recepcion/FirmaScreen';
 import PhotosAndVideosScreen from './screens/recepcion/PhotosAndVideosScreen';
+import AccesoriosScreen from './screens/recepcion/AccesoriosScreen';
 
 import Menu from './screens/Menu';
 import theme from './src/utils/RNEtheme';
@@ -39,6 +40,7 @@ const DrawerNavigator = () => {
         name="PhotosAndVideosScreen"
         component={PhotosAndVideosScreen}
       />
+      <Drawer.Screen name="AccesoriosScreen" component={AccesoriosScreen} />
     </Drawer.Navigator>
   );
 };

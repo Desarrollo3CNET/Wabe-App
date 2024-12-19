@@ -14,15 +14,21 @@ const { width, height } = Dimensions.get('window');
 
 const DateRangeButton = ({ onRangeSelect }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [step, setStep] = useState(1); // 1: Fecha inicial, 2: Fecha final
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
   const handleDateSelect = (date) => {
-    if (!startDate || (startDate && endDate)) {
+    if (step === 1) {
       setStartDate(date);
-      setEndDate(null);
-    } else {
+      setStep(2); // Cambiar al paso para seleccionar la fecha final
+    } else if (step === 2) {
       setEndDate(date);
+      setStep(1); // Resetear al paso inicial
+      setModalVisible(false); // Cerrar modal después de seleccionar ambas fechas
+      if (startDate && date && onRangeSelect) {
+        onRangeSelect(startDate, date);
+      }
     }
   };
 
@@ -45,6 +51,7 @@ const DateRangeButton = ({ onRangeSelect }) => {
 
   return (
     <View>
+      {/* Botón de rango de fechas */}
       <TouchableOpacity
         style={styles.rangeButton}
         onPress={() => setModalVisible(true)}
@@ -57,6 +64,7 @@ const DateRangeButton = ({ onRangeSelect }) => {
         <Ionicons name="calendar-outline" size={20} color="#000" />
       </TouchableOpacity>
 
+      {/* Modal para seleccionar rango */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -65,22 +73,25 @@ const DateRangeButton = ({ onRangeSelect }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {step === 1
+                ? 'Selecciona la fecha inicial'
+                : 'Selecciona la fecha final'}
+            </Text>
             <View style={styles.calendarContainer}>
               <Calendar
                 currentMonth={new Date()}
                 onDateSelect={handleDateSelect}
               />
-              <Calendar
-                currentMonth={new Date()}
-                onDateSelect={handleDateSelect}
-              />
             </View>
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={handleConfirm}
-            >
-              <Text style={styles.confirmText}>Confirmar</Text>
-            </TouchableOpacity>
+            {step === 2 && (
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleConfirm}
+              >
+                <Text style={styles.confirmText}>Confirmar</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
@@ -92,17 +103,18 @@ const styles = StyleSheet.create({
   rangeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EDEDED',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     justifyContent: 'space-between',
+    backgroundColor: '#F5F5F5', // Gris claro como en los otros botones
+    borderRadius: 10, // Bordes redondeados para consistencia
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginRight: 5, // Espaciado con el siguiente botón en la fila
   },
   rangeText: {
     fontSize: 14,
-    color: '#000',
+    color: '#333', // Texto en negro para uniformidad
     flex: 1,
-    marginRight: 8,
+    marginRight: 5,
   },
   modalContainer: {
     flex: 1,
@@ -112,9 +124,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: width * 0.9,
-    height: height * 0.6,
+    height: height * 0.5,
     backgroundColor: '#FFF',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 16,
     elevation: 5,
     shadowColor: '#000',
@@ -122,15 +134,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
   calendarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 16,
   },
   confirmButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#FFD700', // Amarillo para consistencia
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
   },
   confirmText: {

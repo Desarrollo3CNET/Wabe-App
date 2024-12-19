@@ -1,22 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateVehicleDetail } from '../../src/contexts/store';
 import Header from '../../src/components/recepcion/Header';
 import CustomInput from '../../src/components/recepcion/CustomInput';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 
 const VehicleDetailsScreen = ({ navigation }) => {
-  const [details, setDetails] = useState({
-    placa: 'LKM-367',
-    modelo: 'Suzuki',
-    estilo: 'Vitara',
-    anio: '2016',
-    fechaIngreso: '25/05/2024',
-    horaIngreso: '12:30 PM',
-    combustible: '3/4',
-  });
+  const dispatch = useDispatch();
+  const details = useSelector((state) => state.vehicleDetails);
 
   const handleUpdate = (key, value) => {
-    setDetails({ ...details, [key]: value });
+    dispatch(updateVehicleDetail({ key, value }));
   };
 
   return (
@@ -96,7 +91,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
       </ScrollView>
 
       <FooterButtons
-        onBack={() => navigation.goBack()}
+        onBack={() => navigation.navigate('Dashboard')}
         onDelete={() => console.log('Eliminar Boleta')}
         onNext={() => navigation.navigate('FirmaScreen')}
       />

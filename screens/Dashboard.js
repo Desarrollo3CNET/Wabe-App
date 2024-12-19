@@ -79,29 +79,42 @@ const Dashboard = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.openDrawer()}
+        >
+          <Ionicons name="arrow-back" size={20} color="#000" />
         </TouchableOpacity>
-
-        <Text style={styles.title}>Lista de citas</Text>
+        <Text style={styles.headerTitle}>Lista de citas</Text>
         <Image source={logo} style={styles.logo} />
       </View>
 
-      <View style={styles.topButtons}>
-        <DateRangeButton onRangeSelect={handleDateRangeSelect} />
+      {/* Fila de botones */}
+      <View style={styles.buttonRow}>
+        {/* Botón de rango de fechas */}
+        <View style={styles.dateRangeContainer}>
+          <DateRangeButton
+            onRangeSelect={(startDate, endDate) =>
+              console.log(`Rango seleccionado: ${startDate} - ${endDate}`)
+            }
+          />
+        </View>
+
+        {/* Botón de Filtrar */}
+        <TouchableOpacity style={styles.filterButton}>
+          <Ionicons name="options-outline" size={20} color="#000" />
+          <Text style={styles.filterText}>Filtrar</Text>
+        </TouchableOpacity>
+
+        {/* Botón de Crear Nueva Cita */}
         <TouchableOpacity style={styles.createButton}>
           <Text style={styles.createButtonText}>Crear nueva cita</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="options" size={20} color="black" />
-          <Text style={styles.filterText}>Filtrar</Text>
-        </TouchableOpacity>
-      </View>
-
+      {/* Scrollable List of Appointments */}
       <ScrollView style={styles.scrollview}>
         {groupedCitas.map(([month, citas]) => (
           <View key={month} style={styles.monthSection}>
@@ -122,70 +135,81 @@ const Dashboard = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingTop: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#FFF',
+  },
+  headerButton: {
+    padding: 10,
+    backgroundColor: '#FFD700',
+    borderRadius: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  dateRangeContainer: {
+    flex: 1, // Ancho igual para todos los botones
+    marginRight: 5, // Espaciado entre el rango de fechas y el botón de filtrar
+  },
+  filterButton: {
+    flex: 1, // Ancho igual para todos los botones
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    backgroundColor: '#FFD700', // Fondo amarillo
+    borderRadius: 10,
+    marginHorizontal: 5, // Espaciado uniforme
+  },
+  filterText: {
+    fontSize: 14,
+    color: '#000',
+    marginLeft: 5,
+    fontWeight: 'bold',
+  },
+  createButton: {
+    flex: 1, // Ancho igual para todos los botones
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    backgroundColor: '#FFD700',
+    borderRadius: 10,
+    marginLeft: 5, // Espaciado entre el botón de filtrar y "Crear nueva cita"
+  },
+  createButtonText: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: 'bold',
+  },
   scrollview: {
     backgroundColor: '#F0F0F0',
     borderRadius: 15,
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  logoPlaceholder: {
-    width: 30,
-    height: 30,
-    backgroundColor: '#ccc',
-    borderRadius: 15,
-  },
-  topButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  createButton: {
-    backgroundColor: '#FFD700',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  createButtonText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: 'bold',
-  },
-  logo: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
-  },
-  filterContainer: {
-    alignItems: 'flex-end',
-    marginBottom: 16,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  filterText: {
-    fontSize: 14,
-    marginLeft: 8,
-    color: '#666',
+    paddingHorizontal: 10,
   },
   monthSection: {
     marginBottom: 20,

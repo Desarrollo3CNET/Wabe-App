@@ -3,12 +3,12 @@ import {
   View,
   Text,
   TextInput,
-  Picker,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import Calendar from '../Calendar';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker'; // Import actualizado
 
 const CustomInput = ({ label, type, value, options, onChange }) => {
   const [showDatePicker, setShowDatePicker] = React.useState(false);
@@ -26,15 +26,17 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
 
       case 'select':
         return (
-          <Picker
-            selectedValue={value}
-            style={styles.input}
-            onValueChange={(itemValue) => onChange(itemValue)}
-          >
-            {options.map((option, index) => (
-              <Picker.Item key={index} label={option} value={option} />
-            ))}
-          </Picker>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={value}
+              style={styles.picker}
+              onValueChange={(itemValue) => onChange(itemValue)}
+            >
+              {options.map((option, index) => (
+                <Picker.Item key={index} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
         );
       case 'date':
         return (
@@ -120,6 +122,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     backgroundColor: '#F2F2F2',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#F2F2F2',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
 });
 
