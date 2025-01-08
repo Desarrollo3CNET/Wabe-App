@@ -23,7 +23,7 @@ const Menu = ({ navigation }) => {
     {
       title: 'Vehículos entregados',
       image: require('../assets/vehículos entregados .png'),
-      route: 'Entregados',
+      route: 'CheckOutScreen',
     },
   ];
 

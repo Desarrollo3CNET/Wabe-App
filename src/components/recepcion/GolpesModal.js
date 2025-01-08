@@ -14,18 +14,27 @@ import {
   setVehicleStyle,
   addPath,
   undoPath,
+  redoPath,
   clearPaths,
   toggleDirty,
-} from '../../../src/contexts/store'; // Importa las acciones correctamente
+} from '../../../src/contexts/store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Svg, { Path } from 'react-native-svg';
+import ZoomBar from '../../components/recepcion/ZoomBar';
 
 const GolpesModal = ({ visible, onClose }) => {
   const dispatch = useDispatch();
-  const { vehicleStyle, paths, isDirty } = useSelector((state) => state.golpes); // Obtener datos desde Redux
-  const [zoom, setZoom] = useState(1); // Manejar zoom localmente
-  const [isDrawing, setIsDrawing] = useState(false); // Activar dibujo localmente
-  const currentPath = useRef(''); // Referencia para trazar caminos
+  const { vehicleStyle, isDirty, paths, undonePaths } = useSelector(
+    (state) => state.golpes,
+  );
+  const [zoom, setZoom] = useState(1);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [localPath, setLocalPath] = useState('');
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [isPanning, setIsPanning] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
 
   const images = {
     Sedán: require('../../../assets/Planos Sedán.png'),
@@ -40,35 +49,36 @@ const GolpesModal = ({ visible, onClose }) => {
   const handleStart = (x, y) => {
     if (!isDrawing) return;
     const startPoint = `M ${x},${y}`;
-    currentPath.current = startPoint;
-    dispatch(addPath(startPoint));
+    setLocalPath(startPoint);
   };
 
   const handleMove = (x, y) => {
-    if (!isDrawing) return;
+    if (!isDrawing || !localPath) return;
     const newPoint = `L ${x},${y}`;
-    currentPath.current += ` ${newPoint}`;
-    dispatch(addPath(currentPath.current));
+    setLocalPath((prevPath) => `${prevPath} ${newPoint}`);
   };
 
   const handleEnd = () => {
-    currentPath.current = '';
+    if (localPath) {
+      dispatch(addPath(localPath));
+      setLocalPath('');
+    }
   };
 
   const handleUndo = () => {
-    dispatch(undoPath());
+    if (paths.length > 0) {
+      dispatch(undoPath());
+    }
+  };
+
+  const handleRedo = () => {
+    if (undonePaths && undonePaths.length > 0) {
+      dispatch(redoPath());
+    }
   };
 
   const handleClear = () => {
     dispatch(clearPaths());
-  };
-
-  const handleZoomIn = () => {
-    setZoom((prevZoom) => Math.min(2, prevZoom + 0.25));
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prevZoom) => Math.max(1, prevZoom - 0.25));
   };
 
   const handleToggleDirty = () => {
@@ -76,24 +86,42 @@ const GolpesModal = ({ visible, onClose }) => {
   };
 
   const handleSave = () => {
-    onClose(); // Cierra el modal
+    onClose();
+  };
+
+  // Desplazamiento (Pan)
+  const handlePanStart = (x, y) => {
+    setIsPanning(true);
+    setStartX(x);
+    setStartY(y);
+  };
+
+  const handlePanMove = (x, y) => {
+    if (isPanning) {
+      const dx = x - startX;
+      const dy = y - startY;
+      setPanX((prevX) => prevX + dx);
+      setPanY((prevY) => prevY + dy);
+      setStartX(x);
+      setStartY(y);
+    }
+  };
+
+  const handlePanEnd = () => {
+    setIsPanning(false);
   };
 
   return (
     <Modal transparent visible={visible} animationType="slide">
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          {/* Header */}
           <View style={styles.headerContainer}>
-            {/* Columna 1: Título */}
             <View style={[styles.headerColumn, styles.titleContainer]}>
               <Text style={styles.title}>Golpes</Text>
               <Text style={styles.subtitle}>
                 Indique los golpes que tenga su vehículo
               </Text>
             </View>
-
-            {/* Columna 2: Selector de estilo */}
             <View style={styles.headerColumn}>
               <Text style={styles.pickerLabel}>Estilo del Vehículo</Text>
               <Picker
@@ -110,8 +138,6 @@ const GolpesModal = ({ visible, onClose }) => {
                 <Picker.Item label="SUV" value="SUV" />
               </Picker>
             </View>
-
-            {/* Columna 3: Toolbar */}
             <View style={styles.headerColumn}>
               <View style={styles.toolbar}>
                 <TouchableOpacity
@@ -119,6 +145,12 @@ const GolpesModal = ({ visible, onClose }) => {
                   onPress={handleUndo}
                 >
                   <Icon name="undo" size={18} color="#000" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.toolButton}
+                  onPress={handleRedo}
+                >
+                  <Icon name="repeat" size={18} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.toolButton}
@@ -136,53 +168,68 @@ const GolpesModal = ({ visible, onClose }) => {
                 >
                   <Icon name="eraser" size={18} color="#000" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.toolButton}
-                  onPress={handleZoomIn}
-                >
-                  <Icon name="search-plus" size={18} color="#000" />
-                </TouchableOpacity>
               </View>
             </View>
-
-            {/* Botón para cerrar */}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Icon name="close" size={18} color="#000" />
             </TouchableOpacity>
           </View>
 
-          {/* Canvas */}
           <View style={styles.canvasContainer}>
             <Image
               source={images[vehicleStyle]}
               style={[styles.vehicleImage, { transform: [{ scale: zoom }] }]}
               resizeMode="contain"
             />
-            <Svg style={styles.canvas}>
+            <Svg
+              style={styles.canvas}
+              transform={`translate(${panX}, ${panY}) scale(${zoom})`}
+            >
               {paths.map((path, index) => (
                 <Path
-                  key={index}
+                  key={`path-${index}`}
                   d={path}
                   stroke="yellow"
                   strokeWidth={4}
                   fill="none"
                 />
               ))}
+
+              {localPath ? (
+                <Path
+                  d={localPath}
+                  stroke="yellow"
+                  strokeWidth={4}
+                  fill="none"
+                />
+              ) : null}
             </Svg>
             <View
               style={styles.canvasTouchArea}
               onStartShouldSetResponder={() => true}
-              onResponderGrant={(e) =>
-                handleStart(e.nativeEvent.locationX, e.nativeEvent.locationY)
-              }
-              onResponderMove={(e) =>
-                handleMove(e.nativeEvent.locationX, e.nativeEvent.locationY)
-              }
+              onResponderGrant={(e) => {
+                if (isDrawing) {
+                  handleStart(e.nativeEvent.locationX, e.nativeEvent.locationY);
+                } else {
+                  handlePanStart(
+                    e.nativeEvent.locationX,
+                    e.nativeEvent.locationY,
+                  );
+                }
+              }}
+              onResponderMove={(e) => {
+                if (isDrawing) {
+                  handleMove(e.nativeEvent.locationX, e.nativeEvent.locationY);
+                } else {
+                  handlePanMove(e.nativeEvent.deltaX, e.nativeEvent.deltaY);
+                }
+              }}
               onResponderRelease={handleEnd}
+              onResponderTerminate={handlePanEnd}
             />
           </View>
+          <ZoomBar zoom={zoom} setZoom={setZoom} />
 
-          {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.switchContainer}>
               <Switch value={isDirty} onValueChange={handleToggleDirty} />

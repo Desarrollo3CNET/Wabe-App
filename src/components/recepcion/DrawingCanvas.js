@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,33 +7,50 @@ import {
   Text,
   Platform,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Svg, { Path } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const DrawingCanvas = ({ visible, onCancel, onSave }) => {
+  // State for paths (drawing strokes)
   const [paths, setPaths] = useState([]);
   const currentPath = useRef('');
 
+  // Retrieve the saved signature from Redux
+  const savedSignature = useSelector((state) => state.firma.firma);
+
+  // Load the saved signature into the canvas when the modal opens
+  useEffect(() => {
+    if (visible && savedSignature) {
+      setPaths(savedSignature);
+    }
+  }, [visible, savedSignature]);
+
+  // Start a new path when the user touches the canvas
   const handleStart = (x, y) => {
     const startPoint = `M ${x},${y}`;
     currentPath.current = startPoint;
     setPaths((prevPaths) => [...prevPaths, startPoint]);
   };
 
+  // Continue the path as the user moves their finger
   const handleMove = (x, y) => {
     const newPoint = `L ${x},${y}`;
     currentPath.current += ` ${newPoint}`;
     setPaths((prevPaths) => [...prevPaths.slice(0, -1), currentPath.current]);
   };
 
+  // Finish the path when the user lifts their finger
   const handleEnd = () => {
     currentPath.current = '';
   };
 
+  // Clear the canvas
   const handleClear = () => {
     setPaths([]);
   };
 
+  // Save the signature and close the modal
   const handleSave = () => {
     onSave(paths);
     onCancel();
@@ -48,7 +65,9 @@ const DrawingCanvas = ({ visible, onCancel, onSave }) => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Dibuja aquí</Text>
+          <Text style={styles.modalTitle}>Firme aquí</Text>
+
+          {/* Canvas for drawing */}
           <View
             style={styles.canvasContainer}
             onStartShouldSetResponder={() => true}
@@ -83,11 +102,13 @@ const DrawingCanvas = ({ visible, onCancel, onSave }) => {
             </Svg>
           </View>
 
+          {/* Clear Button */}
           <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
             <Icon name="eraser" size={20} color="#000" />
             <Text style={styles.clearText}>Borrar</Text>
           </TouchableOpacity>
 
+          {/* Footer Buttons */}
           <View style={styles.footer}>
             <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
               <Icon name="arrow-left" size={20} color="#000" />

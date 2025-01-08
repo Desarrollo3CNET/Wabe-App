@@ -77,7 +77,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.row}>
-            <View style={[styles.column, styles.fullWidth]}>
+            <View style={styles.column}>
               <CustomInput
                 label="Combustible"
                 type="select"
@@ -86,6 +86,8 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('combustible', value)}
               />
             </View>
+            <View style={styles.column}></View>
+            <View style={styles.column}></View>
           </View>
         </View>
       </ScrollView>

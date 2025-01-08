@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,34 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import Calendar from '../Calendar';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker'; // Import actualizado
+import { Picker } from '@react-native-picker/picker';
+import DatePicker from 'react-native-date-picker';
+import Calendar from '../Calendar'; // Si usas un componente personalizado para el calendario
 
 const CustomInput = ({ label, type, value, options, onChange }) => {
-  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+
+  // Generar lista de horas cada media hora
+  const generateTimeOptions = () => {
+    const times = [];
+    const start = new Date();
+    start.setHours(8, 0, 0, 0); // 8:00 AM
+    const end = new Date();
+    end.setHours(20, 0, 0, 0); // 8:00 PM
+
+    while (start <= end) {
+      times.push(
+        start.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      );
+      start.setMinutes(start.getMinutes() + 30); // Incrementar por 30 minutos
+    }
+    return times;
+  };
+
+  const timeOptions = generateTimeOptions();
 
   const renderInput = () => {
     switch (type) {
@@ -21,6 +43,8 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
             style={styles.input}
             value={value}
             onChangeText={(text) => onChange(text)}
+            placeholder="Ingresa un valor"
+            placeholderTextColor="#aaa"
           />
         );
 
@@ -29,7 +53,7 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={value}
-              style={styles.picker}
+              style={styles.input}
               onValueChange={(itemValue) => onChange(itemValue)}
             >
               {options.map((option, index) => (
@@ -38,65 +62,51 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
             </Picker>
           </View>
         );
+
       case 'date':
         return (
           <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
+            onPress={() => setIsCalendarVisible(true)}
             style={styles.input}
           >
-            <Text>{value || 'Selecciona una fecha'}</Text>
-            {showDatePicker && (
-              <Calendar
-                currentMonth={new Date()}
-                onDateSelect={(date) => {
-                  setShowDatePicker(false);
-
-                  const formattedDate = new Intl.DateTimeFormat('es-ES', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(date);
-
-                  onChange(formattedDate);
-                }}
-              />
+            <Text style={{ color: value ? '#000' : '#aaa' }}>
+              {value || 'Selecciona una fecha'}
+            </Text>
+            {isCalendarVisible && (
+              <View style={styles.calendarOverlay}>
+                <Calendar
+                  currentMonth={new Date()}
+                  onDateSelect={(date) => {
+                    setIsCalendarVisible(false);
+                    const formattedDate = new Intl.DateTimeFormat('es-ES', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(date);
+                    onChange(formattedDate);
+                  }}
+                />
+              </View>
             )}
           </TouchableOpacity>
         );
+
       case 'time':
         return (
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={styles.input}
-          >
-            <Text>{value || 'Selecciona una hora'}</Text>
-            {showDatePicker && (
-              <DateTimePicker
-                value={value ? new Date(`1970-01-01T${value}:00`) : new Date()}
-                mode="time"
-                is24Hour={true}
-                display="default"
-                onChange={(event, selectedTime) => {
-                  setShowDatePicker(false);
-                  if (selectedTime) {
-                    const formattedTime = selectedTime.toLocaleTimeString(
-                      'es-ES',
-                      {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      },
-                    );
-                    onChange(formattedTime);
-                  }
-                }}
-              />
-            )}
-          </TouchableOpacity>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={value}
+              style={styles.input}
+              onValueChange={(itemValue) => onChange(itemValue)}
+            >
+              {timeOptions.map((option, index) => (
+                <Picker.Item key={index} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
         );
-
-      default:
-        return null;
     }
+    return null;
   };
 
   return (
@@ -112,26 +122,53 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 16,
+    fontWeight: 'bold',
     marginBottom: 5,
+    color: '#333',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    padding: 10,
-    backgroundColor: '#F2F2F2',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFF',
+    fontSize: 14,
+    color: '#000',
+    height: 40,
+    justifyContent: 'center',
   },
   pickerContainer: {
+    justifyContent: 'center',
+  },
+  calendarOverlay: {
+    position: 'absolute',
+    top: 45,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: '#fff',
+    elevation: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    backgroundColor: '#F2F2F2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    padding: 10,
   },
-  picker: {
-    height: 50,
-    width: '100%',
+  confirmButton: {
+    marginTop: 10,
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  confirmText: {
+    fontSize: 14,
+    color: '#FFF',
   },
 });
 

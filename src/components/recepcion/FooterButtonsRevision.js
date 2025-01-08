@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const FooterButtons = ({
+const FooterButtonsRevision = ({
   onBack,
   onDelete,
   onNext,
@@ -21,7 +21,7 @@ const FooterButtons = ({
       {showDelete && (
         <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
           <Icon name="trash" size={20} color="#000" />
-          <Text style={styles.buttonText}>Eliminar Boleta</Text>
+          <Text style={styles.buttonText}>Agregar Artículo +</Text>
         </TouchableOpacity>
       )}
       {showNext && (
@@ -75,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FooterButtons;
+export default FooterButtonsRevision;

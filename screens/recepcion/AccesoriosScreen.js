@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,6 +31,14 @@ const AccesoriosScreen = ({ navigation }) => {
 
   const handleUpdate = (id, estado) => {
     dispatch(updateAccesorio({ id, updates: { estado } }));
+  };
+
+  const handleNext = () => {
+    Alert.alert(
+      'Boleta completada',
+      'Se ha finalizado la revisión correctamente.',
+    );
+    navigation.navigate('Dashboard');
   };
 
   return (
@@ -109,7 +118,7 @@ const AccesoriosScreen = ({ navigation }) => {
       <FooterButtons
         onBack={() => navigation.navigate('VehicleDetailsScreen')}
         onDelete={() => console.log('Eliminar Boleta')}
-        onNext={() => navigation.navigate('FirmaScreen')}
+        onNext={handleNext}
       />
     </View>
   );
