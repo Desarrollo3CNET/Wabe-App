@@ -23,6 +23,149 @@ const appSlice = createSlice({
   },
 });
 
+// Slice para las citas
+const citasSlice = createSlice({
+  name: 'citas',
+  initialState: [
+    {
+      fecha: '2024-09-10',
+      citas: [
+        {
+          nombre: 'Juan Pérez',
+          estado: 'Pendiente',
+          hora: '09 AM - 10 AM',
+          info: 'Cambio de aceite y revisión general.',
+          numero: '12345',
+          sucursal: 'Sucursal A',
+        },
+        {
+          nombre: 'María López',
+          estado: 'En revisión',
+          hora: '11 AM - 12 PM',
+          info: 'Inspección de frenos y alineación.',
+          numero: '67890',
+          sucursal: 'Sucursal B',
+        },
+      ],
+    },
+    {
+      fecha: '2024-09-11',
+      citas: [
+        {
+          nombre: 'Carlos Martínez',
+          estado: 'Entregado',
+          hora: '8 AM - 9 AM',
+          info: 'Reparación de motor.',
+          numero: '11111',
+          sucursal: 'Sucursal A',
+        },
+        {
+          nombre: 'Ana Gómez',
+          estado: 'Programada',
+          hora: '11 AM - 12 PM',
+          info: 'Cambio de llantas.',
+          numero: '22222',
+          sucursal: 'Sucursal C',
+        },
+      ],
+    },
+  ],
+  reducers: {
+    // Reducer para agregar una nueva cita
+    addCita: (state, action) => {
+      const { fecha, nuevaCita } = action.payload;
+      const fechaIndex = state.findIndex((c) => c.fecha === fecha);
+      if (fechaIndex !== -1) {
+        // Si la fecha ya existe, agrega la cita a esa fecha
+        state[fechaIndex].citas.push(nuevaCita);
+      } else {
+        // Si la fecha no existe, crea una nueva entrada con la cita
+        state.push({ fecha, citas: [nuevaCita] });
+      }
+    },
+    // Reducer para eliminar una cita por número
+    removeCita: (state, action) => {
+      const { fecha, numero } = action.payload;
+      const fechaIndex = state.findIndex((c) => c.fecha === fecha);
+      if (fechaIndex !== -1) {
+        state[fechaIndex].citas = state[fechaIndex].citas.filter(
+          (cita) => cita.numero !== numero,
+        );
+      }
+    },
+  },
+});
+
+// Slice para las citas de check out
+const citasCheckOutSlice = createSlice({
+  name: 'citasCheckOut',
+  initialState: [
+    {
+      id: '1',
+      placa: 'B834620',
+      cliente: 'SERVICIO DE VIAJEROS SUIZA',
+      fechaIngreso: '22-11-2024 10:41 a. m.',
+    },
+    {
+      id: '2',
+      placa: 'C123456',
+      cliente: 'TRANSPORTES COLOMBIA',
+      fechaIngreso: '21-11-2024 03:52 p. m.',
+    },
+    {
+      id: '3',
+      placa: 'D789012',
+      cliente: 'TURISMO EXPRESS',
+      fechaIngreso: '20-11-2024 08:30 a. m.',
+    },
+  ],
+  reducers: {
+    // Reducer para agregar una nueva cita
+    addCitaCheckOut: (state, action) => {
+      state.push(action.payload);
+    },
+    // Reducer para eliminar una cita por id
+    removeCitaCheckOut: (state, action) => {
+      return state.filter((item) => item.id !== action.payload);
+    },
+  },
+});
+
+// Slice para las citas completadas
+const citasCompletadasSlice = createSlice({
+  name: 'citasCompletadas',
+  initialState: [
+    {
+      id: '1',
+      placa: 'B834620',
+      cliente: 'SERVICIO DE VIAJEROS SUIZA',
+      fechaIngreso: '22-11-2024 10:41 a. m.',
+    },
+    {
+      id: '2',
+      placa: 'C123456',
+      cliente: 'TRANSPORTES COLOMBIA PRUEBA',
+      fechaIngreso: '21-11-2024 03:52 p. m.',
+    },
+    {
+      id: '3',
+      placa: 'D789012',
+      cliente: 'TURISMO EXPRESS',
+      fechaIngreso: '20-11-2024 08:30 a. m.',
+    },
+  ],
+  reducers: {
+    // Reducer para agregar una nueva cita
+    addCita: (state, action) => {
+      state.push(action.payload);
+    },
+    // Reducer para eliminar una cita por id
+    removeCita: (state, action) => {
+      return state.filter((item) => item.id !== action.payload);
+    },
+  },
+});
+
 // Slice para los detalles del vehículo
 const vehicleDetailsSlice = createSlice({
   name: 'vehicleDetails',
@@ -34,6 +177,7 @@ const vehicleDetailsSlice = createSlice({
     fechaIngreso: '',
     horaIngreso: '',
     combustible: '',
+    kilometraje: '',
   },
   reducers: {
     updateVehicleDetail: (state, action) => {
@@ -136,6 +280,7 @@ const accesoriosSlice = createSlice({
       habilitado: false,
       infoVisible: false,
       estado: 'Regular',
+      marca: 'Sony', // Only this property
     },
     {
       id: 2,
@@ -143,13 +288,15 @@ const accesoriosSlice = createSlice({
       habilitado: false,
       infoVisible: false,
       estado: 'Regular',
+      descripcion: 'Gata hidráulica para autos', // Only this property
     },
     {
       id: 3,
       nombre: 'Llave de ranas',
       habilitado: true,
       infoVisible: true,
-      estado: 'Bueno',
+      estado: '',
+      cantidad: 2, // Only this property
     },
     {
       id: 4,
@@ -157,6 +304,8 @@ const accesoriosSlice = createSlice({
       habilitado: false,
       infoVisible: false,
       estado: 'Malo',
+      marca: 'Duracell',
+      descripcion: 'Kit básico con linterna',
     },
     {
       id: 5,
@@ -164,6 +313,8 @@ const accesoriosSlice = createSlice({
       habilitado: false,
       infoVisible: false,
       estado: 'Regular',
+      marca: 'Goodyear',
+      cantidad: 1,
     },
     {
       id: 6,
@@ -171,6 +322,8 @@ const accesoriosSlice = createSlice({
       habilitado: true,
       infoVisible: false,
       estado: 'Regular',
+      descripcion: 'Cierre automático para puertas',
+      cantidad: 4,
     },
   ],
   reducers: {
@@ -181,8 +334,20 @@ const accesoriosSlice = createSlice({
         habilitado = false,
         infoVisible = false,
         estado = 'Regular',
+        marca,
+        descripcion,
+        cantidad,
       } = action.payload;
-      state.push({ id, nombre, habilitado, infoVisible, estado });
+      state.push({
+        id,
+        nombre,
+        habilitado,
+        infoVisible,
+        estado,
+        marca,
+        descripcion,
+        cantidad,
+      });
     },
     updateAccesorio: (state, action) => {
       const { id, updates } = action.payload;
@@ -210,7 +375,7 @@ const accesoriosSlice = createSlice({
   },
 });
 
-// Slice para la revisión de suspensión
+// Slice para la revisión de suspensión delantera
 const suspensionReviewSlice = createSlice({
   name: 'suspensionReview',
   initialState: {
@@ -218,50 +383,79 @@ const suspensionReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Amortiguador',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 2,
         nombre: 'Galleta',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 3,
         nombre: 'Resorte',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // Este componente es parte de la sección general
       },
       {
         id: 4,
         nombre: 'Hule de Tope',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 5,
         nombre: 'Tijereta Sup',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
         nombre: 'Tijereta Inf',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 7,
         nombre: 'Rótula Suspensión Sup',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 8,
         nombre: 'Rótula Suspensión Inf',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
+      },
+      {
+        id: 9,
+        nombre: 'Hules Estab. Punta',
+        estadoGeneral: '', // Componente general
+      },
+      {
+        id: 10,
+        nombre: 'Hules Estab. Centro',
+        estadoGeneral: '', // Componente general
+      },
+      {
+        id: 11,
+        nombre: 'Soporte de Cremallera',
+        estadoGeneral: '', // Componente general
+      },
+      {
+        id: 12,
+        nombre: 'Bujes Tensoras Sup',
+        estadoGeneral: '', // Componente general
+      },
+      {
+        id: 13,
+        nombre: 'Buje Tensora Inf',
+        estadoGeneral: '', // Componente general
+      },
+      {
+        id: 14,
+        nombre: 'Soportes Chasis',
+        estadoGeneral: '', // Componente general
       },
     ],
   },
@@ -269,9 +463,15 @@ const suspensionReviewSlice = createSlice({
     updateSuspensionItem: (state, action) => {
       const { id, side, status } = action.payload;
       const item = state.items.find((item) => item.id === id);
+
       if (item) {
-        if (side === 'derecha') item.estadoDerecha = status;
-        else if (side === 'izquierda') item.estadoIzquierda = status;
+        if (side === 'derecha') {
+          item.estadoDerecha = status;
+        } else if (side === 'izquierda') {
+          item.estadoIzquierda = status;
+        } else if (side === 'general') {
+          item.estadoGeneral = status;
+        }
       }
     },
   },
@@ -285,50 +485,53 @@ const suspensionBackReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Amortiguador Trasero',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 2,
         nombre: 'Galleta Trasera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 3,
         nombre: 'Resorte Trasero',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 4,
         nombre: 'Hule de Tope Trasero',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 5,
         nombre: 'Tijereta Sup Trasera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
         nombre: 'Tijereta Inf Trasera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 7,
         nombre: 'Rótula Suspensión Sup Trasera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 8,
         nombre: 'Rótula Suspensión Inf Trasera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
+      },
+      {
+        id: 9,
+        nombre: 'Hules Estab. Punta Trasera',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -339,6 +542,7 @@ const suspensionBackReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
       }
     },
   },
@@ -352,80 +556,75 @@ const frenosReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Pastillas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 2,
         nombre: 'Discos',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 3,
         nombre: 'Pin de Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 4,
         nombre: 'Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 5,
         nombre: 'Empaque de Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
         nombre: 'Mantenimiento Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 7,
         nombre: 'Tubería',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 8,
         nombre: 'Manguera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 9,
         nombre: 'Fitting',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 10,
         nombre: 'Seguros',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 11,
         nombre: 'Zapatas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 12,
         nombre: 'Tambor',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 13,
         nombre: 'Resortes de Zapata',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -436,6 +635,7 @@ const frenosReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
       }
     },
   },
@@ -449,80 +649,75 @@ const frenosBackReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Pastillas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 2,
         nombre: 'Discos',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 3,
         nombre: 'Pin de Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 4,
         nombre: 'Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 5,
         nombre: 'Empaque de Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
         nombre: 'Mantenimiento Caliper',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 7,
         nombre: 'Tubería',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 8,
         nombre: 'Manguera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 9,
         nombre: 'Fitting',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 10,
         nombre: 'Seguros',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 11,
         nombre: 'Zapatas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 12,
         nombre: 'Tambor',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 13,
         nombre: 'Resortes de Zapata',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -533,11 +728,13 @@ const frenosBackReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
       }
     },
   },
 });
 
+// Slice para la revisión de rodamientos
 const rodamientosReviewSlice = createSlice({
   name: 'rodamientosReview',
   initialState: {
@@ -545,68 +742,63 @@ const rodamientosReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Punta Hom. Int',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 2,
         nombre: 'Punta Hom. Ext',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 3,
         nombre: 'Bota Int',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 4,
         nombre: 'Bota Ext',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 5,
         nombre: 'Cruceta Int.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
-        nombre: 'Gazas Int.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        nombre: 'Gazas Int',
+        estadoGeneral: '', // General component
       },
       {
         id: 7,
-        nombre: 'Gazas Ext.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        nombre: 'Gazas Ext',
+        estadoGeneral: '', // General component
       },
       {
         id: 8,
         nombre: 'Grasas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 9,
         nombre: 'Rodamiento',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 10,
         nombre: 'Seguros',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 11,
         nombre: 'Tuerca',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -617,11 +809,13 @@ const rodamientosReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
       }
     },
   },
 });
 
+// Slice para la revisión de rodamientos traseros
 const rodamientosBackReviewSlice = createSlice({
   name: 'rodamientosBackReview',
   initialState: {
@@ -629,68 +823,63 @@ const rodamientosBackReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Punta Hom. Int',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 2,
         nombre: 'Punta Hom. Ext',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 3,
         nombre: 'Bota Int',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 4,
         nombre: 'Bota Ext',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 5,
         nombre: 'Cruceta Int.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 6,
-        nombre: 'Gazas Int.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        nombre: 'Gazas Int',
+        estadoGeneral: '', // General component
       },
       {
         id: 7,
-        nombre: 'Gazas Ext.',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        nombre: 'Gazas Ext',
+        estadoGeneral: '', // General component
       },
       {
         id: 8,
         nombre: 'Grasas',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 9,
         nombre: 'Rodamiento',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 10,
         nombre: 'Seguros',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 11,
         nombre: 'Tuerca',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -701,11 +890,13 @@ const rodamientosBackReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
       }
     },
   },
 });
 
+// Slice para la revisión de dirección
 const direccionReviewSlice = createSlice({
   name: 'direccionReview',
   initialState: {
@@ -713,56 +904,50 @@ const direccionReviewSlice = createSlice({
       {
         id: 1,
         nombre: 'Cremallera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 2,
         nombre: 'Caja de Dirección',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 3,
         nombre: 'Rótulas Ext',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 4,
         nombre: 'Brazo Pitman',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 5,
         nombre: 'Brazo Auxiliar',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 6,
         nombre: 'Bujes Brazo Pitman',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 7,
         nombre: 'Bujes Brazo Auxiliar',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoDerecha: '',
+        estadoIzquierda: '',
       },
       {
         id: 8,
         nombre: 'Barra Central',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
       {
         id: 9,
         nombre: 'Buje Cremallera',
-        estadoDerecha: 'Bueno',
-        estadoIzquierda: 'Bueno',
+        estadoGeneral: '', // General component
       },
     ],
   },
@@ -773,6 +958,91 @@ const direccionReviewSlice = createSlice({
       if (item) {
         if (side === 'derecha') item.estadoDerecha = status;
         else if (side === 'izquierda') item.estadoIzquierda = status;
+        else if (side === 'general') item.estadoGeneral = status;
+      }
+    },
+  },
+});
+
+const extrasReviewSlice = createSlice({
+  name: 'extrasReview',
+  initialState: {
+    items: [
+      // Servicios Section
+      {
+        id: 1,
+        nombre: 'Cambio Líquido Frenos',
+        section: 'Servicios',
+        estado: '',
+      },
+      { id: 2, nombre: 'Cambio Aceite', section: 'Servicios', estado: '' },
+      {
+        id: 3,
+        nombre: 'Dir Hidráulica',
+        section: 'Servicios',
+        estado: '',
+      },
+      { id: 4, nombre: 'Escobillas', section: 'Servicios', estado: '' },
+
+      // Acondicionamiento Exterior Section
+      {
+        id: 5,
+        nombre: 'Luz Baja Derecha',
+        section: 'Acondicionamiento Exterior',
+        estado: '',
+      },
+      {
+        id: 6,
+        nombre: 'Luz Alta Izquierda',
+        section: 'Acondicionamiento Exterior',
+        estado: '',
+      },
+      {
+        id: 7,
+        nombre: 'Direccional del Derecho',
+        section: 'Acondicionamiento Exterior',
+        estado: '',
+      },
+      {
+        id: 8,
+        nombre: 'Direccional del Izquierdo',
+        section: 'Acondicionamiento Exterior',
+        estado: '',
+      },
+    ],
+  },
+  reducers: {
+    updateExtrasItem: (state, action) => {
+      const { id, status } = action.payload;
+      const item = state.items.find((item) => item.id === id);
+      if (item) {
+        item.estado = status;
+      }
+    },
+  },
+});
+
+const articuloGenericoSlice = createSlice({
+  name: 'articulosGenericos',
+  initialState: {
+    s: [],
+    malos: [],
+  },
+  reducers: {
+    agregarArticulo: (state, action) => {
+      const { nombre, estado } = action.payload;
+      if (estado === '') {
+        state.s.push(nombre);
+      } else if (estado === 'Malo') {
+        state.malos.push(nombre);
+      }
+    },
+    eliminarArticulo: (state, action) => {
+      const { nombre, estado } = action.payload;
+      if (estado === '') {
+        state.s = state.s.filter((articulo) => articulo !== nombre);
+      } else if (estado === 'Malo') {
+        state.malos = state.malos.filter((articulo) => articulo !== nombre);
       }
     },
   },
@@ -804,18 +1074,18 @@ export const {
 } = golpesSlice.actions;
 
 export const { updateSuspensionItem } = suspensionReviewSlice.actions;
-
 export const { updateSuspensionBackItem } = suspensionBackReviewSlice.actions;
-
 export const { updateFrenosItem } = frenosReviewSlice.actions;
-
 export const { updateFrenosBackItem } = frenosBackReviewSlice.actions;
-
 export const { updateRodamientosItem } = rodamientosReviewSlice.actions;
-
 export const { updateRodamientosBackItem } = rodamientosBackReviewSlice.actions;
-
 export const { updateDireccionItem } = direccionReviewSlice.actions;
+export const { updateExtrasItem } = extrasReviewSlice.actions;
+export const { agregarArticulo, eliminarArticulo } =
+  articuloGenericoSlice.actions;
+export const { addCitaCheckOut, removeCitaCheckOut } =
+  citasCheckOutSlice.actions;
+export const { addCita, removeCita } = citasSlice.actions;
 
 // Configuración del store
 const store = configureStore({
@@ -833,6 +1103,11 @@ const store = configureStore({
     rodamientosReview: rodamientosReviewSlice.reducer,
     rodamientosBackReview: rodamientosBackReviewSlice.reducer,
     direccionReview: direccionReviewSlice.reducer,
+    extrasReview: extrasReviewSlice.reducer,
+    articulosGenericos: articuloGenericoSlice.reducer,
+    citasCheckOut: citasCheckOutSlice.reducer,
+    citasCompletadas: citasCompletadasSlice.reducer,
+    citas: citasSlice.reducer,
   },
 });
 

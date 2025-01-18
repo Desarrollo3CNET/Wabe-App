@@ -1,81 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   StyleSheet,
   Dimensions,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
 import AppointmentCard from '../src/components/AppointmentCard';
-import DateRangeButton from '../src/components/DateRangeButton';
+import FilterModal from '../src/components/FilterModal';
 
 const Dashboard = ({ navigation }) => {
+  const citas = useSelector((state) => state.citas); // Obtén las citas desde el slice
   const [filteredCitas, setFilteredCitas] = useState([]);
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(null);
   const logo = require('../assets/logo.png');
 
-  const citas = [
-    {
-      fecha: '2024-09-10',
-      citas: [
-        {
-          nombre: 'Nombre usuario',
-          estado: 'Estado',
-          hora: '09 AM - 10 AM',
-          info: 'Información necesaria del vehículo',
-        },
-        {
-          nombre: 'Nombre usuario',
-          estado: 'En revisión',
-          hora: '11 AM - 12 PM',
-          info: 'Información necesaria del vehículo',
-        },
-      ],
-    },
-    {
-      fecha: '2024-09-11',
-      citas: [
-        {
-          nombre: 'Nombre usuario',
-          estado: 'Entregado',
-          hora: '8 AM - 9 AM',
-          info: 'Información necesaria del vehículo',
-        },
-        {
-          nombre: 'Nombre usuario',
-          estado: 'Programada',
-          hora: '11 AM - 12 PM',
-          info: 'Información necesaria del vehículo',
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    // Inicializa el estado filtrado con todas las citas desde el slice
+    setFilteredCitas(citas);
+  }, [citas]);
 
-  const handleDateRangeSelect = (startDate, endDate) => {
-    const filtered = citas.filter((cita) => {
-      const citaDate = new Date(cita.fecha);
-      return citaDate >= startDate && citaDate <= endDate;
-    });
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filtered = citas
+      .map((cita) => ({
+        ...cita,
+        citas: cita.citas.filter((c) => c.numero.includes(query)),
+      }))
+      .filter((cita) => cita.citas.length > 0);
     setFilteredCitas(filtered);
   };
 
-  const groupByMonth = (data) => {
-    const grouped = data.reduce((acc, cita) => {
-      const month = new Date(cita.fecha).toLocaleDateString('es-ES', {
-        month: 'long',
-      });
-      if (!acc[month]) acc[month] = [];
-      acc[month].push(cita);
-      return acc;
-    }, {});
-    return Object.entries(grouped);
-  };
+  const handleApplyFilters = (filters) => {
+    const { startDate, endDate, estado, sucursal } = filters;
 
-  const groupedCitas = groupByMonth(
-    filteredCitas.length > 0 ? filteredCitas : citas,
-  );
+    const filtered = citas.filter((cita) => {
+      const citaDate = new Date(cita.fecha);
+      const matchesDate =
+        (!startDate || citaDate >= new Date(startDate)) &&
+        (!endDate || citaDate <= new Date(endDate));
+      const matchesEstado =
+        estado === 'Todos' || cita.citas.some((c) => c.estado === estado);
+      const matchesSucursal =
+        !sucursal ||
+        cita.citas.some(
+          (c) => c.sucursal.toLowerCase() === sucursal.toLowerCase(),
+        );
+
+      return matchesDate && (matchesEstado || matchesSucursal);
+    });
+
+    setFilteredCitas(filtered);
+  };
 
   return (
     <View style={styles.container}>
@@ -93,17 +75,28 @@ const Dashboard = ({ navigation }) => {
 
       {/* Fila de botones */}
       <View style={styles.buttonRow}>
-        {/* Botón de rango de fechas */}
-        <View style={styles.dateRangeContainer}>
-          <DateRangeButton
-            onRangeSelect={(startDate, endDate) =>
-              console.log(`Rango seleccionado: ${startDate} - ${endDate}`)
-            }
+        {/* Barra de búsqueda */}
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#999"
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar por número de cita"
+            placeholderTextColor="#aaa"
+            value={searchQuery}
+            onChangeText={handleSearch}
           />
         </View>
 
         {/* Botón de Filtrar */}
-        <TouchableOpacity style={styles.filterButton}>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setFilterModalVisible(true)}
+        >
           <Ionicons name="options-outline" size={20} color="#000" />
           <Text style={styles.filterText}>Filtrar</Text>
         </TouchableOpacity>
@@ -116,20 +109,21 @@ const Dashboard = ({ navigation }) => {
 
       {/* Scrollable List of Appointments */}
       <ScrollView style={styles.scrollview}>
-        {groupedCitas.map(([month, citas]) => (
-          <View key={month} style={styles.monthSection}>
-            <Text style={styles.monthHeader}>{month.toUpperCase()}</Text>
-            {citas.map((cita, index) => (
-              <View key={index} style={styles.daySection}>
-                <Text style={styles.dayBullet}>
-                  {new Date(cita.fecha).getDate()}
-                </Text>
-                <AppointmentCard fecha={cita.fecha} citas={cita.citas} />
-              </View>
-            ))}
-          </View>
+        {filteredCitas.map((cita) => (
+          <AppointmentCard
+            key={cita.fecha}
+            fecha={cita.fecha}
+            citas={cita.citas}
+          />
         ))}
       </ScrollView>
+
+      {/* Modal de filtros */}
+      <FilterModal
+        visible={isFilterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        onApplyFilters={handleApplyFilters}
+      />
     </View>
   );
 };
@@ -165,23 +159,36 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 10,
   },
-  dateRangeContainer: {
-    flex: 1, // Ancho igual para todos los botones
-    marginRight: 5, // Espaciado entre el rango de fechas y el botón de filtrar
+  searchContainer: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginRight: 5,
+  },
+  searchIcon: {
+    marginRight: 5,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    paddingVertical: 10,
   },
   filterButton: {
-    flex: 1, // Ancho igual para todos los botones
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
-    backgroundColor: '#FFD700', // Fondo amarillo
+    backgroundColor: '#FFD700',
     borderRadius: 10,
-    marginHorizontal: 5, // Espaciado uniforme
+    marginHorizontal: 5,
   },
   filterText: {
     fontSize: 14,
@@ -190,13 +197,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   createButton: {
-    flex: 1, // Ancho igual para todos los botones
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
     backgroundColor: '#FFD700',
     borderRadius: 10,
-    marginLeft: 5, // Espaciado entre el botón de filtrar y "Crear nueva cita"
+    marginLeft: 5,
   },
   createButtonText: {
     fontSize: 14,
@@ -210,27 +217,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'stretch',
     paddingHorizontal: 10,
-  },
-  monthSection: {
-    marginBottom: 20,
-  },
-  monthHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
-  },
-  daySection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  dayBullet: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    width: 40,
-    textAlign: 'center',
   },
 });
 

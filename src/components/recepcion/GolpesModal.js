@@ -112,7 +112,7 @@ const GolpesModal = ({ visible, onClose }) => {
   };
 
   return (
-    <Modal transparent visible={visible} animationType="slide">
+    <Modal transparent visible={visible}>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <View style={styles.headerContainer}>

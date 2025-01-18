@@ -6,12 +6,39 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import Header from '../src/components/recepcion/Header';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Header from '../../src/components/recepcion/Header';
+import FooterButtons from '../../src/components/recepcion/FooterButtons';
 
-const DeliveryScreen = ({ navigation }) => {
-  const handleNext = () => {
-    navigation.navigate('CheckOutScreen'); // Cambia esto según la pantalla destino
+const BoletaScreen = ({ navigation, route }) => {
+  const { fromScreen } = route.params || {};
+
+  const renderFooterButtons = () => {
+    switch (fromScreen) {
+      case 'CheckOutScreen':
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('CheckOutScreen')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+      case 'EntregaScreen':
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('EntregaScreen')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+      default:
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('Dashboard')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+    }
   };
 
   return (
@@ -20,12 +47,13 @@ const DeliveryScreen = ({ navigation }) => {
       <Header title="Boleta" />
 
       {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.boletaContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.contentContainer}>
           <Text style={styles.sectionTitle}>Boleta</Text>
 
-          {/* Left Section */}
+          {/* Row Content */}
           <View style={styles.row}>
+            {/* Left Section */}
             <View style={styles.leftSection}>
               <Text style={styles.label}>Nombre</Text>
               <Text style={styles.value}>SERVICIO DE VIAJEROS SUIZA</Text>
@@ -50,25 +78,12 @@ const DeliveryScreen = ({ navigation }) => {
               <Text style={styles.value}>Artículo 2</Text>
               <Text style={styles.value}>Artículo 3</Text>
               <Text style={styles.value}>Artículo 4</Text>
-
-              <Text style={[styles.label, { marginTop: 20 }]}>Documentos</Text>
-              <View style={styles.documentRow}>
-                <Icon name="file-pdf-o" size={24} color="#FF6347" />
-                <Text style={styles.documentText}>Doc_1...PDF</Text>
-              </View>
-              <View style={styles.documentRow}>
-                <Icon name="file-word-o" size={24} color="#1E90FF" />
-                <Text style={styles.documentText}>Doc_2...docx</Text>
-              </View>
             </View>
           </View>
         </View>
       </ScrollView>
 
-      {/* Next Button */}
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>Siguiente ➡</Text>
-      </TouchableOpacity>
+      {renderFooterButtons()}
     </View>
   );
 };
@@ -78,32 +93,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333',
   },
-  content: {
+  scrollContent: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#F5F5F5',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    padding: 10, // Margen general del ScrollView
   },
-  boletaContainer: {
+  contentContainer: {
     backgroundColor: '#FFF',
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 20,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    marginVertical: 15, // Espaciado vertical entre el Header y Footer
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15,
     color: '#000',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 15,
   },
   leftSection: {
     flex: 1,
@@ -124,23 +134,13 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
-  documentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  documentText: {
-    fontSize: 14,
-    color: '#555',
-    marginLeft: 10,
-  },
   nextButton: {
     backgroundColor: '#FFD700',
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 20,
-    marginBottom: 20,
+    marginHorizontal: 10, // Ajuste horizontal
+    marginBottom: 10, // Espaciado inferior con el borde
     borderRadius: 10,
   },
   nextButtonText: {
@@ -150,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DeliveryScreen;
+export default BoletaScreen;

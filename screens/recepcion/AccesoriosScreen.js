@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   Text,
   TouchableOpacity,
+  TextInput,
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -13,13 +14,15 @@ import {
   toggleAccesorio,
   toggleInfo,
   updateAccesorio,
-} from '../../src/contexts/store'; // Asegúrate de importar correctamente tus acciones
+} from '../../src/contexts/store';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
+import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
 const AccesoriosScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const accesorios = useSelector((state) => state.accesorios); // Obtener accesorios desde Redux
+  const accesorios = useSelector((state) => state.accesorios);
+  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const handleToggleInfo = (id) => {
     dispatch(toggleInfo(id));
@@ -29,16 +32,16 @@ const AccesoriosScreen = ({ navigation }) => {
     dispatch(toggleAccesorio(id));
   };
 
-  const handleUpdate = (id, estado) => {
-    dispatch(updateAccesorio({ id, updates: { estado } }));
+  const handleUpdate = (id, key, value) => {
+    dispatch(updateAccesorio({ id, updates: { [key]: value } }));
   };
 
   const handleNext = () => {
     Alert.alert(
       'Boleta completada',
-      'Se ha finalizado la revisión correctamente.',
+      'Se ha finalizado la boleta correctamente.',
     );
-    navigation.navigate('Dashboard');
+    navigation.navigate('CheckOutScreen');
   };
 
   return (
@@ -47,14 +50,9 @@ const AccesoriosScreen = ({ navigation }) => {
 
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.searchContainer}>
-            <Text style={styles.searchInput}>Buscar un accesorio</Text>
-          </View>
-
           {accesorios.map((accesorio) => (
             <View key={accesorio.id} style={styles.rowContainer}>
               <View style={styles.row}>
-                {/* Switch */}
                 <TouchableOpacity
                   style={[
                     styles.switchContainer,
@@ -69,45 +67,77 @@ const AccesoriosScreen = ({ navigation }) => {
                     ]}
                   />
                 </TouchableOpacity>
-
-                {/* Nombre del accesorio */}
                 <Text style={styles.accesorioName}>{accesorio.nombre}</Text>
-
-                {/* Botón Información */}
                 {accesorio.habilitado && (
                   <TouchableOpacity
                     style={styles.infoButton}
                     onPress={() => handleToggleInfo(accesorio.id)}
                   >
                     <Text style={styles.infoButtonText}>Información</Text>
-                    <View style={styles.infoIcon}>
-                      <Text style={styles.iconText}>
-                        {accesorio.infoVisible ? '-' : '+'}
-                      </Text>
-                    </View>
                   </TouchableOpacity>
                 )}
               </View>
 
-              {/* Acordeón para información */}
               {accesorio.infoVisible && (
                 <View style={styles.infoContainer}>
+                  {/* Estado */}
                   <View style={styles.infoField}>
-                    <Text style={styles.infoLabel}>Estado del accesorio</Text>
-                    <View style={styles.selectorContainer}>
-                      <Picker
-                        selectedValue={accesorio.estado}
-                        onValueChange={(value) =>
-                          handleUpdate(accesorio.id, value)
-                        }
-                        style={styles.picker}
-                      >
-                        <Picker.Item label="Bueno" value="Bueno" />
-                        <Picker.Item label="Regular" value="Regular" />
-                        <Picker.Item label="Malo" value="Malo" />
-                      </Picker>
-                    </View>
+                    <Text style={styles.infoLabel}>Estado</Text>
+                    <Picker
+                      selectedValue={accesorio.estado}
+                      onValueChange={(value) =>
+                        handleUpdate(accesorio.id, 'estado', value)
+                      }
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Bueno" value="Bueno" />
+                      <Picker.Item label="Regular" value="Regular" />
+                      <Picker.Item label="Malo" value="Malo" />
+                    </Picker>
                   </View>
+
+                  {/* Marca */}
+                  {accesorio.marca && (
+                    <View style={styles.infoField}>
+                      <Text style={styles.infoLabel}>Marca</Text>
+                      <TextInput
+                        style={styles.newInput}
+                        value={accesorio.marca}
+                        onChangeText={(value) =>
+                          handleUpdate(accesorio.id, 'marca', value)
+                        }
+                      />
+                    </View>
+                  )}
+
+                  {/* Descripcion */}
+                  {accesorio.descripcion && (
+                    <View style={styles.infoField}>
+                      <Text style={styles.infoLabel}>Descripción</Text>
+                      <TextInput
+                        style={styles.newInput}
+                        value={accesorio.descripcion}
+                        onChangeText={(value) =>
+                          handleUpdate(accesorio.id, 'descripcion', value)
+                        }
+                      />
+                    </View>
+                  )}
+
+                  {/* Cantidad */}
+                  {accesorio.cantidad !== undefined && (
+                    <View style={styles.infoField}>
+                      <Text style={styles.infoLabel}>Cantidad</Text>
+                      <TextInput
+                        style={styles.newInput}
+                        value={String(accesorio.cantidad)}
+                        keyboardType="numeric"
+                        onChangeText={(value) =>
+                          handleUpdate(accesorio.id, 'cantidad', Number(value))
+                        }
+                      />
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -116,9 +146,19 @@ const AccesoriosScreen = ({ navigation }) => {
       </View>
 
       <FooterButtons
-        onBack={() => navigation.navigate('VehicleDetailsScreen')}
-        onDelete={() => console.log('Eliminar Boleta')}
+        onBack={() =>
+          navigation.navigate('PhotosAndVideosScreen', {
+            fromScreen: 'AccesoriosScreen',
+          })
+        }
+        onDelete={() => setmodalVisibleBoleta(true)}
         onNext={handleNext}
+      />
+
+      <CancelBoletaModal
+        visible={modalVisibleBoleta}
+        onClose={() => setmodalVisibleBoleta(false)}
+        navigation={navigation}
       />
     </View>
   );
@@ -140,15 +180,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  searchContainer: {
-    marginBottom: 15,
-  },
-  searchInput: {
-    backgroundColor: '#f1f1f1',
-    borderRadius: 10,
-    padding: 10,
-    color: '#000',
-  },
   rowContainer: {
     marginBottom: 10,
   },
@@ -158,32 +189,31 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
   },
-  // SWITCH
   switchContainer: {
     width: 40,
     height: 20,
-    borderRadius: 20, // Redondeado completo
+    borderRadius: 20,
     justifyContent: 'center',
     padding: 2,
-    backgroundColor: '#000', // Fondo negro
   },
   switchOn: {
-    backgroundColor: '#000', // Fondo negro permanece igual
+    backgroundColor: '#FFD700',
   },
   switchOff: {
-    backgroundColor: '#E0E0E0', // Fondo negro para apagado también
+    backgroundColor: '#E0E0E0',
   },
   switchThumb: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#FFD700', // Amarillo
   },
   thumbOn: {
-    alignSelf: 'flex-end', // Desplazado a la derecha
+    alignSelf: 'flex-end',
+    backgroundColor: '#000',
   },
   thumbOff: {
-    alignSelf: 'flex-start', // Desplazado a la izquierda
+    alignSelf: 'flex-start',
+    backgroundColor: '#000',
   },
   accesorioName: {
     flex: 2,
@@ -191,7 +221,6 @@ const styles = StyleSheet.create({
     color: '#000',
     marginLeft: 10,
   },
-  // BOTÓN DE INFORMACIÓN
   infoButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -200,22 +229,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     marginRight: 5,
-    fontWeight: 'bold', // Negrita para el texto
   },
-  infoIcon: {
-    width: 24, // Tamaño más grande
-    height: 24,
-    borderRadius: 12, // Ícono completamente redondo
-    backgroundColor: '#FFD700', // Amarillo
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    fontSize: 16,
-    color: '#000', // Negro
-    fontWeight: 'bold', // Negrita para el símbolo
-  },
-  // SELECTOR DE ESTADO
   infoContainer: {
     marginTop: 10,
     backgroundColor: '#f9f9f9',
@@ -223,22 +237,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   infoField: {
-    flex: 1,
+    marginBottom: 10,
   },
   infoLabel: {
     fontSize: 14,
     color: '#000',
-    marginBottom: 5,
-  },
-  selectorContainer: {
-    backgroundColor: '#FFF', // Fondo blanco
-    paddingHorizontal: 5,
-    height: 40,
-    justifyContent: 'center',
   },
   picker: {
     height: 40,
-    color: '#333', // Texto gris oscuro
+    color: '#333',
+  },
+  // Styles for new inputs
+  newInput: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#CCC',
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 14,
   },
 });
 

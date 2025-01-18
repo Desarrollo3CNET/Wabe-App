@@ -6,24 +6,32 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Provider } from 'react-redux';
 import store from './src/contexts/store';
 
+//Pantallas generales
 import Login from './screens/Login';
 import Index from './screens/Index';
 import Dashboard from './screens/Dashboard';
 import CheckOutScreen from './screens/CheckOutScreen';
-import DeliveryScreen from './screens/DeliveryScreen';
+import EntregaScreen from './screens/EntregaScreen';
 
+//Pantallas de Revisión
 import VehicleDetailsScreen from './screens/recepcion/VehicleDetailsScreen';
 import FirmaScreen from './screens/recepcion/FirmaScreen';
 import PhotosAndVideosScreen from './screens/recepcion/PhotosAndVideosScreen';
 import AccesoriosScreen from './screens/recepcion/AccesoriosScreen';
 
-import SuspensionReviewScreen from './screens/recepcion/revision/SuspensionReviewScreen';
-import SuspensionReviewScreenBack from './screens/recepcion/revision/SuspensionReviewScreenBack';
-import FrenosReviewScreen from './screens/recepcion/revision/FrenosReviewScreen';
-import FrenosReviewScreenBack from './screens/recepcion/revision/FrenosReviewScreenBack';
-import RodamientosReviewScreen from './screens/recepcion/revision/RodamientosReviewScreen';
-import RodamientosReviewScreenBack from './screens/recepcion/revision/RodamientosReviewScreenBack';
-import DireccionReviewScreen from './screens/recepcion/revision/DireccionReviewScreen';
+//Pantallas de Revisión
+import SuspensionReviewScreen from './screens/revision/SuspensionReviewScreen';
+import SuspensionReviewScreenBack from './screens/revision/SuspensionReviewScreenBack';
+import FrenosReviewScreen from './screens/revision/FrenosReviewScreen';
+import FrenosReviewScreenBack from './screens/revision/FrenosReviewScreenBack';
+import RodamientosReviewScreen from './screens/revision/RodamientosReviewScreen';
+import RodamientosReviewScreenBack from './screens/revision/RodamientosReviewScreenBack';
+import DireccionReviewScreen from './screens/revision/DireccionReviewScreen';
+import ExtrasReviewScreen from './screens/revision/ExtrasReviewScreen';
+import ArticulosScreen from './screens/revision/ArticulosScreen';
+
+//Pantallas de Entrega
+import BoletaScreen from './screens/entrega/BoletaScreen';
 
 import Menu from './screens/Menu';
 import theme from './src/utils/RNEtheme';
@@ -37,12 +45,13 @@ const DrawerNavigator = () => {
       drawerContent={(props) => <Menu {...props} />}
       screenOptions={{
         drawerType: 'slide',
-        overlayColor: 'transparent',
+        overlayColor: 'rgba(0, 0, 0, 0.5)', // Cambia el fondo a semi-transparente
         headerShown: false,
       }}
     >
       <Drawer.Screen name="Dashboard" component={Dashboard} />
       <Drawer.Screen name="CheckOutScreen" component={CheckOutScreen} />
+      <Drawer.Screen name="EntregaScreen" component={EntregaScreen} />
 
       <Drawer.Screen
         name="VehicleDetailsScreen"
@@ -79,7 +88,9 @@ const DrawerNavigator = () => {
         name="DireccionReviewScreen"
         component={DireccionReviewScreen}
       />
-      <Drawer.Screen name="DeliveryScreen" component={DeliveryScreen} />
+      <Drawer.Screen name="ExtrasReviewScreen" component={ExtrasReviewScreen} />
+      <Drawer.Screen name="BoletaScreen" component={BoletaScreen} />
+      <Drawer.Screen name="ArticulosScreen" component={ArticulosScreen} />
     </Drawer.Navigator>
   );
 };
@@ -101,6 +112,7 @@ export default function App() {
               component={DrawerNavigator}
             />
             <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
+            <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

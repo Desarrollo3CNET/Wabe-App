@@ -17,13 +17,55 @@ import {
   toggleSelectAttachment,
   deleteSelectedAttachments,
 } from '../../src/contexts/store';
+import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
-const PhotosAndVideosScreen = ({ navigation }) => {
+const PhotosAndVideosScreen = ({ navigation, route }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const dispatch = useDispatch();
   const attachments = useSelector((state) => state.attachments.items);
+
+  const { fromScreen } = route.params || {};
+
+  const renderFooterButtons = () => {
+    switch (fromScreen) {
+      case 'FirmaScreen':
+      case 'AccesoriosScreen':
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('FirmaScreen')}
+            onDelete={() => setmodalVisibleBoleta(true)}
+            onNext={() => navigation.navigate('AccesoriosScreen')}
+          />
+        );
+      case 'CheckOutScreen':
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('CheckOutScreen')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+      case 'EntregaScreen':
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('EntregaScreen')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+      default:
+        return (
+          <FooterButtons
+            onBack={() => navigation.navigate('Dashboard')}
+            showDelete={false}
+            showNext={false}
+          />
+        );
+    }
+  };
 
   // Abrir galería y agregar archivo
   const handleUploadFile = () => {
@@ -173,10 +215,13 @@ const PhotosAndVideosScreen = ({ navigation }) => {
         />
       </View>
 
-      <FooterButtons
-        onBack={() => navigation.navigate('FirmaScreen')}
-        onDelete={() => console.log('Eliminar Boleta')}
-        onNext={() => navigation.navigate('AccesoriosScreen')}
+      {renderFooterButtons()}
+
+      {/* CancelBoletaModal */}
+      <CancelBoletaModal
+        visible={modalVisibleBoleta}
+        onClose={() => setmodalVisibleBoleta(false)}
+        navigation={navigation}
       />
     </View>
   );

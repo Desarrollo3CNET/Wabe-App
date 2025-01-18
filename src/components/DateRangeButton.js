@@ -24,16 +24,12 @@ const DateRangeButton = ({ onRangeSelect }) => {
       setStep(2); // Cambiar al paso para seleccionar la fecha final
     } else if (step === 2) {
       setEndDate(date);
-      setStep(1); // Resetear al paso inicial
-      setModalVisible(false); // Cerrar modal después de seleccionar ambas fechas
-      if (startDate && date && onRangeSelect) {
-        onRangeSelect(startDate, date);
-      }
+      setStep(1); // Resetear al paso inicial para permitir cambios
     }
   };
 
   const handleConfirm = () => {
-    setModalVisible(false);
+    setModalVisible(false); // Cerrar modal después de confirmar
     if (startDate && endDate && onRangeSelect) {
       onRangeSelect(startDate, endDate);
     }
@@ -67,7 +63,6 @@ const DateRangeButton = ({ onRangeSelect }) => {
       {/* Modal para seleccionar rango */}
       <Modal
         visible={modalVisible}
-        animationType="slide"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
@@ -84,14 +79,27 @@ const DateRangeButton = ({ onRangeSelect }) => {
                 onDateSelect={handleDateSelect}
               />
             </View>
-            {step === 2 && (
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.confirmText}>Confirmar</Text>
-              </TouchableOpacity>
-            )}
+
+            {/* Mostrar las fechas seleccionadas */}
+            <View style={styles.selectedDates}>
+              <Text style={styles.dateText}>
+                Fecha inicial: {formatDate(startDate) || 'No seleccionada'}
+              </Text>
+              <Text style={styles.dateText}>
+                Fecha final: {formatDate(endDate) || 'No seleccionada'}
+              </Text>
+            </View>
+
+            {/* Botón para confirmar */}
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={handleConfirm}
+              disabled={!startDate || !endDate} // Deshabilitar si falta alguna fecha
+            >
+              <Text style={styles.confirmText}>
+                {startDate && endDate ? 'Confirmar' : 'Selecciona ambas fechas'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -142,6 +150,15 @@ const styles = StyleSheet.create({
   calendarContainer: {
     justifyContent: 'center',
     marginBottom: 16,
+  },
+  selectedDates: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 4,
   },
   confirmButton: {
     backgroundColor: '#FFD700', // Amarillo para consistencia

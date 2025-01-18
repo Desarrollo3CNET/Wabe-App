@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,99 +7,102 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateRodamientosItem } from '../../../src/contexts/store';
-import Header from '../../../src/components/recepcion/Header';
-import FooterButtonsRevision from '../../../src/components/recepcion/FooterButtonsRevision';
+import { updateExtrasItem } from '../../src/contexts/store';
+import Header from '../../src/components/recepcion/Header';
+import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
+import AddArticleModal from '../../src/components/revision/AddArticleModal';
 
-const RodamientosReviewScreen = ({ navigation }) => {
+const ExtrasReviewScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const rodamientosDetails = useSelector(
-    (state) => state.rodamientosReview.items,
-  );
+  const extrasDetails = useSelector((state) => state.extrasReview.items);
+  const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
-  const handleUpdateStatus = (id, side, status) => {
-    dispatch(updateRodamientosItem({ id, side, status }));
+  const handleUpdateStatus = (id, status) => {
+    dispatch(updateExtrasItem({ id, status }));
   };
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Rodamientos" />
+      <Header title="Recepción - Revisión de Extras" />
       <View style={styles.content}>
-        <Text style={styles.title}>Revisión de Rodamientos Delanteros</Text>
+        <Text style={styles.title}>Revisión de Extras</Text>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.columnContainer}>
-            {/* Rodamientos Izquierda */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Rodamientos Izquierda</Text>
-              {rodamientosDetails.map((item) => (
+          {/* Servicios Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Servicios</Text>
+            {extrasDetails
+              .filter((item) => item.section === 'Servicios')
+              .map((item) => (
                 <View key={item.id} style={styles.row}>
                   <Text style={styles.itemName}>{item.nombre}</Text>
                   <TouchableOpacity
                     style={[
                       styles.statusButton,
-                      item.estadoIzquierda === 'Bueno' && styles.selected,
+                      item.estado === 'Bueno' && styles.selected,
                     ]}
-                    onPress={() =>
-                      handleUpdateStatus(item.id, 'izquierda', 'Bueno')
-                    }
+                    onPress={() => handleUpdateStatus(item.id, 'Bueno')}
                   >
                     <Text style={styles.statusText}>Bueno</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.statusButton,
-                      item.estadoIzquierda === 'Malo' && styles.selected,
+                      item.estado === 'Malo' && styles.selected,
                     ]}
-                    onPress={() =>
-                      handleUpdateStatus(item.id, 'izquierda', 'Malo')
-                    }
+                    onPress={() => handleUpdateStatus(item.id, 'Malo')}
                   >
                     <Text style={styles.statusText}>Malo</Text>
                   </TouchableOpacity>
                 </View>
               ))}
-            </View>
+          </View>
 
-            {/* Rodamientos Derecha */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Rodamientos Derecha</Text>
-              {rodamientosDetails.map((item) => (
+          {/* Acondicionamiento Exterior Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Acondicionamiento Exterior</Text>
+            {extrasDetails
+              .filter((item) => item.section === 'Acondicionamiento Exterior')
+              .map((item) => (
                 <View key={item.id} style={styles.row}>
                   <Text style={styles.itemName}>{item.nombre}</Text>
                   <TouchableOpacity
                     style={[
                       styles.statusButton,
-                      item.estadoDerecha === 'Bueno' && styles.selected,
+                      item.estado === 'Bueno' && styles.selected,
                     ]}
-                    onPress={() =>
-                      handleUpdateStatus(item.id, 'derecha', 'Bueno')
-                    }
+                    onPress={() => handleUpdateStatus(item.id, 'Bueno')}
                   >
                     <Text style={styles.statusText}>Bueno</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.statusButton,
-                      item.estadoDerecha === 'Malo' && styles.selected,
+                      item.estado === 'Malo' && styles.selected,
                     ]}
-                    onPress={() =>
-                      handleUpdateStatus(item.id, 'derecha', 'Malo')
-                    }
+                    onPress={() => handleUpdateStatus(item.id, 'Malo')}
                   >
                     <Text style={styles.statusText}>Malo</Text>
                   </TouchableOpacity>
                 </View>
               ))}
-            </View>
           </View>
         </ScrollView>
       </View>
 
       <FooterButtonsRevision
-        onBack={() => navigation.navigate('FrenosReviewScreenBack')}
-        onDelete={() => console.log('Eliminar Boleta')}
-        onNext={() => navigation.navigate('RodamientosReviewScreenBack')}
+        onBack={() => navigation.navigate('DireccionReviewScreen')}
+        onDelete={() => setModalVisibleArticulo(true)}
+        onNext={() =>
+          navigation.navigate('ArticulosScreen', {
+            fromScreen: 'ExtrasReviewScreen',
+          })
+        }
+      />
+
+      <AddArticleModal
+        visible={modalVisibleArticulo}
+        onClose={() => setModalVisibleArticulo(false)}
       />
     </View>
   );
@@ -128,19 +131,17 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  columnContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   section: {
     flex: 1,
     marginHorizontal: 10,
+    marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 30,
+    marginTop: 10,
   },
   row: {
     flexDirection: 'row',
@@ -168,17 +169,6 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center',
   },
-  addButton: {
-    backgroundColor: '#FFD700',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-  },
 });
 
-export default RodamientosReviewScreen;
+export default ExtrasReviewScreen;

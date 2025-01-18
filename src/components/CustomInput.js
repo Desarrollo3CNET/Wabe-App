@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker from 'react-native-date-picker';
-import Calendar from '../Calendar'; // Si usas un componente personalizado para el calendario
+import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
 
 const CustomInput = ({ label, type, value, options, onChange }) => {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
@@ -45,6 +45,19 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
             onChangeText={(text) => onChange(text)}
             placeholder="Ingresa un valor"
             placeholderTextColor="#aaa"
+            keyboardType="default"
+          />
+        );
+
+      case 'number':
+        return (
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={(text) => onChange(text)}
+            placeholder="Ingresa un número"
+            placeholderTextColor="#aaa"
+            keyboardType="numeric" // Teclado numérico
           />
         );
 

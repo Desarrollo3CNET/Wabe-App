@@ -11,19 +11,19 @@ import {
 const Menu = ({ navigation }) => {
   const menuItems = [
     {
-      title: 'Lista de citas',
+      title: 'Ver Citas',
       image: require('../assets/LISTA CITAS.png'),
       route: 'Dashboard',
     },
     {
-      title: 'Fotografías',
+      title: 'Revisiones Mecánico',
       image: require('../assets/FOTOGRAFÍAS.png'),
-      route: 'Fotografias',
+      route: 'CheckOutScreen',
     },
     {
-      title: 'Vehículos entregados',
+      title: 'Revisiones Completadas',
       image: require('../assets/vehículos entregados .png'),
-      route: 'CheckOutScreen',
+      route: 'EntregaScreen',
     },
   ];
 

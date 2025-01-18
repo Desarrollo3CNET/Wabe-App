@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateVehicleDetail } from '../../src/contexts/store';
 import Header from '../../src/components/recepcion/Header';
-import CustomInput from '../../src/components/recepcion/CustomInput';
+import CustomInput from '../../src/components/CustomInput';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
+import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
 const VehicleDetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const details = useSelector((state) => state.vehicleDetails);
+  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const handleUpdate = (key, value) => {
     dispatch(updateVehicleDetail({ key, value }));
@@ -42,7 +44,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
             <View style={styles.column}>
               <CustomInput
                 label="Año del Vehículo"
-                type="text"
+                type="number"
                 value={details.anio}
                 onChange={(value) => handleUpdate('anio', value)}
               />
@@ -60,18 +62,18 @@ const VehicleDetailsScreen = ({ navigation }) => {
             </View>
             <View style={styles.column}>
               <CustomInput
-                label="Fecha de Ingreso"
-                type="date"
-                value={details.fechaIngreso}
-                onChange={(value) => handleUpdate('fechaIngreso', value)}
-              />
-            </View>
-            <View style={styles.column}>
-              <CustomInput
                 label="Hora de Ingreso"
                 type="time"
                 value={details.horaIngreso}
                 onChange={(value) => handleUpdate('horaIngreso', value)}
+              />
+            </View>
+            <View style={styles.column}>
+              <CustomInput
+                label="Fecha de Ingreso"
+                type="date"
+                value={details.fechaIngreso}
+                onChange={(value) => handleUpdate('fechaIngreso', value)}
               />
             </View>
           </View>
@@ -86,7 +88,14 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('combustible', value)}
               />
             </View>
-            <View style={styles.column}></View>
+            <View style={styles.column}>
+              <CustomInput
+                label="Kilometraje"
+                type="number"
+                value={details.kilometraje}
+                onChange={(value) => handleUpdate('kilometraje', value)}
+              />
+            </View>
             <View style={styles.column}></View>
           </View>
         </View>
@@ -94,8 +103,15 @@ const VehicleDetailsScreen = ({ navigation }) => {
 
       <FooterButtons
         onBack={() => navigation.navigate('Dashboard')}
-        onDelete={() => console.log('Eliminar Boleta')}
+        onDelete={() => setmodalVisibleBoleta(true)}
         onNext={() => navigation.navigate('FirmaScreen')}
+      />
+
+      {/* CancelBoletaModal */}
+      <CancelBoletaModal
+        visible={modalVisibleBoleta}
+        onClose={() => setmodalVisibleBoleta(false)}
+        navigation={navigation}
       />
     </View>
   );

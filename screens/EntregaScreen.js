@@ -11,19 +11,19 @@ import { useSelector } from 'react-redux';
 import Header from '../src/components/recepcion/Header';
 import DateRangeButton from './../src/components/DateRangeButton';
 
-const CheckOutScreen = ({ navigation }) => {
+const EntregaScreen = ({ navigation }) => {
   // Obtener las citas desde el slice de Redux
-  const citasCheckOut = useSelector((state) => state.citasCheckOut);
+  const citasCompletadas = useSelector((state) => state.citasCompletadas);
 
   // Estados locales para filtros
-  const [filteredData, setFilteredData] = useState(citasCheckOut);
+  const [filteredData, setFilteredData] = useState(citasCompletadas);
   const [searchPlaca, setSearchPlaca] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
   // Filtrar los datos
   const filterData = (text = searchPlaca, start = startDate, end = endDate) => {
-    const filtered = citasCheckOut.filter((item) => {
+    const filtered = citasCompletadas.filter((item) => {
       const itemDate = new Date(
         item.fechaIngreso.split(' ')[0].split('-').reverse().join('-'),
       );
@@ -55,7 +55,7 @@ const CheckOutScreen = ({ navigation }) => {
     setSearchPlaca('');
     setStartDate(null);
     setEndDate(null);
-    setFilteredData(citasCheckOut);
+    setFilteredData(citasCompletadas);
   };
 
   // Renderizar cada ítem
@@ -74,16 +74,9 @@ const CheckOutScreen = ({ navigation }) => {
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('SuspensionReviewScreen')}
-          >
-            <Text style={styles.actionButtonText}>REVISIÓN MECÁNICA</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
             onPress={() =>
               navigation.navigate('BoletaScreen', {
-                fromScreen: 'CheckOutScreen',
+                fromScreen: 'EntregaScreen',
               })
             }
           >
@@ -93,12 +86,30 @@ const CheckOutScreen = ({ navigation }) => {
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() =>
+              navigation.navigate('ArticulosScreen', {
+                fromScreen: 'EntregaScreen',
+              })
+            }
+          >
+            <Text style={styles.actionButtonText}>ARTÍCULOS</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() =>
               navigation.navigate('PhotosAndVideosScreen', {
-                fromScreen: 'CheckOutScreen',
+                fromScreen: 'EntregaScreen',
               })
             }
           >
             <Text style={styles.actionButtonText}>FOTOGRAFÍAS</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => console.log('Enviar correo')}
+          >
+            <Text style={styles.actionButtonText}>REENVIAR CORREO</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -107,7 +118,7 @@ const CheckOutScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Check Out" />
+      <Header title="Revisiones Completadas" />
 
       {/* Filtros */}
       <View style={styles.filters}>
@@ -248,4 +259,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CheckOutScreen;
+export default EntregaScreen;

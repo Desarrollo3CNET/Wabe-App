@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -11,11 +11,13 @@ import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import ReusableInput from '../../src/components/recepcion/ReusableInput';
 import SignatureInput from '../../src/components/recepcion/SignatureInput';
 import DrawingCanvas from '../../src/components/recepcion/DrawingCanvas';
+import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
 const FirmaScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { observaciones, nombre, firma } = useSelector((state) => state.firma);
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const handleSaveSignature = (signature) => {
     dispatch(setFirma(signature)); // Guardar la firma en Redux
@@ -56,8 +58,12 @@ const FirmaScreen = ({ navigation }) => {
       {/* Botones de Pie de Página */}
       <FooterButtons
         onBack={() => navigation.navigate('VehicleDetailsScreen')}
-        onDelete={() => console.log('Eliminar Boleta')}
-        onNext={() => navigation.navigate('PhotosAndVideosScreen')}
+        onDelete={() => setmodalVisibleBoleta(true)}
+        onNext={() =>
+          navigation.navigate('PhotosAndVideosScreen', {
+            fromScreen: 'FirmaScreen',
+          })
+        }
       />
 
       {/* Modal para Dibujar la Firma */}
@@ -68,6 +74,13 @@ const FirmaScreen = ({ navigation }) => {
           onSave={(signature) => handleSaveSignature(signature)}
         />
       )}
+
+      {/* CancelBoletaModal */}
+      <CancelBoletaModal
+        visible={modalVisibleBoleta}
+        onClose={() => setmodalVisibleBoleta(false)}
+        navigation={navigation}
+      />
     </View>
   );
 };
