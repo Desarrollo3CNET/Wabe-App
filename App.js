@@ -12,6 +12,7 @@ import Index from './screens/Index';
 import Dashboard from './screens/Dashboard';
 import CheckOutScreen from './screens/CheckOutScreen';
 import EntregaScreen from './screens/EntregaScreen';
+import ScheduleAppointmentScreen from './screens/ScheduleAppointmentScreen';
 
 //Pantallas de Revisión
 import VehicleDetailsScreen from './screens/recepcion/VehicleDetailsScreen';
@@ -91,6 +92,10 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="ExtrasReviewScreen" component={ExtrasReviewScreen} />
       <Drawer.Screen name="BoletaScreen" component={BoletaScreen} />
       <Drawer.Screen name="ArticulosScreen" component={ArticulosScreen} />
+      <Drawer.Screen
+        name="ScheduleAppointmentScreen"
+        component={ScheduleAppointmentScreen}
+      />
     </Drawer.Navigator>
   );
 };
@@ -113,6 +118,10 @@ export default function App() {
             />
             <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
             <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
+            <Stack.Screen
+              name="ScheduleAppointmentScreen"
+              component={ScheduleAppointmentScreen}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

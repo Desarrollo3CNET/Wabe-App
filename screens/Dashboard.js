@@ -102,7 +102,10 @@ const Dashboard = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Botón de Crear Nueva Cita */}
-        <TouchableOpacity style={styles.createButton}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
+        >
           <Text style={styles.createButtonText}>Crear nueva cita</Text>
         </TouchableOpacity>
       </View>
