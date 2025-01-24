@@ -7,14 +7,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateFrenosBackItem } from '../../src/contexts/store';
+import { updateFrenosBackItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
 
 const FrenosReviewScreenBack = ({ navigation }) => {
   const dispatch = useDispatch();
-  const frenosDetails = useSelector((state) => state.frenosBackReview.items);
+  const frenosDetails = useSelector((state) => state.revision.frenosTraseros);
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
   const handleUpdateStatus = (id, side, status) => {
@@ -23,7 +23,7 @@ const FrenosReviewScreenBack = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Frenos Traseros" />
+      <Header title="Revisión" />
       <View style={styles.content}>
         <Text style={styles.title}>Revisión de Frenos Traseros</Text>
 

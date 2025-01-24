@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateSuspensionBackItem } from '../../src/contexts/store';
+import { updateSuspensionBackItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
@@ -15,7 +15,7 @@ import AddArticleModal from '../../src/components/revision/AddArticleModal';
 const SuspensionReviewScreenBack = ({ navigation }) => {
   const dispatch = useDispatch();
   const suspensionDetails = useSelector(
-    (state) => state.suspensionBackReview.items,
+    (state) => state.revision.suspensionTrasera,
   );
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
@@ -25,7 +25,7 @@ const SuspensionReviewScreenBack = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Suspensión" />
+      <Header title="Revisión" />
       <View style={styles.content}>
         <Text style={styles.title}>Revisión de Suspensión Trasera</Text>
 

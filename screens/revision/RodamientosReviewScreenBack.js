@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateRodamientosBackItem } from '../../src/contexts/store';
+import { updateRodamientosBackItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
@@ -15,7 +15,7 @@ import AddArticleModal from '../../src/components/revision/AddArticleModal';
 const RodamientosReviewScreenBack = ({ navigation }) => {
   const dispatch = useDispatch();
   const rodamientosDetails = useSelector(
-    (state) => state.rodamientosBackReview.items,
+    (state) => state.revision.rodamientosTraseros,
   );
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
@@ -25,7 +25,7 @@ const RodamientosReviewScreenBack = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Rodamientos Traseros" />
+      <Header title="Revisión" />
       <View style={styles.content}>
         <Text style={styles.title}>Revisión de Rodamientos Traseros</Text>
 

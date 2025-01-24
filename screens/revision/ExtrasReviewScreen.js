@@ -7,14 +7,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateExtrasItem } from '../../src/contexts/store';
+import { updateExtrasItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
 
 const ExtrasReviewScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const extrasDetails = useSelector((state) => state.extrasReview.items);
+  const extrasDetails = useSelector((state) => state.revision.extras);
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
   const handleUpdateStatus = (id, status) => {
@@ -23,7 +23,7 @@ const ExtrasReviewScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Extras" />
+      <Header title="Revisión" />
       <View style={styles.content}>
         <Text style={styles.title}>Revisión de Extras</Text>
 

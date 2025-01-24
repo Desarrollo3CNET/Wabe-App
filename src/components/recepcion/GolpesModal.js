@@ -17,7 +17,7 @@ import {
   redoPath,
   clearPaths,
   toggleDirty,
-} from '../../../src/contexts/store';
+} from '../../../src/contexts/BoletaSlice';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Svg, { Path } from 'react-native-svg';
 import ZoomBar from '../../components/recepcion/ZoomBar';
@@ -25,7 +25,7 @@ import ZoomBar from '../../components/recepcion/ZoomBar';
 const GolpesModal = ({ visible, onClose }) => {
   const dispatch = useDispatch();
   const { vehicleStyle, isDirty, paths, undonePaths } = useSelector(
-    (state) => state.golpes,
+    (state) => state.boleta.golpes,
   );
   const [zoom, setZoom] = useState(1);
   const [isDrawing, setIsDrawing] = useState(false);

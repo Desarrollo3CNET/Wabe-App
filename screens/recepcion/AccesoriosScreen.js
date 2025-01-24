@@ -14,14 +14,14 @@ import {
   toggleAccesorio,
   toggleInfo,
   updateAccesorio,
-} from '../../src/contexts/store';
+} from '../../src/contexts/BoletaSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
 const AccesoriosScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const accesorios = useSelector((state) => state.accesorios);
+  const accesorios = useSelector((state) => state.boleta.accesorios);
   const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const handleToggleInfo = (id) => {
@@ -46,7 +46,7 @@ const AccesoriosScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Accesorios" />
+      <Header title="Recepción" />
 
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -80,24 +80,24 @@ const AccesoriosScreen = ({ navigation }) => {
 
               {accesorio.infoVisible && (
                 <View style={styles.infoContainer}>
-                  {/* Estado */}
-                  <View style={styles.infoField}>
-                    <Text style={styles.infoLabel}>Estado</Text>
-                    <Picker
-                      selectedValue={accesorio.estado}
-                      onValueChange={(value) =>
-                        handleUpdate(accesorio.id, 'estado', value)
-                      }
-                      style={styles.picker}
-                    >
-                      <Picker.Item label="Bueno" value="Bueno" />
-                      <Picker.Item label="Regular" value="Regular" />
-                      <Picker.Item label="Malo" value="Malo" />
-                    </Picker>
-                  </View>
+                  {accesorio.estado !== undefined && (
+                    <View style={styles.infoField}>
+                      <Text style={styles.infoLabel}>Estado</Text>
+                      <Picker
+                        selectedValue={accesorio.estado}
+                        onValueChange={(value) =>
+                          handleUpdate(accesorio.id, 'estado', value)
+                        }
+                        style={styles.picker}
+                      >
+                        <Picker.Item label="Bueno" value="Bueno" />
+                        <Picker.Item label="Regular" value="Regular" />
+                        <Picker.Item label="Malo" value="Malo" />
+                      </Picker>
+                    </View>
+                  )}
 
-                  {/* Marca */}
-                  {accesorio.marca && (
+                  {accesorio.marca !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Marca</Text>
                       <TextInput
@@ -110,8 +110,7 @@ const AccesoriosScreen = ({ navigation }) => {
                     </View>
                   )}
 
-                  {/* Descripcion */}
-                  {accesorio.descripcion && (
+                  {accesorio.descripcion !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Descripción</Text>
                       <TextInput
@@ -124,7 +123,6 @@ const AccesoriosScreen = ({ navigation }) => {
                     </View>
                   )}
 
-                  {/* Cantidad */}
                   {accesorio.cantidad !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Cantidad</Text>

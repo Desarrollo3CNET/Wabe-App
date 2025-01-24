@@ -47,8 +47,6 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       alert('Debe aceptar los términos y condiciones para continuar.');
       return;
     }
-
-    console.log('Detalles de la cita:', appointmentDetails);
   };
 
   return (

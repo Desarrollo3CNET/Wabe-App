@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateVehicleDetail } from '../../src/contexts/store';
+import { updateVehicleDetail } from '../../src/contexts/BoletaSlice';
 import Header from '../../src/components/recepcion/Header';
 import CustomInput from '../../src/components/CustomInput';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
@@ -9,7 +9,7 @@ import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal'
 
 const VehicleDetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const details = useSelector((state) => state.vehicleDetails);
+  const vehiculo = useSelector((state) => state.boleta.vehicleDetails); // Ajuste aquí
   const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const handleUpdate = (key, value) => {
@@ -29,23 +29,23 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Placa del Vehículo"
                 type="text"
-                value={details.placa}
+                value={vehiculo.placa} // Ajuste aquí
                 onChange={(value) => handleUpdate('placa', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
-                label="Modelo del Vehículo"
+                label="Estilo del Vehículo"
                 type="text"
-                value={details.modelo}
-                onChange={(value) => handleUpdate('modelo', value)}
+                value={vehiculo.estilo} // Ajuste aquí
+                onChange={(value) => handleUpdate('estilo', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
                 label="Año del Vehículo"
                 type="number"
-                value={details.anio}
+                value={vehiculo.anio} // Ajuste aquí
                 onChange={(value) => handleUpdate('anio', value)}
               />
             </View>
@@ -54,17 +54,17 @@ const VehicleDetailsScreen = ({ navigation }) => {
           <View style={styles.row}>
             <View style={styles.column}>
               <CustomInput
-                label="Estilo del Vehículo"
-                type="text"
-                value={details.estilo}
-                onChange={(value) => handleUpdate('estilo', value)}
+                label="Kilometraje"
+                type="number"
+                value={vehiculo.kilometraje} // Ajuste aquí
+                onChange={(value) => handleUpdate('kilometraje', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
                 label="Hora de Ingreso"
                 type="time"
-                value={details.horaIngreso}
+                value={vehiculo.horaIngreso} // Ajuste aquí
                 onChange={(value) => handleUpdate('horaIngreso', value)}
               />
             </View>
@@ -72,7 +72,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Fecha de Ingreso"
                 type="date"
-                value={details.fechaIngreso}
+                value={vehiculo.fechaIngreso} // Ajuste aquí
                 onChange={(value) => handleUpdate('fechaIngreso', value)}
               />
             </View>
@@ -83,28 +83,25 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Combustible"
                 type="select"
-                value={details.combustible}
+                value={vehiculo.combustible} // Ajuste aquí
                 options={['1/4', '1/3', '3/4', '1']}
                 onChange={(value) => handleUpdate('combustible', value)}
               />
             </View>
-            <View style={styles.column}>
-              <CustomInput
-                label="Kilometraje"
-                type="number"
-                value={details.kilometraje}
-                onChange={(value) => handleUpdate('kilometraje', value)}
-              />
-            </View>
+
             <View style={styles.column}></View>
           </View>
         </View>
       </ScrollView>
 
       <FooterButtons
-        onBack={() => navigation.navigate('Dashboard')}
+        onBack={() => setmodalVisibleBoleta(true)}
         onDelete={() => setmodalVisibleBoleta(true)}
-        onNext={() => navigation.navigate('FirmaScreen')}
+        onNext={() =>
+          navigation.navigate('FirmaScreen', {
+            fromScreen: 'VehicleDetailsScreen',
+          })
+        }
       />
 
       {/* CancelBoletaModal */}

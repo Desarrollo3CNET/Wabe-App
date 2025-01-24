@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  Image,
 } from 'react-native';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
@@ -16,7 +17,7 @@ import {
   addAttachment,
   toggleSelectAttachment,
   deleteSelectedAttachments,
-} from '../../src/contexts/store';
+} from '../../src/contexts/BoletaSlice';
 import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
 
 const PhotosAndVideosScreen = ({ navigation, route }) => {
@@ -25,7 +26,9 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
   const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
 
   const dispatch = useDispatch();
-  const attachments = useSelector((state) => state.attachments.items);
+
+  // Corregir el acceso a las propiedades del estado global
+  const attachments = useSelector((state) => state.boleta.attachments.items);
 
   const { fromScreen } = route.params || {};
 
@@ -35,7 +38,11 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       case 'AccesoriosScreen':
         return (
           <FooterButtons
-            onBack={() => navigation.navigate('FirmaScreen')}
+            onBackonNext={() =>
+              navigation.navigate('FirmaScreen', {
+                fromScreen: 'PhotosAndVideosScreen',
+              })
+            }
             onDelete={() => setmodalVisibleBoleta(true)}
             onNext={() => navigation.navigate('AccesoriosScreen')}
           />
@@ -67,7 +74,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     }
   };
 
-  // Abrir galería y agregar archivo
   const handleUploadFile = () => {
     launchImageLibrary(
       { mediaType: 'mixed', selectionLimit: 1 },
@@ -80,13 +86,12 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
             type: response.assets[0].type.includes('image') ? 'photo' : 'video',
             selected: false,
           };
-          dispatch(addAttachment(newAttachment)); // Guardar en Redux
+          dispatch(addAttachment(newAttachment));
         }
       },
     );
   };
 
-  // Abrir cámara y tomar una foto/video
   const handleOpenCamera = () => {
     launchCamera({ mediaType: 'mixed', saveToPhotos: true }, (response) => {
       if (response.didCancel) return;
@@ -97,7 +102,7 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
           type: response.assets[0].type.includes('image') ? 'photo' : 'video',
           selected: false,
         };
-        dispatch(addAttachment(newAttachment)); // Guardar en Redux
+        dispatch(addAttachment(newAttachment));
       }
     });
   };
@@ -105,18 +110,16 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
     if (!isEditing) {
-      setAttachments((prevAttachments) =>
-        prevAttachments.map((item) => ({ ...item, selected: false })),
-      );
+      dispatch(toggleSelectAttachment(null)); // Deselect all attachments
     }
   };
 
   const handleSelectItem = (id) => {
-    dispatch(toggleSelectAttachment(id)); // Alternar selección en Redux
+    dispatch(toggleSelectAttachment(id));
   };
 
   const handleDeleteSelected = () => {
-    dispatch(deleteSelectedAttachments()); // Eliminar seleccionados en Redux
+    dispatch(deleteSelectedAttachments());
   };
 
   const renderAttachment = ({ item }) => {
@@ -149,75 +152,116 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       <View style={styles.content}>
         <Text style={styles.title}>Fotografías y Videos</Text>
 
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleUploadFile}
-          >
-            <Icon name="upload" size={20} color="#000" />
-            <Text style={styles.actionText}>Subir Archivo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleOpenCamera}
-          >
-            <Icon name="camera" size={20} color="#000" />
-            <Text style={styles.actionText}>Abrir Cámara</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => setModalVisible(true)}
-          >
-            <Icon name="car" size={20} color="#000" />
-            <Text style={styles.actionText}>Indicar Golpe(s)</Text>
-          </TouchableOpacity>
-        </View>
+        {fromScreen === 'EntregaScreen' ? (
+          <>
+            {/* Título para la sección de fotos y videos */}
+            <Text style={styles.sectionTitle}>Fotos y Videos</Text>
 
-        <Text style={styles.attachmentCount}>
-          {attachments.length} archivos adjuntos
-        </Text>
-        <FlatList
-          data={attachments}
-          renderItem={renderAttachment}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          contentContainerStyle={styles.attachmentList}
-        />
+            {/* Renderizar fotos decodificadas de cadenas Base64 */}
+            <FlatList
+              data={attachments} // No hay filtro porque ya contiene el array de cadenas en Base64
+              renderItem={({ item }) => (
+                <View style={styles.decodedPhotoContainer}>
+                  {/* Renderizar la imagen decodificada del string Base64 */}
+                  <Image
+                    source={{ uri: `data:image/png;base64,${item}` }} // Decodificamos el string Base64
+                    style={styles.decodedImage}
+                  />
+                </View>
+              )}
+              keyExtractor={(item, index) => index.toString()} // Usamos el índice como clave
+              contentContainerStyle={styles.decodedPhotoList}
+            />
 
-        <TouchableOpacity style={styles.editButton} onPress={handleEditToggle}>
-          <Icon name="edit" size={18} color="#000" />
-          <Text style={styles.editText}>
-            {isEditing ? 'Cancelar' : 'Editar'}
-          </Text>
-        </TouchableOpacity>
+            {/* Título para la sección del esquema */}
+            <Text style={styles.sectionTitle}>Esquema</Text>
 
-        {isEditing && (
-          <View style={styles.editFooter}>
+            {/* Mostrar esquema en grande */}
+            <View style={styles.decodedPhotoContainer}>
+              <Image
+                source={{
+                  uri: `data:image/png;base64,${useSelector((state) => state.boleta.golpes.esquema)}`, // Decodificar el esquema en Base64
+                }}
+                style={styles.largeDecodedImage} // Nuevo estilo para la imagen del esquema
+              />
+            </View>
+          </>
+        ) : (
+          // Renderizar el bloque original para otras pantallas
+          <>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleUploadFile}
+              >
+                <Icon name="upload" size={20} color="#000" />
+                <Text style={styles.actionText}>Subir Archivo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleOpenCamera}
+              >
+                <Icon name="camera" size={20} color="#000" />
+                <Text style={styles.actionText}>Abrir Cámara</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <Icon name="car" size={20} color="#000" />
+                <Text style={styles.actionText}>Indicar Golpe(s)</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.attachmentCount}>
+              {attachments.length} archivos adjuntos
+            </Text>
+            <FlatList
+              data={attachments}
+              renderItem={renderAttachment}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              contentContainerStyle={styles.attachmentList}
+            />
+
             <TouchableOpacity
-              style={styles.cancelEditButton}
+              style={styles.editButton}
               onPress={handleEditToggle}
             >
-              <Text style={styles.buttonText}>Cancelar</Text>
+              <Icon name="edit" size={18} color="#000" />
+              <Text style={styles.editText}>
+                {isEditing ? 'Cancelar' : 'Editar'}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteEditButton}
-              onPress={handleDeleteSelected}
-            >
-              <Icon name="trash" size={18} color="#000" />
-              <Text style={styles.buttonText}>Borrar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
-        <GolpesModal
-          visible={isModalVisible}
-          onClose={() => setModalVisible(false)}
-        />
+            {isEditing && (
+              <View style={styles.editFooter}>
+                <TouchableOpacity
+                  style={styles.cancelEditButton}
+                  onPress={handleEditToggle}
+                >
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteEditButton}
+                  onPress={handleDeleteSelected}
+                >
+                  <Icon name="trash" size={18} color="#000" />
+                  <Text style={styles.buttonText}>Borrar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <GolpesModal
+              visible={isModalVisible}
+              onClose={() => setModalVisible(false)}
+            />
+          </>
+        )}
       </View>
 
       {renderFooterButtons()}
 
-      {/* CancelBoletaModal */}
       <CancelBoletaModal
         visible={modalVisibleBoleta}
         onClose={() => setmodalVisibleBoleta(false)}
@@ -248,19 +292,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   actionButton: {
-    flex: 1, // Cada botón ocupa el mismo ancho
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
     backgroundColor: '#FFD700',
     borderRadius: 10,
-    marginHorizontal: 5, // Espaciado horizontal entre botones
+    marginHorizontal: 5,
   },
-
+  actionText: { marginLeft: 5, fontWeight: 'bold' },
   attachmentList: {
     flexDirection: 'row',
   },
-  actionText: { marginLeft: 5, fontWeight: 'bold' },
   attachmentItem: {
     width: 80,
     height: 80,
@@ -308,6 +351,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: { marginLeft: 5, fontWeight: 'bold' },
+  decodedPhotoContainer: {
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    padding: 10,
+  },
+  decodedImage: {
+    width: 100, // Ajusta el tamaño según sea necesario
+    height: 100,
+    resizeMode: 'contain', // Ajusta la imagen dentro del contenedor
+  },
+  decodedPhotoList: {
+    padding: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 10,
+    color: '#000',
+  },
+  largeDecodedImage: {
+    width: '100%', // Toma todo el ancho disponible
+    height: 200, // Ajusta según tus necesidades
+    resizeMode: 'contain', // Mantiene las proporciones de la imagen
+  },
 });
 
 export default PhotosAndVideosScreen;

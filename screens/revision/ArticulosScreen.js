@@ -18,23 +18,26 @@ const ArticulosScreen = ({ navigation, route }) => {
   const { fromScreen } = route.params || {};
 
   // Selectors to fetch articles from all slices
-  const suspensionReview = useSelector((state) => state.suspensionReview.items);
-  const suspensionBackReview = useSelector(
-    (state) => state.suspensionBackReview.items,
+  const suspensionDelantera = useSelector(
+    (state) => state.revision.suspensionDelantera,
   );
-  const frenosReview = useSelector((state) => state.frenosReview.items);
-  const frenosBackReview = useSelector((state) => state.frenosBackReview.items);
-  const rodamientosReview = useSelector(
-    (state) => state.rodamientosReview.items,
+  const suspensionTrasera = useSelector(
+    (state) => state.revision.suspensionTrasera,
   );
-  const rodamientosBackReview = useSelector(
-    (state) => state.rodamientosBackReview.items,
+  const frenosDelanteros = useSelector(
+    (state) => state.revision.frenosDelanteros,
   );
-  const direccionReview = useSelector((state) => state.direccionReview.items);
-  const extrasReview = useSelector((state) => state.extrasReview.items);
+  const frenosTraseros = useSelector((state) => state.revision.frenosTraseros);
+  const rodamientos = useSelector((state) => state.revision.rodamientos);
+  const rodamientosTraseros = useSelector(
+    (state) => state.revision.rodamientosTraseros,
+  );
+  const direccion = useSelector((state) => state.revision.direccion);
+  const extras = useSelector((state) => state.revision.extras);
   const articulosGenericosMalos = useSelector(
-    (state) => state.articulosGenericos.malos,
+    (state) => state.revision.articulosGenericos.malos,
   );
+  const articulos = useSelector((state) => state.revision.articulosBoleta);
 
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
@@ -104,14 +107,14 @@ const ArticulosScreen = ({ navigation, route }) => {
 
   // Aggregate all "malo" articles
   const articulosMalos = [
-    ...getMaloArticles(suspensionReview, 'Suspensión', false),
-    ...getMaloArticles(suspensionBackReview, 'Suspensión', true),
-    ...getMaloArticles(frenosReview, 'Frenos', false),
-    ...getMaloArticles(frenosBackReview, 'Frenos', true),
-    ...getMaloArticles(rodamientosReview, 'Rodamientos', false),
-    ...getMaloArticles(rodamientosBackReview, 'Rodamientos', true),
-    ...getMaloArticles(direccionReview, 'Dirección', false),
-    ...extrasReview
+    ...getMaloArticles(suspensionDelantera, 'Suspensión', false),
+    ...getMaloArticles(suspensionTrasera, 'Suspensión', true),
+    ...getMaloArticles(frenosDelanteros, 'Frenos', false),
+    ...getMaloArticles(frenosTraseros, 'Frenos', true),
+    ...getMaloArticles(rodamientos, 'Rodamientos', false),
+    ...getMaloArticles(rodamientosTraseros, 'Rodamientos', true),
+    ...getMaloArticles(direccion, 'Dirección', false),
+    ...extras
       .filter((item) => item.estado === 'Malo')
       .map((item) => ({
         nombre: item.nombre,
@@ -134,6 +137,32 @@ const ArticulosScreen = ({ navigation, route }) => {
     );
     navigation.navigate('CheckOutScreen');
   };
+
+  // Render a simple list of articles for "EntregaScreen"
+  if (fromScreen === 'EntregaScreen') {
+    console.log('articulosLol', articulos);
+
+    return (
+      <View style={styles.container}>
+        <Header title="Artículos" />
+        <View style={styles.content}>
+          <Text style={styles.title}>Lista de Artículos</Text>
+          <ScrollView>
+            {articulos.length > 0 ? (
+              articulos.map((articulo, index) => (
+                <View key={index} style={styles.simpleCard}>
+                  <Text style={styles.cardTitle}>{articulo}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noArticles}>No hay artículos</Text>
+            )}
+          </ScrollView>
+        </View>
+        {renderFooterButtons()}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -240,6 +269,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 3,
+  },
+  simpleCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   cardTitle: {
     fontSize: 16,

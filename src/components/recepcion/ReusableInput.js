@@ -1,7 +1,13 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 
-const ReusableInput = ({ label, value, onChangeText, placeholder }) => {
+const ReusableInput = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  readOnly = false,
+}) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -11,6 +17,7 @@ const ReusableInput = ({ label, value, onChangeText, placeholder }) => {
         value={value}
         onChangeText={onChangeText}
         placeholderTextColor="#aaa"
+        readOnly={readOnly}
       />
     </View>
   );

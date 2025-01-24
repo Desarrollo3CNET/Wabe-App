@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Provider } from 'react-redux';
-import store from './src/contexts/store';
+import store from './src/contexts/Store';
 
 //Pantallas generales
 import Login from './screens/Login';

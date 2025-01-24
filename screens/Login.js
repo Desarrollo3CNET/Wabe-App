@@ -6,52 +6,57 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { setLoggedIn } from '../src/contexts/store';
+import { setLoggedIn } from '../src/contexts/AppSlice';
+import { login } from '../src/services/UserService'; // Importa la función login
 import logonegro from '../assets/logonegro.png';
 
 const Login = () => {
   const [usuario, setUsuario] = useState({ email: '', password: '' });
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false); // Estado de carga
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const handleInputChange = (name, value) => {
     setUsuario((prevUsuario) => ({ ...prevUsuario, [name]: value }));
+    setErrorMessage(''); // Limpia el mensaje de error al escribir
   };
 
   const handleSubmit = async () => {
-    if (!usuario.email || !usuario.password) {
-      alert('Por favor, ingrese usuario y contraseña.');
-      return;
-    }
+    setLoading(true); // Inicia la carga
 
     try {
-      // const response = await login(usuario.email, usuario.password);
-      // if (response.status === 200) {
-      //   const userSession = await response.json();
-      //   await AsyncStorage.setItem('session', JSON.stringify(userSession));
-      //   dispatch(setLoggedIn(userSession));
-      //   navigation.replace('Inicio');
-      // } else if (response.status === 401) {
-      //   alert('Usuario o contraseña incorrectos.');
-      // } else {
-      //   alert('Error en el servidor. Inténtalo más tarde.');
-      // }
+      const response = await login('smaranini', '123'); // Llamada al backend
 
-      const mockUserSession = {
-        id: 1,
-        name: 'Usuario de Pruebas',
-        email: usuario.email,
-      };
-      await AsyncStorage.setItem('session', JSON.stringify(mockUserSession));
-      dispatch(setLoggedIn(mockUserSession));
-      navigation.replace('Dashboard');
+      if (response && response.USU_CODE) {
+        // Guarda la respuesta completa en AsyncStorage
+        await AsyncStorage.setItem('session', JSON.stringify(response));
+
+        // Actualiza el estado global en Redux
+        dispatch(setLoggedIn(response));
+
+        // Redirige al Dashboard o pantalla principal
+        navigation.replace('Dashboard');
+      } else {
+        Alert.alert(
+          'Error de autenticación',
+          'Usuario o contraseña incorrectos. Por favor, verifique sus credenciales.',
+        );
+      }
     } catch (error) {
       console.error('Error al realizar el login:', error);
-      alert('Error al realizar el login. Inténtalo más tarde.');
+      Alert.alert(
+        'Error del servidor',
+        'Hubo un problema al intentar iniciar sesión. Intente nuevamente más tarde.',
+      );
+    } finally {
+      setLoading(false); // Finaliza la carga
     }
   };
 
@@ -83,12 +88,25 @@ const Login = () => {
         />
       </View>
 
+      {/* Mensaje de error */}
+      {errorMessage ? (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      ) : null}
+
       <TouchableOpacity>
         <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Ingresar →</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#000" />
+        ) : (
+          <Text style={styles.buttonText}>Ingresar →</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -151,6 +169,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontSize: 14,
   },
 });
 

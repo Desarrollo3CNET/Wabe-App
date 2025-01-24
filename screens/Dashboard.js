@@ -6,57 +6,116 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  Dimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AppointmentCard from '../src/components/AppointmentCard';
 import FilterModal from '../src/components/FilterModal';
+import { getCitas } from '../src/services/CitaService'; // Importa getCitas
+import { processCitas } from '../src/utils/processData/processCitas'; // Importa processCitas
+import { clearCitas, addCita } from '../src/contexts/CitasSlice'; // Importa directamente la acción addCita
 
 const Dashboard = ({ navigation }) => {
-  const citas = useSelector((state) => state.citas); // Obtén las citas desde el slice
+  const dispatch = useDispatch();
+  const citas = useSelector((state) => state.citas); // Estado global de citas
+  const user = useSelector((state) => state.app.user); // Estado global del usuario
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState(null);
-  const logo = require('../assets/logo.png');
+  const [dashboardData, setDashboardData] = useState(null); // Datos del dashboard
+  const [isLoading, setIsLoading] = useState(true); // Estado para mostrar el spinner
+  const logo = require('../assets/logo.png'); // Logo de la empresa
 
+  // Efecto para cargar citas desde la API
   useEffect(() => {
-    // Inicializa el estado filtrado con todas las citas desde el slice
+    const fetchCitas = async () => {
+      setIsLoading(true); // Mostrar el spinner mientras se cargan datos
+      try {
+        const rawCitas = await getCitas(-1, -1, -1); // Parámetros iniciales para getCitas
+        const processedCitas = processCitas(rawCitas); // Procesa las citas con processCitas
+
+        // Añade las citas procesadas al slice de Redux
+        processedCitas.forEach((fechaData) => {
+          fechaData.citas.forEach((nuevaCita) => {
+            dispatch(
+              addCita({
+                fecha: fechaData.fecha,
+                nuevaCita,
+              }),
+            );
+          });
+        });
+      } catch (error) {
+        console.error('Error obteniendo citas:', error);
+      } finally {
+        setIsLoading(false); // Ocultar el spinner al finalizar
+      }
+    };
+
+    fetchCitas();
+  }, [dispatch]);
+
+  // Sincronizar citas filtradas con el estado global
+  useEffect(() => {
     setFilteredCitas(citas);
   }, [citas]);
 
+  // Función para manejar búsqueda por número de cita
   const handleSearch = (query) => {
     setSearchQuery(query);
     const filtered = citas
       .map((cita) => ({
         ...cita,
-        citas: cita.citas.filter((c) => c.numero.includes(query)),
+        citas: cita.citas.filter((c) =>
+          c.cita.idCita.toString().includes(query),
+        ),
       }))
       .filter((cita) => cita.citas.length > 0);
     setFilteredCitas(filtered);
   };
 
-  const handleApplyFilters = (filters) => {
+  // Función para aplicar los filtros
+  const handleApplyFilters = async (filters) => {
     const { startDate, endDate, estado, sucursal } = filters;
 
-    const filtered = citas.filter((cita) => {
-      const citaDate = new Date(cita.fecha);
-      const matchesDate =
-        (!startDate || citaDate >= new Date(startDate)) &&
-        (!endDate || citaDate <= new Date(endDate));
-      const matchesEstado =
-        estado === 'Todos' || cita.citas.some((c) => c.estado === estado);
-      const matchesSucursal =
-        !sucursal ||
-        cita.citas.some(
-          (c) => c.sucursal.toLowerCase() === sucursal.toLowerCase(),
+    let estadoParam = -1;
+    if (estado === 'Activo') estadoParam = 1;
+    if (estado === 'Finalizado') estadoParam = 0;
+
+    setIsLoading(true);
+    try {
+      const rawCitas = await getCitas(estadoParam, -1, sucursal || -1);
+      const processedCitas = processCitas(rawCitas);
+
+      dispatch(clearCitas());
+      processedCitas.forEach((fechaData) => {
+        fechaData.citas.forEach((nuevaCita) => {
+          dispatch(
+            addCita({
+              fecha: fechaData.fecha,
+              nuevaCita,
+            }),
+          );
+        });
+      });
+
+      // Filtramos las citas localmente por rango de fechas
+      const filtered = processedCitas.filter((fechaData) => {
+        const citaDate = new Date(fechaData.fecha); // Convertimos la fecha de la cita
+        return (
+          (!startDate || citaDate >= new Date(startDate)) &&
+          (!endDate || citaDate <= new Date(endDate))
         );
+      });
 
-      return matchesDate && (matchesEstado || matchesSucursal);
-    });
-
-    setFilteredCitas(filtered);
+      setFilteredCitas(filtered);
+    } catch (error) {
+      console.error('Error aplicando filtros y obteniendo citas:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,6 +131,35 @@ const Dashboard = ({ navigation }) => {
         <Text style={styles.headerTitle}>Lista de citas</Text>
         <Image source={logo} style={styles.logo} />
       </View>
+
+      {/* Información del usuario */}
+      {user && (
+        <View style={styles.userInfo}>
+          <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
+          <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
+        </View>
+      )}
+
+      {/* Dashboard Data */}
+      {dashboardData && (
+        <View style={styles.dashboardContainer}>
+          <View style={[styles.card, styles.pendingCard]}>
+            <Ionicons name="car-outline" size={20} color="#FFD700" />
+            <Text style={styles.cardNumber}>{dashboardData.PENDIENTES}</Text>
+            <Text style={styles.cardLabel}>Pendientes</Text>
+          </View>
+          <View style={[styles.card, styles.receivedCard]}>
+            <Ionicons name="car-sport-outline" size={20} color="#333" />
+            <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
+            <Text style={styles.cardLabel}>Recibidos</Text>
+          </View>
+          <View style={[styles.card, styles.deliveredCard]}>
+            <Ionicons name="car-sharp" size={20} color="#FFD700" />
+            <Text style={styles.cardNumber}>{dashboardData.ENTREGADOS}</Text>
+            <Text style={styles.cardLabel}>Entregados</Text>
+          </View>
+        </View>
+      )}
 
       {/* Fila de botones */}
       <View style={styles.buttonRow}>
@@ -110,16 +198,26 @@ const Dashboard = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Scrollable List of Appointments */}
-      <ScrollView style={styles.scrollview}>
-        {filteredCitas.map((cita) => (
-          <AppointmentCard
-            key={cita.fecha}
-            fecha={cita.fecha}
-            citas={cita.citas}
-          />
-        ))}
-      </ScrollView>
+      {/* Lista de citas o spinner */}
+      {isLoading ? (
+        <ActivityIndicator
+          size="large"
+          color="#FFD700"
+          style={styles.spinner}
+        />
+      ) : filteredCitas.length === 0 ? (
+        <Text style={styles.noDataText}>No hay citas disponibles</Text>
+      ) : (
+        <ScrollView style={styles.scrollview}>
+          {filteredCitas.map((cita) => (
+            <AppointmentCard
+              key={cita.fecha}
+              fecha={cita.fecha}
+              citas={cita.citas}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Modal de filtros */}
       <FilterModal
@@ -160,10 +258,59 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: 'contain',
   },
+  userInfo: {
+    backgroundColor: '#FFD700',
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 15,
+    marginTop: 10,
+  },
+  userText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 2,
+    fontWeight: 'bold',
+  },
+  dashboardContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 15,
+    marginBottom: 20,
+  },
+  card: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 70,
+    borderRadius: 8,
+    marginHorizontal: 10,
+    borderWidth: 2,
+  },
+  pendingCard: {
+    borderColor: '#FFD700',
+  },
+  receivedCard: {
+    borderColor: '#333',
+  },
+  deliveredCard: {
+    borderColor: '#FFD700',
+  },
+  cardNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 5,
+  },
+  cardLabel: {
+    fontSize: 12,
+    color: '#333',
+  },
   buttonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
+    marginBottom: 30,
+    paddingHorizontal: 10,
   },
   searchContainer: {
     flex: 2,
@@ -188,7 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    padding: 8,
     backgroundColor: '#FFD700',
     borderRadius: 10,
     marginHorizontal: 5,
@@ -203,7 +350,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    padding: 8,
     backgroundColor: '#FFD700',
     borderRadius: 10,
     marginLeft: 5,
@@ -220,6 +367,9 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'stretch',
     paddingHorizontal: 10,
+  },
+  spinner: {
+    marginTop: 30,
   },
 });
 

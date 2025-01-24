@@ -8,14 +8,14 @@ import {
   Alert,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateDireccionItem } from '../../src/contexts/store';
+import { updateDireccionItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
 
 const DireccionReviewScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const direccionDetails = useSelector((state) => state.direccionReview.items);
+  const direccionDetails = useSelector((state) => state.revision.direccion);
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
 
   const handleUpdateStatus = (id, side, status) => {
@@ -24,7 +24,7 @@ const DireccionReviewScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Recepción - Revisión de Dirección" />
+      <Header title="Revisión" />
       <View style={styles.content}>
         <Text style={styles.title}>Revisión de Dirección</Text>
 

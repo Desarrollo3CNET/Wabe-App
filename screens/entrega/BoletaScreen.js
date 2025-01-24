@@ -1,16 +1,14 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux'; // Importar useSelector
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 
 const BoletaScreen = ({ navigation, route }) => {
   const { fromScreen } = route.params || {};
+
+  // Recuperar los datos del slice de boleta
+  const boleta = useSelector((state) => state.boleta);
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
@@ -18,16 +16,25 @@ const BoletaScreen = ({ navigation, route }) => {
         return (
           <FooterButtons
             onBack={() => navigation.navigate('CheckOutScreen')}
+            onNext={() =>
+              navigation.navigate('FirmaScreen', {
+                fromScreen: 'BoletaScreen',
+              })
+            }
             showDelete={false}
-            showNext={false}
           />
         );
+      case 'FirmaScreen':
       case 'EntregaScreen':
         return (
           <FooterButtons
             onBack={() => navigation.navigate('EntregaScreen')}
+            onNext={() =>
+              navigation.navigate('FirmaScreen', {
+                fromScreen: 'BoletaScreen',
+              })
+            }
             showDelete={false}
-            showNext={false}
           />
         );
       default:
@@ -56,28 +63,37 @@ const BoletaScreen = ({ navigation, route }) => {
             {/* Left Section */}
             <View style={styles.leftSection}>
               <Text style={styles.label}>Nombre</Text>
-              <Text style={styles.value}>SERVICIO DE VIAJEROS SUIZA</Text>
+              <Text style={styles.value}>{boleta.firma.nombre}</Text>
 
               <Text style={styles.label}>Teléfono</Text>
-              <Text style={styles.value}>2290-8909</Text>
+              <Text style={styles.value}>{boleta.vehicleDetails.telefono}</Text>
 
               <Text style={styles.label}>Placa</Text>
-              <Text style={styles.value}>834620</Text>
+              <Text style={styles.value}>{boleta.vehicleDetails.placa}</Text>
 
               <Text style={styles.label}>Kilómetros</Text>
-              <Text style={styles.value}>55</Text>
+              <Text style={styles.value}>
+                {boleta.vehicleDetails.kilometraje}
+              </Text>
 
               <Text style={styles.label}>Combustible</Text>
-              <Text style={styles.value}>3/4</Text>
+              <Text style={styles.value}>
+                {boleta.vehicleDetails.combustible}
+              </Text>
             </View>
 
             {/* Right Section */}
             <View style={styles.rightSection}>
               <Text style={styles.label}>Accesorios</Text>
-              <Text style={styles.value}>Artículo 1</Text>
-              <Text style={styles.value}>Artículo 2</Text>
-              <Text style={styles.value}>Artículo 3</Text>
-              <Text style={styles.value}>Artículo 4</Text>
+              {boleta.accesorios.length > 0 ? (
+                boleta.accesorios.map((accesorio, index) => (
+                  <Text key={index} style={styles.value}>
+                    {accesorio.nombre}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.value}>N/A</Text>
+              )}
             </View>
           </View>
         </View>

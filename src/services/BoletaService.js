@@ -26,9 +26,11 @@ export async function saveImages(listaFotos) {
 }
 
 // Función para obtener la lista de boletas
-export async function getBoletas() {
+export async function getBoletas(estado, idEmpresa) {
   try {
-    const response = await get(`${controller}/List`);
+    const response = await get(
+      `${controller}/List?estado=${estado}&idEmpresa=${idEmpresa}`,
+    );
     return response;
   } catch (error) {
     console.error('Error obteniendo la lista de boletas:', error);
@@ -37,9 +39,9 @@ export async function getBoletas() {
 }
 
 // Función para obtener una boleta específica
-export async function getBoleta(id) {
+export async function getBoletaById(BoletaId) {
   try {
-    const response = await get(`${controller}/Read?id=${id}`);
+    const response = await get(`${controller}/Read?id=${BoletaId}`);
     return response;
   } catch (error) {
     console.error('Error obteniendo la boleta:', error);
@@ -54,6 +56,17 @@ export async function updateBoleta(boletaData) {
     return response;
   } catch (error) {
     console.error('Error actualizando boleta:', error);
+    throw error;
+  }
+}
+
+// Función para reenviar un correo
+export async function reenviarCorreo(idBoleta) {
+  try {
+    const response = await post(`${controller}/CorreoBoleta`, idBoleta);
+    return response;
+  } catch (error) {
+    console.error('Error reenviando un correo:', error);
     throw error;
   }
 }

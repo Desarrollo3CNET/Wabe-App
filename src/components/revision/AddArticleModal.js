@@ -10,14 +10,19 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useSelector, useDispatch } from 'react-redux';
-import { agregarArticulo, eliminarArticulo } from './../../contexts/store';
+import {
+  agregarArticulo,
+  eliminarArticulo,
+} from './../../contexts/RevisionSlice';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const AddArticleModal = ({ visible, onClose }) => {
   const [articleName, setArticleName] = useState('');
   const [articleState, setArticleState] = useState('Bueno');
   const dispatch = useDispatch();
-  const { buenos, malos } = useSelector((state) => state.articulosGenericos);
+  const { buenos, malos } = useSelector(
+    (state) => state.revision.articulosGenericos,
+  );
 
   const handleAdd = () => {
     if (articleName.trim() === '') {

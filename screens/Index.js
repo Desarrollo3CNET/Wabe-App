@@ -3,7 +3,7 @@ import { ScrollView, View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { setLoggedIn } from '../src/contexts/store';
+import { setLoggedIn } from '../src/contexts/AppSlice';
 
 const Index = () => {
   const dispatch = useDispatch();

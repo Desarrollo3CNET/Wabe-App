@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import CustomInput from './CustomInput';
-import DateRangeButton from './DateRangeButton';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  Picker,
+} from 'react-native';
+import DateRangeButton from './DateRangeButton'; // Se vuelve a importar
+import { getSucursales } from '../../src/services/CitaService';
+import { useSelector } from 'react-redux';
 
 const FilterModal = ({ visible, onClose, onApplyFilters }) => {
+  const user = useSelector((state) => state.app.user);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [estado, setEstado] = useState(null);
   const [sucursal, setSucursal] = useState(null);
+  const [sucursalOptions, setSucursalOptions] = useState([]);
 
+  useEffect(() => {
+    if (user?.EMP_CODE) {
+      const fetchSucursales = async () => {
+        try {
+          const data = await getSucursales(user.EMP_CODE);
+          const formattedOptions = data.map((s) => ({
+            label: s.SUR_NAME,
+            value: s.SUR_CODE,
+          }));
+          setSucursalOptions(formattedOptions);
+        } catch (error) {
+          console.error('Error al cargar sucursales:', error);
+        }
+      };
+      fetchSucursales();
+    }
+  }, [user]);
   const handleApply = () => {
-    onApplyFilters({ startDate, endDate, estado, sucursal });
+    // Normalizamos las fechas antes de enviarlas
+    const normalizedStartDate = startDate
+      ? new Date(startDate).toISOString().split('T')[0]
+      : null;
+    const normalizedEndDate = endDate
+      ? new Date(endDate).toISOString().split('T')[0]
+      : null;
+
+    onApplyFilters({
+      startDate: normalizedStartDate,
+      endDate: normalizedEndDate,
+      estado,
+      sucursal,
+    });
     onClose();
   };
 
@@ -19,6 +59,14 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
     setEndDate(null);
     setEstado('');
     setSucursal('');
+
+    onApplyFilters({
+      startDate: null,
+      endDate: null,
+      estado: '',
+      sucursal: '',
+    });
+    onClose();
   };
 
   return (
@@ -27,33 +75,51 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
         <View style={styles.modalContent}>
           <Text style={styles.title}>Filtrar Citas</Text>
 
-          {/* Selector de estado */}
-          <CustomInput
-            label="Estado"
-            type="select"
-            value={estado}
-            options={['Todos', 'Activo', 'Finalizado']}
-            onChange={setEstado}
-          />
+          {/* Estado */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Estado</Text>
+            <Picker
+              selectedValue={estado}
+              onValueChange={(itemValue) => setEstado(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Todos" value="Todos" />
+              <Picker.Item label="Activo" value="Activo" />
+              <Picker.Item label="Finalizado" value="Finalizado" />
+            </Picker>
+          </View>
 
-          {/* Selector de sucursal */}
-          <CustomInput
-            label="Sucursal"
-            type="select"
-            value={sucursal}
-            options={['Sucursal A', 'Sucursal B', 'Sucursal C']}
-            onChange={setSucursal}
-          />
+          {/* Sucursal */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Sucursal</Text>
+            <Picker
+              selectedValue={sucursal}
+              onValueChange={(itemValue) => setSucursal(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Seleccione una sucursal" value="" />
+              {sucursalOptions.map((option, index) => (
+                <Picker.Item
+                  key={index}
+                  label={option.label}
+                  value={option.value}
+                />
+              ))}
+            </Picker>
+          </View>
 
-          {/* Selector de rango de fechas */}
-          <DateRangeButton
-            onRangeSelect={(start, end) => {
-              setStartDate(start);
-              setEndDate(end);
-            }}
-          />
+          {/* Rango de fechas */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Rango de Fechas</Text>
+            <DateRangeButton
+              onRangeSelect={(start, end) => {
+                setStartDate(start);
+                setEndDate(end);
+              }}
+            />
+          </View>
 
-          {/* Botones de acción */}
+          {/* Botones */}
           <View style={styles.buttonRow}>
             <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
               <Text style={styles.resetText}>Resetear</Text>
@@ -90,6 +156,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333',
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    padding: 5,
   },
   buttonRow: {
     flexDirection: 'row',
