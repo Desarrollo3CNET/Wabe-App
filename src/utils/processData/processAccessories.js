@@ -8,24 +8,30 @@ export function processAccessories(data) {
   return data.map((item) => {
     // Creamos el nuevo objeto con los valores base
     const newItem = {
-      id: item.TIPACC_CODE,
-      nombre: item.TIPACC_NOMBRE,
+      TIPACC_CODE: item.TIPACC_CODE,
+      EMP_CODE: item.EMP_CODE,
+      TIPACC_NOMBRE: item.TIPACC_NOMBRE,
+      TIPACC_VISIBLE: item.TIPACC_VISIBLE,
+      TIPACC_CREATEDATE: item.TIPACC_CREATEDATE,
+      TIPACC_UPDATEDATE: item.TIPACC_UPDATEDATE,
+      TIPACC_CREATEUSER: item.TIPACC_CREATEUSER,
+      TIPACC_UPDATEUSER: item.TIPACC_UPDATEUSER,
       habilitado: false,
       infoVisible: false,
     };
 
     // Agregamos las propiedades condicionales
     if (item.TIPACC_SETMARCA) {
-      newItem.marca = '';
+      newItem.TIPACC_SETMARCA = '';
     }
     if (item.TIPACC_SETESTADO) {
-      newItem.estado = '';
+      newItem.TIPACC_SETESTADO = '';
     }
     if (item.TIPACC_SETDESCRIPCION) {
-      newItem.descripcion = '';
+      newItem.TIPACC_SETDESCRIPCION = '';
     }
     if (item.TIPACC_SETCANTIDAD) {
-      newItem.cantidad = 0;
+      newItem.TIPACC_SETCANTIDAD = 0;
     }
 
     return newItem;

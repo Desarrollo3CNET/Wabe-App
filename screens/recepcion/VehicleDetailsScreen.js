@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateVehicleDetail } from '../../src/contexts/BoletaSlice';
+import { setProperty } from '../../src/contexts/BoletaSlice';
 import Header from '../../src/components/recepcion/Header';
 import CustomInput from '../../src/components/CustomInput';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
-import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
 
 const VehicleDetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const vehiculo = useSelector((state) => state.boleta.vehicleDetails); // Ajuste aquí
-  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
+  const boleta = useSelector((state) => state.boleta);
+  const [modalVisibleBoleta, setModalVisibleBoleta] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleUpdate = (key, value) => {
-    dispatch(updateVehicleDetail({ key, value }));
+    dispatch(setProperty({ key, value }));
+  };
+
+  const handleNext = async () => {
+    if (
+      boleta.BOL_VEH_PLACA &&
+      boleta.BOL_VEH_ESTILO &&
+      boleta.BOL_VEH_ANIO &&
+      boleta.BOL_VEH_KM &&
+      boleta.horaIngreso &&
+      boleta.fechaIngreso &&
+      boleta.BOL_VEH_COMBUSTIBLE
+    ) {
+      navigation.navigate('FirmaScreen', {
+        fromScreen: 'VehicleDetailsScreen',
+      });
+    } else {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete todos los campos antes de continuar.',
+      );
+      setModalVisibleBoleta(true);
+    }
   };
 
   return (
@@ -29,24 +53,24 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Placa del Vehículo"
                 type="text"
-                value={vehiculo.placa} // Ajuste aquí
-                onChange={(value) => handleUpdate('placa', value)}
+                value={boleta.BOL_VEH_PLACA}
+                onChange={(value) => handleUpdate('BOL_VEH_PLACA', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
                 label="Estilo del Vehículo"
                 type="text"
-                value={vehiculo.estilo} // Ajuste aquí
-                onChange={(value) => handleUpdate('estilo', value)}
+                value={boleta.BOL_VEH_ESTILO}
+                onChange={(value) => handleUpdate('BOL_VEH_ESTILO', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
                 label="Año del Vehículo"
                 type="number"
-                value={vehiculo.anio} // Ajuste aquí
-                onChange={(value) => handleUpdate('anio', value)}
+                value={boleta.BOL_VEH_ANIO}
+                onChange={(value) => handleUpdate('BOL_VEH_ANIO', value)}
               />
             </View>
           </View>
@@ -56,15 +80,15 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Kilometraje"
                 type="number"
-                value={vehiculo.kilometraje} // Ajuste aquí
-                onChange={(value) => handleUpdate('kilometraje', value)}
+                value={boleta.BOL_VEH_KM}
+                onChange={(value) => handleUpdate('BOL_VEH_KM', value)}
               />
             </View>
             <View style={styles.column}>
               <CustomInput
                 label="Hora de Ingreso"
                 type="time"
-                value={vehiculo.horaIngreso} // Ajuste aquí
+                value={boleta.horaIngreso}
                 onChange={(value) => handleUpdate('horaIngreso', value)}
               />
             </View>
@@ -72,7 +96,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Fecha de Ingreso"
                 type="date"
-                value={vehiculo.fechaIngreso} // Ajuste aquí
+                value={boleta.fechaIngreso}
                 onChange={(value) => handleUpdate('fechaIngreso', value)}
               />
             </View>
@@ -83,32 +107,34 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Combustible"
                 type="select"
-                value={vehiculo.combustible} // Ajuste aquí
+                value={boleta.BOL_VEH_COMBUSTIBLE}
                 options={['1/4', '1/3', '3/4', '1']}
-                onChange={(value) => handleUpdate('combustible', value)}
+                onChange={(value) => handleUpdate('BOL_VEH_COMBUSTIBLE', value)}
               />
             </View>
-
             <View style={styles.column}></View>
           </View>
         </View>
       </ScrollView>
 
       <FooterButtons
-        onBack={() => setmodalVisibleBoleta(true)}
-        onDelete={() => setmodalVisibleBoleta(true)}
-        onNext={() =>
-          navigation.navigate('FirmaScreen', {
-            fromScreen: 'VehicleDetailsScreen',
-          })
-        }
+        onBack={() => {
+          setCaseType('CancelBoleta'); // Por defecto, es para cancelar la boleta
+          setModalVisibleBoleta(true);
+        }}
+        onDelete={() => {
+          setCaseType('CancelBoleta'); // Por defecto, es para cancelar la boleta
+          setModalVisibleBoleta(true);
+        }}
+        onNext={handleNext}
       />
 
-      {/* CancelBoletaModal */}
-      <CancelBoletaModal
+      <GenericModal
         visible={modalVisibleBoleta}
-        onClose={() => setmodalVisibleBoleta(false)}
+        onClose={() => setModalVisibleBoleta(false)}
         navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );
@@ -144,9 +170,6 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
     marginHorizontal: 5,
-  },
-  fullWidth: {
-    flex: 3,
   },
 });
 

@@ -15,10 +15,13 @@ import {
   eliminarArticulo,
 } from './../../contexts/RevisionSlice';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import GenericModal from '../../components/recepcion/GenericModal'; // Importación de GenericModal
 
 const AddArticleModal = ({ visible, onClose }) => {
   const [articleName, setArticleName] = useState('');
   const [articleState, setArticleState] = useState('Bueno');
+  const [modalVisible, setModalVisible] = useState(false); // Estado para mostrar el modal
+  const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
   const dispatch = useDispatch();
   const { buenos, malos } = useSelector(
     (state) => state.revision.articulosGenericos,
@@ -26,7 +29,8 @@ const AddArticleModal = ({ visible, onClose }) => {
 
   const handleAdd = () => {
     if (articleName.trim() === '') {
-      alert('Por favor ingrese un nombre de artículo.');
+      setModalMessage('Por favor ingrese un nombre de artículo.'); // Establecer mensaje
+      setModalVisible(true); // Mostrar modal
       return;
     }
 
@@ -114,6 +118,12 @@ const AddArticleModal = ({ visible, onClose }) => {
           </View>
         </View>
       </View>
+      <GenericModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        caseType="Notificacion"
+        message={modalMessage}
+      />
     </Modal>
   );
 };

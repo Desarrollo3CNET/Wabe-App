@@ -4,23 +4,13 @@ import { post, get } from '../api/config';
 const controller = 'Boleta';
 
 // Función para crear una boleta
-export async function createBoleta(boletaData) {
+
+export async function createBoleta(boletaData, idCita) {
   try {
-    const response = await post(`${controller}/SaveBoleta`, boletaData);
+    const response = await post(`api/SaveBoleta?idCita=${idCita}`, boletaData);
     return response;
   } catch (error) {
     console.error('Error creando boleta:', error);
-    throw error;
-  }
-}
-
-// Función para guardar imágenes
-export async function saveImages(listaFotos) {
-  try {
-    const response = await post(`${controller}/SaveImages`, listaFotos);
-    return response;
-  } catch (error) {
-    console.error('Error guardando imágenes:', error);
     throw error;
   }
 }
@@ -67,6 +57,17 @@ export async function reenviarCorreo(idBoleta) {
     return response;
   } catch (error) {
     console.error('Error reenviando un correo:', error);
+    throw error;
+  }
+}
+
+// Función para generar una orden de trabajo
+export async function generarOrdenTrabajo(idBoleta) {
+  try {
+    const response = await get(`${controller}/GenerarOrdenTrabajo`, idBoleta);
+    return response;
+  } catch (error) {
+    console.error('Error obteniendo la boleta:', error);
     throw error;
   }
 }

@@ -3,124 +3,208 @@ import { createSlice } from '@reduxjs/toolkit';
 const boletaSlice = createSlice({
   name: 'boleta',
   initialState: {
-    vehicleDetails: {
-      placa: '',
-      modelo: '',
-      estilo: '',
-      anio: '',
-      fechaIngreso: '',
-      horaIngreso: '',
-      combustible: '',
-      kilometraje: '',
-      telefono: '',
-    },
-    firma: {
-      observaciones: '',
-      nombre: '',
-      firma: null,
-    },
-    attachments: {
-      items: [],
-    },
-    golpes: {
-      vehicleStyle: 'Sedán',
-      paths: [],
-      undonePaths: [],
-      isDirty: false,
-      esquema: '',
-    },
-    accesorios: [],
+    CITCLIE_CODE: '',
+    BOL_CODE: '',
+    EMP_CODE: '',
+    CLI_CODE: '',
+    VEH_CODE: '',
+    TIPTRA_CODE: '',
+    BOL_FECHA: '',
+    BOL_CLI_NOMBRE: '',
+    BOL_CLI_TELEFONO: '',
+    BOL_VEH_PLACA: '',
+    BOL_VEH_ANIO: '',
+    BOL_VEH_MARCA: '',
+    BOL_VEH_ESTILO: 'Sedán',
+    BOL_VEH_MODELO: '',
+    BOL_VEH_COLOR: '',
+    BOL_VEH_KM: '',
+    BOL_VEH_COMBUSTIBLE: '',
+    BOL_CREATEDATE: '',
+    BOL_UPDATEDATE: '',
+    BOL_CREATEUSER: '',
+    BOL_UPDATEUSER: '',
+    BOL_FIRMA_CLIENTE: '',
+    BOL_ESTADO: '',
+    BOL_UNWASHED: false,
+    BOL_DELIVERED: '',
+    BOL_CLI_CORREO: '',
+    CITCLI_CODE: '',
+    ACC_ACCESORIOS: [],
+    BOL_FIRMA_CONSENTIMIENTO: '',
+    BOL_ENTREGADOPOR: '',
+    BOL_OBSERVACIONES: '',
+    BOL_RECIBIDOPOR: '',
+    BOL_RECIBIDOCONFORME: '',
+    BOL_CAR_EXQUEMA: '',
+    VEH_VEHICULO: {},
+    LIST_IMAGES: [],
+    paths: [],
+    undonePaths: [],
+    fechaIngreso: '',
+    horaIngreso: '',
   },
   reducers: {
-    updateVehicleDetail: (state, action) => {
+    // Reducer genérico para actualizar cualquier propiedad con {key, value}
+    setProperty: (state, action) => {
       const { key, value } = action.payload;
-      state.vehicleDetails[key] = value;
+      state[key] = value;
     },
-    setObservaciones: (state, action) => {
-      state.firma.observaciones = action.payload;
+    // Reducer para añadir una nueva Imagen
+    addImage: (state, action) => {
+      state.LIST_IMAGES.push(action.payload);
     },
-    setNombre: (state, action) => {
-      state.firma.nombre = action.payload;
+    // Reducer para setear un Imagenes
+    setImages: (state, action) => {
+      state.LIST_IMAGES = action.payload; // Sobrescribe la lista completa de imágenes
     },
-    setFirma: (state, action) => {
-      state.firma.firma = action.payload;
-    },
-    addAttachment: (state, action) => {
-      state.attachments.items.push(action.payload);
-    },
-    setAttachments(state, action) {
-      state.attachments.items = action.payload.items;
-    },
-    toggleSelectAttachment: (state, action) => {
+    // Reducer para alternar la selección de un Image por ID
+    toggleSelectImage: (state, action) => {
       const id = action.payload;
-      const attachment = state.attachments.items.find((item) => item.id === id);
-      if (attachment) {
-        attachment.selected = !attachment.selected;
+      const Image = state.LIST_IMAGES.find((item) => item.id === id);
+      if (Image) {
+        Image.selected = !Image.selected;
       }
     },
-    deleteSelectedAttachments: (state) => {
-      state.attachments.items = state.attachments.items.filter(
-        (item) => !item.selected,
-      );
+    // Reducer para eliminar LIST_IMAGES seleccionados
+    deleteSelectedImage: (state) => {
+      state.LIST_IMAGES = state.LIST_IMAGES.filter((item) => !item.selected);
     },
-    setVehicleStyle: (state, action) => {
-      state.golpes.vehicleStyle = action.payload;
-    },
-    setEsquema: (state, action) => {
-      state.golpes.esquema = action.payload;
-    },
+    // Reducer para añadir un nuevo path
     addPath: (state, action) => {
-      state.golpes.paths.push(action.payload);
-      state.golpes.undonePaths = [];
+      state.paths.push(action.payload);
+      state.undonePaths = [];
     },
+    // Reducer para deshacer el último path
     undoPath: (state) => {
-      if (state.golpes.paths.length > 0) {
-        const lastPath = state.golpes.paths.pop();
-        state.golpes.undonePaths.unshift(lastPath);
+      if (state.paths.length > 0) {
+        const lastPath = state.paths.pop();
+        state.undonePaths.unshift(lastPath);
       }
     },
+    // Reducer para rehacer el último path deshecho
     redoPath: (state) => {
-      if (state.golpes.undonePaths.length > 0) {
-        const lastUndonePath = state.golpes.undonePaths.shift();
-        state.golpes.paths.push(lastUndonePath);
+      if (state.undonePaths.length > 0) {
+        const lastUndonePath = state.undonePaths.shift();
+        state.paths.push(lastUndonePath);
       }
     },
+    // Reducer para limpiar todos los paths
     clearPaths: (state) => {
-      state.golpes.paths = [];
-      state.golpes.undonePaths = [];
+      state.paths = [];
+      state.undonePaths = [];
     },
+    // Reducer para alternar el estado de "BOL_UNWASHED"
     toggleDirty: (state) => {
-      state.golpes.isDirty = !state.golpes.isDirty;
+      state.BOL_UNWASHED = !state.BOL_UNWASHED;
     },
+    // Reducer para añadir un accesorio
     addAccesorio: (state, action) => {
-      state.accesorios.push(action.payload);
+      state.ACC_ACCESORIOS.push(action.payload);
     },
+    // Reducer para actualizar un accesorio existente
     updateAccesorio: (state, action) => {
-      const { id, updates } = action.payload;
-      const accesorio = state.accesorios.find((item) => item.id === id);
+      const { TIPACC_CODE, updates } = action.payload;
+      const accesorio = state.ACC_ACCESORIOS.find(
+        (item) => item.TIPACC_CODE === TIPACC_CODE,
+      );
       if (accesorio) {
         Object.assign(accesorio, updates);
       }
     },
+    // Reducer para eliminar un accesorio por ID
     removeAccesorio: (state, action) => {
-      state.accesorios = state.accesorios.filter(
-        (item) => item.id !== action.payload,
+      state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.filter(
+        (item) => item.TIPACC_CODE !== action.payload,
       );
+    },
+    // Reducer para alternar el estado de 'habilitado' en un accesorio
+    toggleAccesorio: (state, action) => {
+      const TIPACC_CODE = action.payload; // ID del accesorio a modificar
+      const accesorio = state.ACC_ACCESORIOS.find(
+        (item) => item.TIPACC_CODE === TIPACC_CODE,
+      );
+      if (accesorio) {
+        accesorio.habilitado = !accesorio.habilitado;
+        // Si 'habilitado' es falso, también establecer 'infoVisible' en falso
+        if (!accesorio.habilitado) {
+          accesorio.infoVisible = false;
+        }
+      }
+    },
+
+    // Reducer para alternar el estado de 'infoVisible' en un accesorio
+    toggleInfo: (state, action) => {
+      const TIPACC_CODE = action.payload; // ID del accesorio a modificar
+      const accesorio = state.ACC_ACCESORIOS.find(
+        (item) => item.TIPACC_CODE === TIPACC_CODE,
+      );
+      if (accesorio) {
+        accesorio.infoVisible = !accesorio.infoVisible;
+      }
+    },
+
+    // Reducer para setear toda la data de la boleta
+    setBoletaData: (state, action) => {
+      const data = action.payload;
+      Object.keys(data).forEach((key) => {
+        if (state.hasOwnProperty(key)) {
+          state[key] = data[key];
+        }
+      });
+    },
+    // Reducer para limpiar el estado y restablecerlo al estado inicial
+    resetBoleta: (state) => {
+      Object.assign(state, {
+        BOL_CODE: '',
+        EMP_CODE: '',
+        CLI_CODE: '',
+        VEH_CODE: '',
+        TIPTRA_CODE: '',
+        BOL_FECHA: '',
+        BOL_CLI_NOMBRE: '',
+        BOL_CLI_TELEFONO: '',
+        BOL_VEH_PLACA: '',
+        BOL_VEH_ANIO: '',
+        BOL_VEH_MARCA: '',
+        BOL_VEH_ESTILO: '',
+        BOL_VEH_MODELO: '',
+        BOL_VEH_COLOR: '',
+        BOL_VEH_KM: '',
+        BOL_VEH_COMBUSTIBLE: '',
+        BOL_CREATEDATE: '',
+        BOL_UPDATEDATE: '',
+        BOL_CREATEUSER: '',
+        BOL_UPDATEUSER: '',
+        BOL_FIRMA_CLIENTE: '',
+        BOL_ESTADO: '',
+        BOL_UNWASHED: '',
+        BOL_DELIVERED: '',
+        BOL_CLI_CORREO: '',
+        CITCLI_CODE: '',
+        ACC_ACCESORIOS: [],
+        BOL_FIRMA_CONSENTIMIENTO: '',
+        BOL_ENTREGADOPOR: '',
+        BOL_OBSERVACIONES: '',
+        BOL_RECIBIDOPOR: '',
+        BOL_RECIBIDOCONFORME: '',
+        BOL_CAR_EXQUEMA: '',
+        LIST_IMAGES: [],
+        paths: [],
+        undonePaths: [],
+        fechaIngreso: '',
+        horaIngreso: '',
+      });
     },
   },
 });
 
 export const {
-  updateVehicleDetail,
-  setObservaciones,
-  setNombre,
-  setFirma,
-  addAttachment,
-  toggleSelectAttachment,
-  deleteSelectedAttachments,
-  setVehicleStyle,
+  setProperty,
+  addImage,
+  toggleSelectImage,
+  deleteSelectedImage,
   addPath,
-  setAttachments,
   undoPath,
   redoPath,
   clearPaths,
@@ -128,7 +212,11 @@ export const {
   addAccesorio,
   updateAccesorio,
   removeAccesorio,
-  setEsquema,
+  toggleAccesorio,
+  toggleInfo,
+  setBoletaData,
+  setImages,
+  resetBoleta,
 } = boletaSlice.actions;
 
 export default boletaSlice.reducer;

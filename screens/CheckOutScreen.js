@@ -10,19 +10,22 @@ import {
 } from 'react-native';
 import Header from '../src/components/recepcion/Header';
 import DateRangeButton from './../src/components/DateRangeButton';
-import { getBoletas, getBoletaById } from '../src/services/BoletaService'; // Importa la función para obtener boletas
+import {
+  getBoletas,
+  getBoletaById,
+  generarOrdenTrabajo,
+} from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import { getAccesoriesByBoleta } from '../src/services/AccesorioService'; // Importa la función para obtener boletas
 import { GetImages } from '../src/services/FotografiasService'; // Importa la función para obtener boletas
+import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 
 import { useDispatch, useSelector } from 'react-redux';
+import { resetAllStates } from '../src/contexts/RevisionSlice';
+import { setCreatingRevisionTrue } from '../src/contexts/AppSlice';
 import {
-  setObservaciones,
-  setNombre,
-  setFirma,
-  updateVehicleDetail,
+  setBoletaData,
   addAccesorio,
-  setAttachments,
-  setEsquema,
+  setImages,
 } from '../src/contexts/BoletaSlice';
 
 const CheckOutScreen = ({ navigation }) => {
@@ -34,6 +37,8 @@ const CheckOutScreen = ({ navigation }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const user = useSelector((state) => state.app.user); // Estado global del usuario
 
   const fetchData = async () => {
@@ -99,71 +104,10 @@ const CheckOutScreen = ({ navigation }) => {
     try {
       // Obtener la información detallada de la boleta usando su BOL_CODE
       const boletaDetails = await getBoletaById(item.BOL_CODE);
-      console.log(boletaDetails);
 
       if (boletaDetails) {
-        // Actualizar el estado del slice de boleta con la información obtenida
-        dispatch(
-          updateVehicleDetail({
-            key: 'placa',
-            value: boletaDetails.BOL_VEH_PLACA,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'modelo',
-            value: boletaDetails.BOL_VEH_MARCA,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'estilo',
-            value: boletaDetails.BOL_VEH_ESTILO,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'anio',
-            value: boletaDetails.BOL_VEH_COLOR,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'combustible',
-            value: boletaDetails.BOL_VEH_COMBUSTIBLE,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'kilometraje',
-            value: boletaDetails.BOL_VEH_KM,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'telefono',
-            value: boletaDetails.BOL_CLI_TELEFONO,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'fechaIngreso',
-            value: boletaDetails.BOL_FECHA,
-          }),
-        );
-        dispatch(
-          updateVehicleDetail({
-            key: 'horaIngreso',
-            value: boletaDetails.BOL_FECHA.split('T')[1],
-          }),
-        );
-
-        dispatch(setObservaciones(boletaDetails.BOL_OBSERVACIONES));
-        dispatch(setNombre(boletaDetails.BOL_CLI_NOMBRE));
-
-        if (boletaDetails.BOL_FIRMA_CLIENTE) {
-          dispatch(setFirma(boletaDetails.BOL_FIRMA_CLIENTE));
-        }
+        // Actualizar el estado del slice de boleta con toda la información obtenida
+        dispatch(setBoletaData(boletaDetails));
       }
 
       // Obtener los accesorios asociados a la boleta usando su BOL_CODE
@@ -174,8 +118,8 @@ const CheckOutScreen = ({ navigation }) => {
         accesorios.forEach((accesorio) => {
           dispatch(
             addAccesorio({
-              id: accesorio.TIPACC_CODE,
-              nombre: accesorio.TIPACC_NOMBRE,
+              TIPACC_CODE: accesorio.TIPACC_CODE,
+              TIPACC_NOMBRE: accesorio.TIPACC_NOMBRE,
             }),
           );
         });
@@ -190,6 +134,10 @@ const CheckOutScreen = ({ navigation }) => {
         'Error al obtener los detalles de la boleta o accesorios:',
         error,
       );
+      setModalMessage(
+        'Hubo un error al intentar redirigir a la pantalla de Boleta. Por favor, inténtalo de nuevo.',
+      ); // Mensaje del modal
+      setModalVisible(true);
     } finally {
       setIsLoading(false); // Detiene el indicador de carga para boleta
     }
@@ -201,9 +149,9 @@ const CheckOutScreen = ({ navigation }) => {
       // Obtener detalles de la boleta
       const boletaDetails = await getBoletaById(item.BOL_CODE);
 
-      if (boletaDetails && boletaDetails.BOL_CAR_EXQUEMA) {
-        // Actualizar el estado del slice con el esquema en base64
-        dispatch(setEsquema(boletaDetails.BOL_CAR_EXQUEMA));
+      if (boletaDetails) {
+        // Actualizar el estado del slice de boleta con toda la información obtenida
+        dispatch(setBoletaData(boletaDetails));
       }
 
       // Formatear la fecha al formato YYYY-MM-DD
@@ -216,11 +164,7 @@ const CheckOutScreen = ({ navigation }) => {
 
       if (Array.isArray(images) && images.length > 0) {
         // Realizamos el dispatch para guardar las imágenes en el slice
-        dispatch(
-          setAttachments({
-            items: images, // Guardamos las imágenes en base64 directamente en el estado global
-          }),
-        );
+        dispatch(setImages(images));
 
         navigation.navigate('PhotosAndVideosScreen', {
           fromScreen: 'CheckOutScreen',
@@ -230,8 +174,64 @@ const CheckOutScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error al obtener o guardar imágenes:', error);
+      setModalMessage(
+        'Hubo un error al intentar redirigir a la pantalla de Fotografías. Por favor, inténtalo de nuevo.',
+      ); // Mensaje del modal
+      setModalVisible(true);
     } finally {
       setIsLoading(false); // Detiene el indicador de carga para boleta
+    }
+  };
+
+  const handleNavigateToRevision = async (item) => {
+    setIsLoading(true);
+    try {
+      dispatch(resetAllStates());
+      // Obtener detalles de la boleta
+      const boletaDetails = await getBoletaById(item.BOL_CODE);
+
+      if (boletaDetails) {
+        // Actualizar el estado del slice de boleta con toda la información obtenida
+        dispatch(setBoletaData(boletaDetails));
+      }
+      dispatch(setCreatingRevisionTrue());
+      navigation.navigate('SuspensionReviewScreen');
+    } catch (error) {
+      console.error('Error al iniciar la revisión:', error);
+      setModalMessage(
+        'Hubo un error al intentar redirigir a la pantalla de Revisión. Por favor, inténtalo de nuevo.',
+      ); // Mensaje del modal
+      setModalVisible(true);
+    } finally {
+      setIsLoading(false); // Detiene el indicador de carga para boleta
+    }
+  };
+
+  const handleGenerateWorkOrder = async (item) => {
+    setIsLoading(true); // Inicia el indicador de carga
+    try {
+      const response = await generarOrdenTrabajo(item.BOL_CODE);
+
+      if (response) {
+        // Mostrar mensaje de éxito en el modal
+        setModalMessage('La orden de trabajo se generó exitosamente.');
+        setModalVisible(true);
+      } else {
+        // Si no hay respuesta, mostrar un mensaje de advertencia
+        setModalMessage(
+          'No se pudo generar la orden de trabajo. Por favor, inténtalo de nuevo.',
+        );
+        setModalVisible(true);
+      }
+    } catch (error) {
+      console.error('Error generando la orden de trabajo:', error);
+      // Mostrar mensaje de error en el modal
+      setModalMessage(
+        'Hubo un error al intentar generar la orden de trabajo. Por favor, inténtalo de nuevo.',
+      );
+      setModalVisible(true);
+    } finally {
+      setIsLoading(false); // Detiene el indicador de carga
     }
   };
 
@@ -252,18 +252,26 @@ const CheckOutScreen = ({ navigation }) => {
         <View style={styles.cell}>
           <Text style={styles.cellText}>{formattedDate}</Text>
         </View>
+
         <View style={styles.cell}>
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() =>
-                navigation.navigate('BoletaScreen', {
-                  fromScreen: 'CheckOutScreen',
-                })
-              }
-            >
-              <Text style={styles.actionButtonText}>REVISIÓN MECÁNICA</Text>
-            </TouchableOpacity>
+            {item.CITCLIE_TIPO_CITA === 2 ? (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleGenerateWorkOrder(item)}
+              >
+                <Text style={styles.actionButtonText}>
+                  GENERAR ORDEN DE TRABAJO
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleNavigateToRevision(item)}
+              >
+                <Text style={styles.actionButtonText}>REVISIÓN MECÁNICA</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.actionButton}
@@ -314,29 +322,45 @@ const CheckOutScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tableHeader}>
-            <View style={styles.cell}>
-              <Text style={styles.tableHeaderText}>Placa</Text>
+          {filteredData.length === 0 ? (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>
+                No hay datos disponibles. Intenta con otros filtros.
+              </Text>
             </View>
-            <View style={styles.cell}>
-              <Text style={styles.tableHeaderText}>Cliente</Text>
-            </View>
-            <View style={styles.cell}>
-              <Text style={styles.tableHeaderText}>Fecha Ingreso</Text>
-            </View>
-            <View style={styles.cell}>
-              <Text style={styles.tableHeaderText}>Acciones</Text>
-            </View>
-          </View>
+          ) : (
+            <>
+              <View style={styles.tableHeader}>
+                <View style={styles.cell}>
+                  <Text style={styles.tableHeaderText}>Placa</Text>
+                </View>
+                <View style={styles.cell}>
+                  <Text style={styles.tableHeaderText}>Cliente</Text>
+                </View>
+                <View style={styles.cell}>
+                  <Text style={styles.tableHeaderText}>Fecha Ingreso</Text>
+                </View>
+                <View style={styles.cell}>
+                  <Text style={styles.tableHeaderText}>Acciones</Text>
+                </View>
+              </View>
 
-          <FlatList
-            data={filteredData}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.BOL_CODE.toString()}
-            contentContainerStyle={styles.list}
-          />
+              <FlatList
+                data={filteredData}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.BOL_CODE.toString()}
+                contentContainerStyle={styles.list}
+              />
+            </>
+          )}
         </>
       )}
+      <GenericModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        caseType="Notificacion"
+        message={modalMessage} // Muestra el mensaje dinámico
+      />
     </View>
   );
 };
@@ -346,6 +370,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
     padding: 10,
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFF', // Fondo blanco para destacar el mensaje
+    borderRadius: 5,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#666', // Gris suave para el texto
+    textAlign: 'center',
+    marginVertical: 10,
   },
   filters: {
     flexDirection: 'row',

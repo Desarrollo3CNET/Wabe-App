@@ -29,7 +29,8 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     hora: '',
   });
   const [acceptTerms, setAcceptTerms] = useState(false);
-
+  const [modalVisible, setModalVisible] = useState(false); // Estado para controlar el modal
+  const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
   const handleUpdate = (key, value) => {
     setAppointmentDetails((prevState) => ({
       ...prevState,
@@ -44,9 +45,13 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 
   const handleNext = () => {
     if (!acceptTerms) {
-      alert('Debe aceptar los términos y condiciones para continuar.');
+      setModalMessage(
+        'Debe aceptar los términos y condiciones para continuar.',
+      );
+      setModalVisible(true); // Muestra el modal
       return;
     }
+    // Lógica para continuar
   };
 
   return (
@@ -192,6 +197,12 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         showDelete={false}
         onBack={() => navigation.navigate('Dashboard')}
         onNext={handleNext}
+      />
+      <GenericModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        caseType="Notificacion"
+        message={modalMessage}
       />
     </View>
   );

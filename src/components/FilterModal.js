@@ -16,7 +16,7 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [estado, setEstado] = useState(null);
-  const [sucursal, setSucursal] = useState(null);
+  const [sucursal, setSucursal] = useState(-1);
   const [sucursalOptions, setSucursalOptions] = useState([]);
 
   useEffect(() => {
@@ -28,7 +28,9 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
             label: s.SUR_NAME,
             value: s.SUR_CODE,
           }));
-          setSucursalOptions(formattedOptions);
+          // Agregar la opción "Todas las sucursales"
+          const allOption = { label: 'Todas las sucursales', value: -1 };
+          setSucursalOptions([allOption, ...formattedOptions]); // Agrega al inicio
         } catch (error) {
           console.error('Error al cargar sucursales:', error);
         }
@@ -36,14 +38,17 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
       fetchSucursales();
     }
   }, [user]);
+
   const handleApply = () => {
-    // Normalizamos las fechas antes de enviarlas
-    const normalizedStartDate = startDate
-      ? new Date(startDate).toISOString().split('T')[0]
-      : null;
-    const normalizedEndDate = endDate
-      ? new Date(endDate).toISOString().split('T')[0]
-      : null;
+    const normalizedStartDate =
+      startDate && !isNaN(new Date(startDate))
+        ? new Date(startDate).toISOString().split('T')[0]
+        : null;
+
+    const normalizedEndDate =
+      endDate && !isNaN(new Date(endDate))
+        ? new Date(endDate).toISOString().split('T')[0]
+        : null;
 
     onApplyFilters({
       startDate: normalizedStartDate,
@@ -57,14 +62,14 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
   const handleReset = () => {
     setStartDate(null);
     setEndDate(null);
-    setEstado('');
-    setSucursal('');
+    setEstado('Todos');
+    setSucursal(-1);
 
     onApplyFilters({
       startDate: null,
       endDate: null,
-      estado: '',
-      sucursal: '',
+      estado: 'Todos',
+      sucursal: -1,
     });
     onClose();
   };
@@ -83,7 +88,7 @@ const FilterModal = ({ visible, onClose, onApplyFilters }) => {
               onValueChange={(itemValue) => setEstado(itemValue)}
               style={styles.picker}
             >
-              <Picker.Item label="Todos" value="Todos" />
+              <Picker.Item label="Todas las citas" value="Todos" />
               <Picker.Item label="Activo" value="Activo" />
               <Picker.Item label="Finalizado" value="Finalizado" />
             </Picker>

@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,14 +14,24 @@ import {
   toggleInfo,
   updateAccesorio,
 } from '../../src/contexts/BoletaSlice';
+import {
+  resetBoleta,
+  setCreatingBoletaFalse,
+} from '../../src/contexts/AppSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
-import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import { createBoleta } from '../../src/services/BoletaService';
+import { saveImages } from '../../src/services/FotografiasService';
 
 const AccesoriosScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const accesorios = useSelector((state) => state.boleta.accesorios);
+  const boleta = useSelector((state) => state.boleta);
+  const accesorios = boleta.ACC_ACCESORIOS;
+
   const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta'); // Por defecto es "CancelBoleta"
+  const [modalMessage, setModalMessage] = useState(''); // Para el mensaje dinámico en el modal
 
   const handleToggleInfo = (id) => {
     dispatch(toggleInfo(id));
@@ -36,12 +45,61 @@ const AccesoriosScreen = ({ navigation }) => {
     dispatch(updateAccesorio({ id, updates: { [key]: value } }));
   };
 
-  const handleNext = () => {
-    Alert.alert(
-      'Boleta completada',
-      'Se ha finalizado la boleta correctamente.',
-    );
-    navigation.navigate('CheckOutScreen');
+  const handleNext = async () => {
+    try {
+      setCaseType('Notificacion');
+
+      const {
+        CITCLIE_CODE,
+        LIST_IMAGES,
+        paths,
+        undonePaths,
+        fechaIngreso,
+        horaIngreso,
+        ...boletaFiltrada
+      } = boleta;
+
+      // Prepara el objeto listaFotos con la estructura requerida
+      const listaFotos = {
+        Fecha: new Date().toISOString(), // Fecha de hoy en formato ISO 8601
+        Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
+        TipoTrabajo: 'Reparación', // Valor fijo
+        Imagenes: boleta.LIST_IMAGES, // Imágenes de la boleta
+      };
+
+      // Llama a saveImages y guarda el resultado
+      const saveImagesResponse = await saveImages(listaFotos);
+
+      // Verifica si hubo algún problema con saveImages
+      if (!saveImagesResponse || saveImagesResponse.error) {
+        setModalMessage(
+          'Ocurrió un problema al guardar las imágenes. Por favor, inténtalo de nuevo.',
+        );
+        setmodalVisibleBoleta(true);
+        return; // Detener la ejecución si hubo un error con saveImages
+      }
+
+      // Si saveImages fue exitoso, continúa con createBoleta
+      const respuesta = await createBoleta(boletaFiltrada, boleta.CITCLIE_CODE);
+
+      if (respuesta) {
+        dispatch(resetBoleta());
+        dispatch(setCreatingBoletaFalse());
+        setModalMessage('Se ha finalizado la boleta correctamente.');
+        navigation.navigate('CheckOutScreen');
+      } else {
+        setModalMessage(
+          'Hubo un problema al finalizar la boleta. Por favor, inténtalo de nuevo.',
+        );
+      }
+    } catch (error) {
+      setModalMessage(
+        'Ocurrió un problema al procesar la solicitud. Por favor, verifica tu conexión e inténtalo de nuevo.',
+      );
+      console.error('Error en handleNext:', error);
+    } finally {
+      setmodalVisibleBoleta(true);
+    }
   };
 
   return (
@@ -51,14 +109,14 @@ const AccesoriosScreen = ({ navigation }) => {
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {accesorios.map((accesorio) => (
-            <View key={accesorio.id} style={styles.rowContainer}>
+            <View key={accesorio.TIPACC_CODE} style={styles.rowContainer}>
               <View style={styles.row}>
                 <TouchableOpacity
                   style={[
                     styles.switchContainer,
                     accesorio.habilitado ? styles.switchOn : styles.switchOff,
                   ]}
-                  onPress={() => handleToggleAccesorio(accesorio.id)}
+                  onPress={() => handleToggleAccesorio(accesorio.TIPACC_CODE)}
                 >
                   <View
                     style={[
@@ -67,11 +125,13 @@ const AccesoriosScreen = ({ navigation }) => {
                     ]}
                   />
                 </TouchableOpacity>
-                <Text style={styles.accesorioName}>{accesorio.nombre}</Text>
+                <Text style={styles.accesorioName}>
+                  {accesorio.TIPACC_NOMBRE}
+                </Text>
                 {accesorio.habilitado && (
                   <TouchableOpacity
                     style={styles.infoButton}
-                    onPress={() => handleToggleInfo(accesorio.id)}
+                    onPress={() => handleToggleInfo(accesorio.TIPACC_CODE)}
                   >
                     <Text style={styles.infoButtonText}>Información</Text>
                   </TouchableOpacity>
@@ -80,13 +140,17 @@ const AccesoriosScreen = ({ navigation }) => {
 
               {accesorio.infoVisible && (
                 <View style={styles.infoContainer}>
-                  {accesorio.estado !== undefined && (
+                  {accesorio.TIPACC_SETESTADO !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Estado</Text>
                       <Picker
-                        selectedValue={accesorio.estado}
+                        selectedValue={accesorio.TIPACC_SETESTADO}
                         onValueChange={(value) =>
-                          handleUpdate(accesorio.id, 'estado', value)
+                          handleUpdate(
+                            accesorio.TIPACC_CODE,
+                            'TIPACC_SETESTADO',
+                            value,
+                          )
                         }
                         style={styles.picker}
                       >
@@ -97,41 +161,53 @@ const AccesoriosScreen = ({ navigation }) => {
                     </View>
                   )}
 
-                  {accesorio.marca !== undefined && (
+                  {accesorio.TIPACC_SETMARCA !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Marca</Text>
                       <TextInput
                         style={styles.newInput}
-                        value={accesorio.marca}
+                        value={accesorio.TIPACC_SETMARCA}
                         onChangeText={(value) =>
-                          handleUpdate(accesorio.id, 'marca', value)
+                          handleUpdate(
+                            accesorio.TIPACC_CODE,
+                            'TIPACC_SETMARCA',
+                            value,
+                          )
                         }
                       />
                     </View>
                   )}
 
-                  {accesorio.descripcion !== undefined && (
+                  {accesorio.TIPACC_SETDESCRIPCION !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Descripción</Text>
                       <TextInput
                         style={styles.newInput}
-                        value={accesorio.descripcion}
+                        value={accesorio.TIPACC_SETDESCRIPCION}
                         onChangeText={(value) =>
-                          handleUpdate(accesorio.id, 'descripcion', value)
+                          handleUpdate(
+                            accesorio.TIPACC_CODE,
+                            'TIPACC_SETDESCRIPCION',
+                            value,
+                          )
                         }
                       />
                     </View>
                   )}
 
-                  {accesorio.cantidad !== undefined && (
+                  {accesorio.TIPACC_SETCANTIDAD !== undefined && (
                     <View style={styles.infoField}>
                       <Text style={styles.infoLabel}>Cantidad</Text>
                       <TextInput
                         style={styles.newInput}
-                        value={String(accesorio.cantidad)}
+                        value={String(accesorio.TIPACC_SETCANTIDAD)}
                         keyboardType="numeric"
                         onChangeText={(value) =>
-                          handleUpdate(accesorio.id, 'cantidad', Number(value))
+                          handleUpdate(
+                            accesorio.TIPACC_CODE,
+                            'TIPACC_SETCANTIDAD',
+                            Number(value),
+                          )
                         }
                       />
                     </View>
@@ -149,14 +225,19 @@ const AccesoriosScreen = ({ navigation }) => {
             fromScreen: 'AccesoriosScreen',
           })
         }
-        onDelete={() => setmodalVisibleBoleta(true)}
+        onDelete={() => {
+          setCaseType('CancelBoleta'); // Cambiar a caso CancelBoleta
+          setmodalVisibleBoleta(true);
+        }}
         onNext={handleNext}
       />
 
-      <CancelBoletaModal
+      <GenericModal
         visible={modalVisibleBoleta}
         onClose={() => setmodalVisibleBoleta(false)}
         navigation={navigation}
+        caseType={caseType} // Se ajusta dinámicamente según el contexto
+        message={modalMessage} // Mensaje dinámico
       />
     </View>
   );

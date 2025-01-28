@@ -11,6 +11,8 @@ import { updateSuspensionItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import { ValidateRevisionItems } from '../../src/utils/ValidateRevisionItems';
 
 const SuspensionReviewScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -18,9 +20,26 @@ const SuspensionReviewScreen = ({ navigation }) => {
     (state) => state.revision.suspensionDelantera,
   );
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
+  const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleUpdateStatus = (id, side, status) => {
     dispatch(updateSuspensionItem({ id, side, status }));
+  };
+
+  const handleNext = async () => {
+    const isValid = await ValidateRevisionItems(suspensionDetails);
+
+    if (isValid) {
+      navigation.navigate('SuspensionReviewScreenBack');
+    } else {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete al menos un estado para cada componente antes de continuar.',
+      );
+      setModalVisibleRevision(true);
+    }
   };
 
   return (
@@ -143,14 +162,25 @@ const SuspensionReviewScreen = ({ navigation }) => {
       </View>
 
       <FooterButtonsRevision
-        onBack={() => navigation.navigate('CheckOutScreen')}
+        onBack={() => {
+          setCaseType('CancelRevision');
+          setModalVisibleRevision(true);
+        }}
         onDelete={() => setModalVisibleArticulo(true)}
-        onNext={() => navigation.navigate('SuspensionReviewScreenBack')}
+        onNext={handleNext}
       />
 
       <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
+      />
+
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setModalVisibleRevision(false)}
+        navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );

@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import saveArticulos from '../../src/services/ArticulosService';
 
 const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
   const [observaciones, setObservaciones] = useState('');
   const { fromScreen } = route.params || {};
+
+  const boleta = useSelector((state) => state.boleta);
 
   // Selectors to fetch articles from all slices
   const suspensionDelantera = useSelector(
@@ -40,6 +37,9 @@ const ArticulosScreen = ({ navigation, route }) => {
   const articulos = useSelector((state) => state.revision.articulosBoleta);
 
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
+  const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   // Helper function to get "malo" articles
   const getMaloArticles = (items, sectionName, isBack = false) => {
@@ -130,18 +130,47 @@ const ArticulosScreen = ({ navigation, route }) => {
     })),
   ];
 
-  const handleNext = () => {
-    Alert.alert(
-      'Revisión completada',
-      `Se ha finalizado la revisión correctamente.\nObservaciones: ${observaciones}`,
-    );
-    navigation.navigate('CheckOutScreen');
+  const handleNext = async () => {
+    setCaseType('Notificacion');
+
+    try {
+      // Crear el array de nombres de artículos malos
+      const listArticulos = articulosMalos.map((articulo) => articulo.nombre);
+
+      // Llamar a la función SaveArticulos con los parámetros correspondientes
+      const response = await saveArticulos(
+        boleta.BOL_CODE, // idBoleta
+        observaciones, // observaciones
+        boleta.EMP_CODE, // idEmpresa
+        listArticulos, // lista de artículos
+      );
+
+      if (response && response.success) {
+        // Mensaje de éxito
+        setModalMessage(`Se ha finalizado la revisión correctamente`);
+        navigation.navigate('CheckOutScreen');
+      } else {
+        // Mensaje de error en caso de respuesta no exitosa
+        setModalMessage(
+          'Ocurrió un error al guardar los artículos. Por favor, intente de nuevo.',
+        );
+      }
+    } catch (error) {
+      console.error('Error en handleNext:', error);
+
+      // Mensaje de error en caso de excepción
+      setCaseType('Error');
+      setModalMessage(
+        'Ocurrió un error inesperado al intentar guardar los artículos. Por favor, intente más tarde.',
+      );
+    }
+
+    // Mostrar el modal de resultado
+    setModalVisibleRevision(true);
   };
 
   // Render a simple list of articles for "EntregaScreen"
   if (fromScreen === 'EntregaScreen') {
-    console.log('articulosLol', articulos);
-
     return (
       <View style={styles.container}>
         <Header title="Artículos" />
@@ -209,6 +238,13 @@ const ArticulosScreen = ({ navigation, route }) => {
       <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
+      />
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setModalVisibleRevision(false)}
+        navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );

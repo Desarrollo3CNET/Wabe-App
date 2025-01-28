@@ -1,30 +1,44 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  setObservaciones,
-  setNombre,
-  setFirma,
-} from '../../src/contexts/BoletaSlice';
+import { setProperty } from '../../src/contexts/BoletaSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import ReusableInput from '../../src/components/recepcion/ReusableInput';
 import SignatureInput from '../../src/components/recepcion/SignatureInput';
 import DrawingCanvas from '../../src/components/recepcion/DrawingCanvas';
-import CancelBoletaModal from '../../src/components/recepcion/CancelBoletaModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
 
 const FirmaScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { fromScreen } = route.params || {};
 
-  // Ajuste en el acceso al estado global
-  const firmaData = useSelector((state) => state.boleta.firma); // Acceso correcto a "firma" dentro de "vehicleDetails"
-  const { observaciones, nombre, firma } = firmaData;
+  const boleta = useSelector((state) => state.boleta);
+  const { BOL_OBSERVACIONES, BOL_CLI_NOMBRE } = boleta;
 
-  console.log('firmaData', firmaData);
+  const [modalVisible, setModalVisible] = useState(false); // Modal para firma
+  const [modalVisibleBoleta, setModalVisibleBoleta] = useState(false); // Modal genérico
+  const [caseType, setCaseType] = useState('CancelBoleta'); // Por defecto es "CancelBoleta"
+  const [modalMessage, setModalMessage] = useState(''); // Para el mensaje dinámico
 
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
+  const handleNext = async () => {
+    if (
+      boleta.BOL_OBSERVACIONES &&
+      boleta.BOL_CLI_NOMBRE &&
+      boleta.BOL_FIRMA_CLIENTE
+    ) {
+      navigation.navigate('PhotosAndVideosScreen', {
+        fromScreen: 'FirmaScreen',
+      });
+    } else {
+      // Cambiar el modal a caso "Notificacion" y mostrar mensaje de campos incompletos
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete todos los campos antes de continuar.',
+      );
+      setModalVisibleBoleta(true);
+    }
+  };
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
@@ -33,12 +47,11 @@ const FirmaScreen = ({ navigation, route }) => {
         return (
           <FooterButtons
             onBack={() => navigation.navigate('VehicleDetailsScreen')}
-            onDelete={() => setmodalVisibleBoleta(true)}
-            onNext={() =>
-              navigation.navigate('PhotosAndVideosScreen', {
-                fromScreen: 'FirmaScreen',
-              })
-            }
+            onDelete={() => {
+              setCaseType('CancelBoleta'); // Por defecto "CancelBoleta"
+              setModalVisibleBoleta(true);
+            }}
+            onNext={handleNext}
           />
         );
       case 'BoletaScreen':
@@ -65,7 +78,12 @@ const FirmaScreen = ({ navigation, route }) => {
   };
 
   const handleSaveSignature = (signature) => {
-    dispatch(setFirma(signature)); // Guardar la firma en Redux
+    dispatch(
+      setProperty({
+        key: 'BOL_FIRMA_CLIENTE', // La clave que queremos actualizar
+        value: signature, // El nuevo valor
+      }),
+    );
     setModalVisible(false); // Cerrar el modal de firma
   };
 
@@ -80,18 +98,32 @@ const FirmaScreen = ({ navigation, route }) => {
         <ReusableInput
           label="Observaciones"
           placeholder="Escribe las observaciones aquí"
-          value={observaciones} // Ajuste aquí
-          onChangeText={(text) => dispatch(setObservaciones(text))}
-          readOnly={fromScreen == 'BoletaScreen' ? true : false}
+          value={BOL_OBSERVACIONES}
+          onChangeText={(text) =>
+            dispatch(
+              setProperty({
+                key: 'BOL_OBSERVACIONES',
+                value: text,
+              }),
+            )
+          }
+          readOnly={fromScreen === 'BoletaScreen'}
         />
 
         {/* Input para Nombre */}
         <ReusableInput
           label="Nombre y Apellidos"
           placeholder="Escribe el nombre aquí"
-          value={nombre} // Ajuste aquí
-          onChangeText={(text) => dispatch(setNombre(text))}
-          readOnly={fromScreen == 'BoletaScreen' ? true : false}
+          value={BOL_CLI_NOMBRE}
+          onChangeText={(text) =>
+            dispatch(
+              setProperty({
+                key: 'BOL_CLI_NOMBRE',
+                value: text,
+              }),
+            )
+          }
+          readOnly={fromScreen === 'BoletaScreen'}
         />
 
         {/* Input para Firma */}
@@ -114,11 +146,13 @@ const FirmaScreen = ({ navigation, route }) => {
         />
       )}
 
-      {/* CancelBoletaModal */}
-      <CancelBoletaModal
+      {/* Modal genérico */}
+      <GenericModal
         visible={modalVisibleBoleta}
-        onClose={() => setmodalVisibleBoleta(false)}
+        onClose={() => setModalVisibleBoleta(false)}
         navigation={navigation}
+        caseType={caseType} // Tipo dinámico del caso
+        message={modalMessage} // Mensaje dinámico en caso de "Notificacion"
       />
     </View>
   );

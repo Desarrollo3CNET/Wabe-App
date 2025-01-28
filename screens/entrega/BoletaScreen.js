@@ -63,32 +63,28 @@ const BoletaScreen = ({ navigation, route }) => {
             {/* Left Section */}
             <View style={styles.leftSection}>
               <Text style={styles.label}>Nombre</Text>
-              <Text style={styles.value}>{boleta.firma.nombre}</Text>
+              <Text style={styles.value}>{boleta.BOL_CLI_NOMBRE}</Text>
 
               <Text style={styles.label}>Teléfono</Text>
-              <Text style={styles.value}>{boleta.vehicleDetails.telefono}</Text>
+              <Text style={styles.value}>{boleta.BOL_CLI_TELEFONO}</Text>
 
               <Text style={styles.label}>Placa</Text>
-              <Text style={styles.value}>{boleta.vehicleDetails.placa}</Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_PLACA}</Text>
 
               <Text style={styles.label}>Kilómetros</Text>
-              <Text style={styles.value}>
-                {boleta.vehicleDetails.kilometraje}
-              </Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_KM}</Text>
 
               <Text style={styles.label}>Combustible</Text>
-              <Text style={styles.value}>
-                {boleta.vehicleDetails.combustible}
-              </Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_COMBUSTIBLE}</Text>
             </View>
 
             {/* Right Section */}
             <View style={styles.rightSection}>
               <Text style={styles.label}>Accesorios</Text>
-              {boleta.accesorios.length > 0 ? (
-                boleta.accesorios.map((accesorio, index) => (
+              {boleta.ACC_ACCESORIOS.length > 0 ? (
+                boleta.ACC_ACCESORIOS.map((accesorio, index) => (
                   <Text key={index} style={styles.value}>
-                    {accesorio.nombre}
+                    {accesorio.TIPACC_NOMBRE}
                   </Text>
                 ))
               ) : (

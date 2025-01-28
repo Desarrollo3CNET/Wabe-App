@@ -11,6 +11,8 @@ import { updateRodamientosBackItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import { ValidateRevisionItems } from '../../src/utils/ValidateRevisionItems';
 
 const RodamientosReviewScreenBack = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -18,9 +20,26 @@ const RodamientosReviewScreenBack = ({ navigation }) => {
     (state) => state.revision.rodamientosTraseros,
   );
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
+  const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleUpdateStatus = (id, side, status) => {
     dispatch(updateRodamientosBackItem({ id, side, status }));
+  };
+
+  const handleNext = async () => {
+    const isValid = ValidateRevisionItems(rodamientosDetails);
+
+    if (isValid) {
+      navigation.navigate('DireccionReviewScreen');
+    } else {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete al menos un estado para cada componente antes de continuar.',
+      );
+      setModalVisibleRevision(true);
+    }
   };
 
   return (
@@ -145,12 +164,19 @@ const RodamientosReviewScreenBack = ({ navigation }) => {
       <FooterButtonsRevision
         onBack={() => navigation.navigate('RodamientosReviewScreen')}
         onDelete={() => setModalVisibleArticulo(true)}
-        onNext={() => navigation.navigate('DireccionReviewScreen')}
+        onNext={handleNext}
       />
 
       <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
+      />
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setModalVisibleRevision(false)}
+        navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );

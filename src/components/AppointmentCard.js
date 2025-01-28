@@ -8,22 +8,33 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import buttonIcon from '../../assets/buttonIcon.png';
-import { getAccesories } from '../services/AccesorioService'; // Importa la función para obtener accesorios
-import { processAccessories } from '../utils/processData/processAccessories'; // Importa la función para procesar accesorios
-import { addAccesorio, updateVehicleDetail } from '../contexts/BoletaSlice'; // Importa la acción de Redux
+import { getAccesories } from '../services/AccesorioService';
+import { processAccessories } from '../utils/processData/processAccessories';
+import {
+  addAccesorio,
+  setProperty,
+  resetBoleta,
+} from '../contexts/BoletaSlice';
+import { setCreatingBoletaTrue } from '../contexts/AppSlice'; // Importar acción
 
 const { width } = Dimensions.get('window');
 
-const AppointmentCard = ({ fecha, citas }) => {
+const AppointmentCard = ({
+  fecha,
+  cliente,
+  vehiculo,
+  cita,
+  showDateHeader,
+}) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.app.user);
 
-  const [loading, setLoading] = useState(false); // State to manage loading spinner visibility
+  const [loading, setLoading] = useState(false);
 
-  // Función para formatear la hora
   const formatTime = (time) => {
     try {
       const [hours, minutes] = time.split(':');
@@ -34,30 +45,51 @@ const AppointmentCard = ({ fecha, citas }) => {
         minute: '2-digit',
       }).format(date);
     } catch {
-      return time; // En caso de error, devuelve el formato original
+      return time;
     }
   };
 
-  const handleNavigate = async (cita) => {
-    setLoading(true); // Show spinner
+  const handleNavigate = async () => {
+    setLoading(true);
     try {
-      // Dispatch each property of the vehiculo object
-      const vehiculoData = {
-        placa: cita.vehiculo.placa,
-        modelo: cita.vehiculo.modelo || cita.vehiculo.estilo,
-        estilo: cita.vehiculo.estilo,
-        anio: cita.vehiculo.anio.toString(),
-        fechaIngreso: cita.cita.fecha,
-        horaIngreso: cita.cita.hora,
-        combustible: '',
-        kilometraje: '',
+      dispatch(resetBoleta());
+      dispatch(setCreatingBoletaTrue());
+
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+      const InitializeBoleta = {
+        CITCLIE_CODE: cita.CITCLIE_CODE,
+        EMP_CODE: user.EMP_CODE,
+        CLI_CODE: cita.CLI_CODE,
+        VEH_CODE: vehiculo.VEH_CODE,
+        TIPTRA_CODE: 1,
+        BOL_CLI_NOMBRE: cliente.CLI_NAME,
+        BOL_CLI_TELEFONO: cliente.CLI_PHONE1,
+        BOL_VEH_PLACA: vehiculo.VEH_PLACA,
+        BOL_VEH_ANIO: vehiculo.VEH_ANIO.toString(),
+        BOL_VEH_MARCA: vehiculo.VEH_MARCA,
+        BOL_VEH_ESTILO: 'Sedán',
+        BOL_VEH_MODELO: vehiculo.VEH_MODELO,
+        BOL_VEH_COLOR: vehiculo.VEH_COLOR,
+        BOL_VEH_COMBUSTIBLE: '1/4',
+        BOL_CREATEUSER: user.USU_USERNAME,
+        BOL_UPDATEUSER: user.USU_USERNAME,
+        BOL_ESTADO: 0,
+        BOL_UNWASHED: false,
+        BOL_DELIVERED: false,
+        BOL_CLI_CORREO: cliente.CLI_EMAIL,
+        CITCLI_CODE: cita.CITCLIE_CODE,
+        BOL_RECIBIDOPOR: user.USU_USERNAME,
+        VEH_VEHICULO: vehiculo,
+        fechaIngreso: formattedDate,
+        horaIngreso: formatTime(cita.CITCLIE_HORA),
       };
 
-      Object.entries(vehiculoData).forEach(([key, value]) => {
-        dispatch(updateVehicleDetail({ key, value }));
+      Object.entries(InitializeBoleta).forEach(([key, value]) => {
+        dispatch(setProperty({ key, value }));
       });
 
-      // Fetch accessories, process, and add to Redux
       const rawAccessories = await getAccesories();
       const processedAccessories = processAccessories(rawAccessories);
 
@@ -65,46 +97,44 @@ const AppointmentCard = ({ fecha, citas }) => {
         dispatch(addAccesorio(accessory));
       });
 
-      // Navigate to vehicle details screen
       navigation.navigate('VehicleDetailsScreen');
     } catch (error) {
       console.error('Error al manejar la navegación:', error);
     } finally {
-      setLoading(false); // Hide spinner
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      {loading && ( // Show the overlay with spinner when loading
+      {loading && (
         <View style={styles.overlay}>
           <ActivityIndicator size="large" color="#FFF" />
         </View>
       )}
-      <Text style={styles.dateHeader}>{fecha}</Text>
-      {citas.map((cita, idx) => (
-        <View key={idx} style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.userName}>{cita.cliente.nombre}</Text>
-            <Text style={styles.info}>Número de Cita: {cita.cita.idCita}</Text>
-            <Text style={styles.status}>
-              Estado: {cita.cita.estado ? 'Activo' : 'Inactivo'}
-            </Text>
-            <Text style={styles.time}>Hora: {formatTime(cita.cita.hora)}</Text>
-            <Text style={styles.info}>Cédula: {cita.cliente.cedula}</Text>
-            <Text style={styles.info}>
-              Vehículo: {cita.vehiculo.marca} {cita.vehiculo.modelo} -{' '}
-              {cita.vehiculo.anio}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.moreOptionsButton}
-            onPress={() => handleNavigate(cita)} // Pass the cita as an argument
-          >
-            <Image source={buttonIcon} style={styles.icon} />
-          </TouchableOpacity>
+      {/* Mostrar encabezado de fecha solo si está habilitado */}
+      {showDateHeader && <Text style={styles.dateHeader}>{fecha}</Text>}
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <Text style={styles.userName}>{cliente.CLI_NAME}</Text>
+          <Text style={styles.info}>Número de Cita: {cita.CITCLIE_CODE}</Text>
+          <Text style={styles.status}>
+            Estado: {cita.ESTADO ? 'Activo' : 'Inactivo'}
+          </Text>
+          <Text style={styles.time}>Hora: {formatTime(cita.CITCLIE_HORA)}</Text>
+          <Text style={styles.info}>Cédula: {cliente.CLI_CEDULAJURI}</Text>
+          <Text style={styles.info}>
+            Vehículo: {vehiculo.VEH_MARCA} {vehiculo.VEH_ESTILO} -{' '}
+            {vehiculo.VEH_ANIO}
+          </Text>
         </View>
-      ))}
+        <TouchableOpacity
+          style={styles.moreOptionsButton}
+          onPress={handleNavigate}
+        >
+          <Image source={buttonIcon} style={styles.icon} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -116,7 +146,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,

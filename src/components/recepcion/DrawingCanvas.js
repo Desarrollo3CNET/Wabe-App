@@ -17,7 +17,7 @@ const DrawingCanvas = ({ visible, onCancel, onSave }) => {
   const currentPath = useRef('');
 
   // Retrieve the saved signature from Redux
-  const savedSignature = useSelector((state) => state.firma.firma);
+  const savedSignature = useSelector((state) => state.boleta.BOL_FIRMA_CLIENTE);
 
   // Load the saved signature into the canvas when the modal opens
   useEffect(() => {

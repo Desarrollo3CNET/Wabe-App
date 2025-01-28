@@ -16,6 +16,7 @@ import FilterModal from '../src/components/FilterModal';
 import { getCitas } from '../src/services/CitaService'; // Importa getCitas
 import { processCitas } from '../src/utils/processData/processCitas'; // Importa processCitas
 import { clearCitas, addCita } from '../src/contexts/CitasSlice'; // Importa directamente la acción addCita
+import { getDashboardData } from '../src/services/DashboardService'; // Importación del nuevo servicio
 
 const Dashboard = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -23,7 +24,7 @@ const Dashboard = ({ navigation }) => {
   const user = useSelector((state) => state.app.user); // Estado global del usuario
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dashboardData, setDashboardData] = useState(null); // Datos del dashboard
   const [isLoading, setIsLoading] = useState(true); // Estado para mostrar el spinner
   const logo = require('../assets/logo.png'); // Logo de la empresa
@@ -37,15 +38,12 @@ const Dashboard = ({ navigation }) => {
         const processedCitas = processCitas(rawCitas); // Procesa las citas con processCitas
 
         // Añade las citas procesadas al slice de Redux
-        processedCitas.forEach((fechaData) => {
-          fechaData.citas.forEach((nuevaCita) => {
-            dispatch(
-              addCita({
-                fecha: fechaData.fecha,
-                nuevaCita,
-              }),
-            );
-          });
+        processedCitas.forEach(async (cita) => {
+          dispatch(addCita(cita)); // Realiza un dispatch de addCita por cada elemento
+
+          const dashboardResponse = await getDashboardData(user?.EMP_CODE);
+          console.log(dashboardResponse);
+          setDashboardData(dashboardResponse[0]);
         });
       } catch (error) {
         console.error('Error obteniendo citas:', error);
@@ -54,7 +52,7 @@ const Dashboard = ({ navigation }) => {
       }
     };
 
-    fetchCitas();
+    fetchCitas(); // Llamar a la función fetchCitas al montar el componente
   }, [dispatch]);
 
   // Sincronizar citas filtradas con el estado global
@@ -65,20 +63,18 @@ const Dashboard = ({ navigation }) => {
   // Función para manejar búsqueda por número de cita
   const handleSearch = (query) => {
     setSearchQuery(query);
-    const filtered = citas
-      .map((cita) => ({
-        ...cita,
-        citas: cita.citas.filter((c) =>
-          c.cita.idCita.toString().includes(query),
-        ),
-      }))
-      .filter((cita) => cita.citas.length > 0);
+    const filtered = citas.filter((cita) =>
+      cita.CITA.CITCLIE_CODE.toString().includes(query),
+    );
     setFilteredCitas(filtered);
   };
 
   // Función para aplicar los filtros
   const handleApplyFilters = async (filters) => {
     const { startDate, endDate, estado, sucursal } = filters;
+
+    console.log('startDate ', startDate);
+    console.log('endDate ', endDate);
 
     let estadoParam = -1;
     if (estado === 'Activo') estadoParam = 1;
@@ -90,20 +86,14 @@ const Dashboard = ({ navigation }) => {
       const processedCitas = processCitas(rawCitas);
 
       dispatch(clearCitas());
-      processedCitas.forEach((fechaData) => {
-        fechaData.citas.forEach((nuevaCita) => {
-          dispatch(
-            addCita({
-              fecha: fechaData.fecha,
-              nuevaCita,
-            }),
-          );
-        });
+      processedCitas.forEach((cita) => {
+        dispatch(addCita(cita));
       });
 
       // Filtramos las citas localmente por rango de fechas
-      const filtered = processedCitas.filter((fechaData) => {
-        const citaDate = new Date(fechaData.fecha); // Convertimos la fecha de la cita
+      const filtered = processedCitas.filter((cita) => {
+        const citaDate = new Date(cita.CITA.CITCLIE_FECHA_RESERVA); // Convertimos la fecha de la cita
+        console.log('citaDate', citaDate);
         return (
           (!startDate || citaDate >= new Date(startDate)) &&
           (!endDate || citaDate <= new Date(endDate))
@@ -132,70 +122,72 @@ const Dashboard = ({ navigation }) => {
         <Image source={logo} style={styles.logo} />
       </View>
 
-      {/* Información del usuario */}
-      {user && (
-        <View style={styles.userInfo}>
-          <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
-          <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
-        </View>
-      )}
-
-      {/* Dashboard Data */}
-      {dashboardData && (
-        <View style={styles.dashboardContainer}>
-          <View style={[styles.card, styles.pendingCard]}>
-            <Ionicons name="car-outline" size={20} color="#FFD700" />
-            <Text style={styles.cardNumber}>{dashboardData.PENDIENTES}</Text>
-            <Text style={styles.cardLabel}>Pendientes</Text>
+      <View style={styles.headerSection}>
+        {/* Información del usuario */}
+        {user && (
+          <View style={styles.userInfo}>
+            <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
+            <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
           </View>
-          <View style={[styles.card, styles.receivedCard]}>
-            <Ionicons name="car-sport-outline" size={20} color="#333" />
-            <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
-            <Text style={styles.cardLabel}>Recibidos</Text>
+        )}
+
+        {/* Dashboard Data */}
+        {dashboardData && (
+          <View style={styles.dashboardContainer}>
+            <View style={[styles.card, styles.pendingCard]}>
+              <Ionicons name="clipboard-outline" size={20} color="#005EB8" />
+              <Text style={styles.cardNumber}>{dashboardData.PENDIENTES}</Text>
+              <Text style={styles.cardLabel}>Vehículos Pendientes</Text>
+            </View>
+            <View style={[styles.card, styles.receivedCard]}>
+              <Ionicons name="car-outline" size={20} color="#D32F2F" />
+              <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
+              <Text style={styles.cardLabel}>Vehículos Recibidos</Text>
+            </View>
+            <View style={[styles.card, styles.deliveredCard]}>
+              <Ionicons name="car-sport-outline" size={20} color="#FFA000" />
+              <Text style={styles.cardNumber}>{dashboardData.ENTREGADOS}</Text>
+              <Text style={styles.cardLabel}>Vehículos Entregados</Text>
+            </View>
           </View>
-          <View style={[styles.card, styles.deliveredCard]}>
-            <Ionicons name="car-sharp" size={20} color="#FFD700" />
-            <Text style={styles.cardNumber}>{dashboardData.ENTREGADOS}</Text>
-            <Text style={styles.cardLabel}>Entregados</Text>
+        )}
+
+        {/* Fila de botones */}
+        <View style={styles.buttonRow}>
+          {/* Barra de búsqueda */}
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color="#999"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar por número de cita"
+              placeholderTextColor="#aaa"
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
           </View>
+
+          {/* Botón de Filtrar */}
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setFilterModalVisible(true)}
+          >
+            <Ionicons name="options-outline" size={20} color="#000" />
+            <Text style={styles.filterText}>Filtrar</Text>
+          </TouchableOpacity>
+
+          {/* Botón de Crear Nueva Cita */}
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
+          >
+            <Text style={styles.createButtonText}>Crear nueva cita</Text>
+          </TouchableOpacity>
         </View>
-      )}
-
-      {/* Fila de botones */}
-      <View style={styles.buttonRow}>
-        {/* Barra de búsqueda */}
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#999"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar por número de cita"
-            placeholderTextColor="#aaa"
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-        </View>
-
-        {/* Botón de Filtrar */}
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setFilterModalVisible(true)}
-        >
-          <Ionicons name="options-outline" size={20} color="#000" />
-          <Text style={styles.filterText}>Filtrar</Text>
-        </TouchableOpacity>
-
-        {/* Botón de Crear Nueva Cita */}
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
-        >
-          <Text style={styles.createButtonText}>Crear nueva cita</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Lista de citas o spinner */}
@@ -206,15 +198,35 @@ const Dashboard = ({ navigation }) => {
           style={styles.spinner}
         />
       ) : filteredCitas.length === 0 ? (
-        <Text style={styles.noDataText}>No hay citas disponibles</Text>
+        <View style={styles.container}>
+          <Text style={styles.noDataText}>
+            No hay datos disponibles. Intenta con otros filtros.
+          </Text>
+        </View>
       ) : (
         <ScrollView style={styles.scrollview}>
-          {filteredCitas.map((cita) => (
-            <AppointmentCard
-              key={cita.fecha}
-              fecha={cita.fecha}
-              citas={cita.citas}
-            />
+          {Object.entries(
+            filteredCitas.reduce((acc, cita) => {
+              const fecha = cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0]; // Solo la fecha (sin hora)
+              if (!acc[fecha]) acc[fecha] = [];
+              acc[fecha].push(cita);
+              return acc;
+            }, {}),
+          ).map(([fecha, citasDelDia]) => (
+            <View key={fecha}>
+              {/* Encabezado único por fecha */}
+              <Text style={styles.dateHeader}>{fecha}</Text>
+              {/* Renderizar las citas correspondientes a esa fecha */}
+              {citasDelDia.map((cita) => (
+                <AppointmentCard
+                  key={cita.CITA.CITCLIE_CODE}
+                  fecha={cita.CITA.CITCLIE_FECHA_RESERVA}
+                  cliente={cita.CLIENTE}
+                  vehiculo={cita.VEHICULO}
+                  cita={cita.CITA}
+                />
+              ))}
+            </View>
           ))}
         </ScrollView>
       )}
@@ -228,12 +240,21 @@ const Dashboard = ({ navigation }) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
     paddingTop: 10,
+  },
+  headerSection: {
+    backgroundColor: '#333',
+  },
+  noDataText: {
+    fontSize: 18,
+    color: '#555',
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   header: {
     flexDirection: 'row',
@@ -242,6 +263,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3, // Para Android
   },
   headerButton: {
     padding: 10,
@@ -264,6 +290,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 15,
     marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3, // Para Android
   },
   userText: {
     fontSize: 16,
@@ -271,11 +302,18 @@ const styles = StyleSheet.create({
     marginVertical: 2,
     fontWeight: 'bold',
   },
+
   dashboardContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 15,
-    marginBottom: 20,
+    marginBottom: 15,
+  },
+  dateHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
   },
   card: {
     flex: 1,
@@ -290,7 +328,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
   },
   receivedCard: {
-    borderColor: '#333',
+    borderColor: '#FFD700',
   },
   deliveredCard: {
     borderColor: '#FFD700',
@@ -298,19 +336,25 @@ const styles = StyleSheet.create({
   cardNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFD700',
     marginTop: 5,
   },
   cardLabel: {
     fontSize: 12,
-    color: '#333',
+    color: '#FFD700',
   },
   buttonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 5,
     paddingHorizontal: 10,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3, // Para Android
+    borderRadius: 10,
   },
   searchContainer: {
     flex: 2,

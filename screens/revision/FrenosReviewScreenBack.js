@@ -11,14 +11,33 @@ import { updateFrenosBackItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import { ValidateRevisionItems } from '../../src/utils/ValidateRevisionItems';
 
 const FrenosReviewScreenBack = ({ navigation }) => {
   const dispatch = useDispatch();
   const frenosDetails = useSelector((state) => state.revision.frenosTraseros);
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
+  const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleUpdateStatus = (id, side, status) => {
     dispatch(updateFrenosBackItem({ id, side, status }));
+  };
+
+  const handleNext = async () => {
+    const isValid = ValidateRevisionItems(frenosDetails);
+
+    if (isValid) {
+      navigation.navigate('RodamientosReviewScreen');
+    } else {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete al menos un estado para cada componente antes de continuar.',
+      );
+      setModalVisibleRevision(true);
+    }
   };
 
   return (
@@ -137,12 +156,19 @@ const FrenosReviewScreenBack = ({ navigation }) => {
       <FooterButtonsRevision
         onBack={() => navigation.navigate('FrenosReviewScreen')}
         onDelete={() => setModalVisibleArticulo(true)}
-        onNext={() => navigation.navigate('RodamientosReviewScreen')}
+        onNext={handleNext}
       />
 
       <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
+      />
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setModalVisibleRevision(false)}
+        navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );

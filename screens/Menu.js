@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,28 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { useSelector } from 'react-redux';
+import GenericModal from '../src/components/recepcion/GenericModal';
 
 const Menu = ({ navigation }) => {
+  const isCreatingBoleta = useSelector((state) => state.app.isCreatingBoleta);
+  const isCreatingRevision = useSelector(
+    (state) => state.app.isCreatingRevision,
+  );
+
+  const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
+  const [modalVisibleRevision, setmodalVisibleRevision] = useState(false);
+
+  const handleNavigation = (item) => {
+    if (isCreatingBoleta) {
+      setmodalVisibleBoleta(true);
+    } else if (isCreatingRevision) {
+      setmodalVisibleRevision(true);
+    } else {
+      navigation.navigate(item.route);
+    }
+  };
+
   const menuItems = [
     {
       title: 'Ver Citas',
@@ -28,22 +48,36 @@ const Menu = ({ navigation }) => {
   ];
 
   return (
-    <View style={styles.drawerContainer}>
-      <Text style={styles.headerText}>Menú principal</Text>
-      {menuItems.map((item, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.menuItem}
-          onPress={() => navigation.navigate(item.route)}
-        >
-          <Image source={item.image} style={styles.image} />
-          <View style={styles.overlay}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.arrow}>→</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
+    <>
+      <View style={styles.drawerContainer}>
+        <Text style={styles.headerText}>Menú principal</Text>
+        {menuItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.menuItem}
+            onPress={() => handleNavigation(item)}
+          >
+            <Image source={item.image} style={styles.image} />
+            <View style={styles.overlay}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.arrow}>→</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <GenericModal
+        visible={modalVisibleBoleta}
+        onClose={() => setmodalVisibleBoleta(false)}
+        navigation={navigation}
+        caseType="CancelBoleta"
+      />
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setmodalVisibleRevision(false)}
+        navigation={navigation}
+        caseType="CancelRevision"
+      />
+    </>
   );
 };
 

@@ -5,21 +5,39 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateDireccionItem } from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
+import GenericModal from '../../src/components/recepcion/GenericModal';
+import { ValidateRevisionItems } from '../../src/utils/ValidateRevisionItems';
 
 const DireccionReviewScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const direccionDetails = useSelector((state) => state.revision.direccion);
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
+  const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
+  const [caseType, setCaseType] = useState('CancelBoleta');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleUpdateStatus = (id, side, status) => {
     dispatch(updateDireccionItem({ id, side, status }));
+  };
+
+  const handleNext = async () => {
+    const isValid = ValidateRevisionItems(direccionDetails);
+
+    if (isValid) {
+      navigation.navigate('ExtrasReviewScreen');
+    } else {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'Por favor, complete al menos un estado para cada componente antes de continuar.',
+      );
+      setModalVisibleRevision(true);
+    }
   };
 
   return (
@@ -138,12 +156,19 @@ const DireccionReviewScreen = ({ navigation }) => {
       <FooterButtonsRevision
         onBack={() => navigation.navigate('RodamientosReviewScreenBack')}
         onDelete={() => setModalVisibleArticulo(true)}
-        onNext={() => navigation.navigate('ExtrasReviewScreen')}
+        onNext={handleNext}
       />
 
       <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
+      />
+      <GenericModal
+        visible={modalVisibleRevision}
+        onClose={() => setModalVisibleRevision(false)}
+        navigation={navigation}
+        caseType={caseType}
+        message={modalMessage}
       />
     </View>
   );

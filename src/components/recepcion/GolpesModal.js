@@ -11,7 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  setVehicleStyle,
+  setProperty,
   addPath,
   undoPath,
   redoPath,
@@ -24,8 +24,8 @@ import ZoomBar from '../../components/recepcion/ZoomBar';
 
 const GolpesModal = ({ visible, onClose }) => {
   const dispatch = useDispatch();
-  const { vehicleStyle, isDirty, paths, undonePaths } = useSelector(
-    (state) => state.boleta.golpes,
+  const { BOL_VEH_ESTILO, BOL_UNWASHED, paths, undonePaths } = useSelector(
+    (state) => state.boleta,
   );
   const [zoom, setZoom] = useState(1);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -125,9 +125,16 @@ const GolpesModal = ({ visible, onClose }) => {
             <View style={styles.headerColumn}>
               <Text style={styles.pickerLabel}>Estilo del Vehículo</Text>
               <Picker
-                selectedValue={vehicleStyle}
+                selectedValue={BOL_VEH_ESTILO}
                 style={styles.picker}
-                onValueChange={(value) => dispatch(setVehicleStyle(value))}
+                onValueChange={(value) =>
+                  dispatch(
+                    setProperty({
+                      key: 'BOL_VEH_ESTILO',
+                      value: value,
+                    }),
+                  )
+                }
               >
                 <Picker.Item label="Sedán" value="Sedán" />
                 <Picker.Item label="Bus" value="Bus" />
@@ -177,7 +184,7 @@ const GolpesModal = ({ visible, onClose }) => {
 
           <View style={styles.canvasContainer}>
             <Image
-              source={images[vehicleStyle]}
+              source={images[BOL_VEH_ESTILO]}
               style={[styles.vehicleImage, { transform: [{ scale: zoom }] }]}
               resizeMode="contain"
             />
@@ -232,7 +239,7 @@ const GolpesModal = ({ visible, onClose }) => {
 
           <View style={styles.footer}>
             <View style={styles.switchContainer}>
-              <Switch value={isDirty} onValueChange={handleToggleDirty} />
+              <Switch value={BOL_UNWASHED} onValueChange={handleToggleDirty} />
               <Text style={styles.switchText}>
                 Vehículo sucio. El taller no se hace responsable por daños o
                 golpes ocultos.

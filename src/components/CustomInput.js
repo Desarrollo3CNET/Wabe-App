@@ -7,7 +7,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import DatePicker from 'react-native-date-picker';
 import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
 
 const CustomInput = ({ label, type, value, options, onChange }) => {
@@ -35,6 +34,18 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
 
   const timeOptions = generateTimeOptions();
 
+  // Verificar y formatear el valor de tiempo
+  const formatTimeValue = (time) => {
+    if (!time) return '08:00 AM'; // Valor por defecto
+    const [hours, minutes] = time.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const renderInput = () => {
     switch (type) {
       case 'text':
@@ -57,7 +68,7 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
             onChangeText={(text) => onChange(text)}
             placeholder="Ingresa un número"
             placeholderTextColor="#aaa"
-            keyboardType="numeric" // Teclado numérico
+            keyboardType="numeric"
           />
         );
 
@@ -91,11 +102,14 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
                   currentMonth={new Date()}
                   onDateSelect={(date) => {
                     setIsCalendarVisible(false);
-                    const formattedDate = new Intl.DateTimeFormat('es-ES', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    }).format(date);
+                    const formattedDate = `${date.getFullYear()}/${(
+                      date.getMonth() + 1
+                    )
+                      .toString()
+                      .padStart(
+                        2,
+                        '0',
+                      )}/${date.getDate().toString().padStart(2, '0')}`;
                     onChange(formattedDate);
                   }}
                 />
@@ -108,7 +122,7 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
         return (
           <View style={styles.pickerContainer}>
             <Picker
-              selectedValue={value}
+              selectedValue={formatTimeValue(value)}
               style={styles.input}
               onValueChange={(itemValue) => onChange(itemValue)}
             >

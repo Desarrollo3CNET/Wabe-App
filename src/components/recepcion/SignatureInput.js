@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SignatureInput = ({ label, onEditSignature, fromScreen }) => {
   // Accede a la firma guardada en Redux
-  const signaturePaths = useSelector((state) => state.boleta.firma.firma);
+  const signaturePaths = useSelector((state) => state.boleta.BOL_FIRMA_CLIENTE);
 
   return (
     <View style={styles.container}>

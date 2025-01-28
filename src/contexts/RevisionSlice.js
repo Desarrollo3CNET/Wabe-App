@@ -254,6 +254,68 @@ const revisionSlice = createSlice({
         state.articulosBoleta.push(nombre);
       }
     },
+    resetAllStates: (state) => {
+      // Resetear rodamientos delanteros
+      state.rodamientos.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear rodamientos traseros
+      state.rodamientosTraseros.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear dirección
+      state.direccion.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear suspensión delantera
+      state.suspensionDelantera.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear suspensión trasera
+      state.suspensionTrasera.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear frenos delanteros
+      state.frenosDelanteros.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear frenos traseros
+      state.frenosTraseros.forEach((item) => {
+        if (item.estadoDerecha !== undefined) item.estadoDerecha = '';
+        if (item.estadoIzquierda !== undefined) item.estadoIzquierda = '';
+        if (item.estadoGeneral !== undefined) item.estadoGeneral = '';
+      });
+
+      // Resetear extras
+      state.extras.forEach((item) => {
+        item.estado = '';
+      });
+
+      // Resetear artículos genéricos
+      state.articulosGenericos.buenos = [];
+      state.articulosGenericos.malos = [];
+
+      // Resetear artículos de boleta
+      state.articulosBoleta = [];
+    },
   },
 });
 
@@ -266,6 +328,7 @@ export const {
   agregarArticulo,
   eliminarArticulo,
   agregarArticuloBoleta,
+  resetAllStates,
 } = revisionSlice.actions;
 
 export default revisionSlice.reducer;

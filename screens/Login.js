@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
@@ -15,11 +14,13 @@ import { useNavigation } from '@react-navigation/native';
 import { setLoggedIn } from '../src/contexts/AppSlice';
 import { login } from '../src/services/UserService'; // Importa la función login
 import logonegro from '../assets/logonegro.png';
+import GenericModal from '../src/components/recepcion/GenericModal'; // Importa GenericModal
 
 const Login = () => {
   const [usuario, setUsuario] = useState({ email: '', password: '' });
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false); // Estado de carga
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
@@ -44,22 +45,21 @@ const Login = () => {
         // Redirige al Dashboard o pantalla principal
         navigation.replace('Dashboard');
       } else {
-        Alert.alert(
-          'Error de autenticación',
+        setModalMessage(
           'Usuario o contraseña incorrectos. Por favor, verifique sus credenciales.',
         );
+        setModalVisible(true);
       }
     } catch (error) {
       console.error('Error al realizar el login:', error);
-      Alert.alert(
-        'Error del servidor',
+      setModalMessage(
         'Hubo un problema al intentar iniciar sesión. Intente nuevamente más tarde.',
       );
+      setModalVisible(true);
     } finally {
-      setLoading(false); // Finaliza la carga
+      setLoading(false);
     }
   };
-
   return (
     <View style={styles.container}>
       <Image source={logonegro} style={styles.logo} />
@@ -87,12 +87,6 @@ const Login = () => {
           style={styles.input}
         />
       </View>
-
-      {/* Mensaje de error */}
-      {errorMessage ? (
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      ) : null}
-
       <TouchableOpacity>
         <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
@@ -108,6 +102,13 @@ const Login = () => {
           <Text style={styles.buttonText}>Ingresar →</Text>
         )}
       </TouchableOpacity>
+
+      <GenericModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        caseType="Notificacion"
+        message={modalMessage}
+      />
     </View>
   );
 };
