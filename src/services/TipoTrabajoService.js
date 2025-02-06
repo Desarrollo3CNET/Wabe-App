@@ -1,15 +1,15 @@
 import { get } from '../api/config';
 
 // Define el controlador como una constante desacoplada
-const controller = 'TipoTrabajoController';
+const controller = 'TipoTrabajo';
 
-// Función para obtener un tipo de trabajo específico por identificador
-export async function getTrabajo(id) {
+// Función para obtener los tipos de accesorios por identificador
+export async function listTipoTrabajo() {
   try {
-    const response = await get(`${controller}/${id}`);
+    const response = await get(`${controller}/list`);
     return response;
   } catch (error) {
-    console.error('Error obteniendo tipo de trabajo:', error);
+    console.error('Error obteniendo tipos de trabajo:', error);
     throw error;
   }
 }

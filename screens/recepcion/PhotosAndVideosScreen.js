@@ -48,12 +48,12 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
-      case 'FirmaScreen':
+      case 'TipoTrabajoScreen':
       case 'AccesoriosScreen':
         return (
           <FooterButtons
             onBack={() =>
-              navigation.navigate('FirmaScreen', {
+              navigation.navigate('TipoTrabajoScreen', {
                 fromScreen: 'PhotosAndVideosScreen',
               })
             }
@@ -122,7 +122,8 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Header title="Recepción" />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {fromScreen === 'FirmaScreen' || fromScreen === 'AccesoriosScreen' ? (
+        {fromScreen === 'TipoTrabajoScreen' ||
+        fromScreen === 'AccesoriosScreen' ? (
           <View style={styles.content}>
             {/* Contenido existente */}
             <Text style={styles.title}>Fotografías y Videos</Text>

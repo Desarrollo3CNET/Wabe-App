@@ -63,8 +63,8 @@ const AppointmentCard = ({
         EMP_CODE: user.EMP_CODE,
         CLI_CODE: cita.CLI_CODE,
         VEH_CODE: vehiculo.VEH_CODE,
-        TIPTRA_CODE: 1,
-        BOL_CLI_NOMBRE: cliente.CLI_NAME,
+        TIPTRA_CODE: null,
+        BOL_CLI_NOMBRE: cliente.CLI_NOMBRE,
         BOL_CLI_TELEFONO: cliente.CLI_PHONE1,
         BOL_VEH_PLACA: vehiculo.VEH_PLACA,
         BOL_VEH_ANIO: vehiculo.VEH_ANIO.toString(),
@@ -116,13 +116,13 @@ const AppointmentCard = ({
       {showDateHeader && <Text style={styles.dateHeader}>{fecha}</Text>}
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <Text style={styles.userName}>{cliente.CLI_NAME}</Text>
+          <Text style={styles.userName}>{cliente.CLI_NOMBRE}</Text>
           <Text style={styles.info}>Número de Cita: {cita.CITCLIE_CODE}</Text>
           <Text style={styles.status}>
             Estado: {cita.ESTADO ? 'Activo' : 'Inactivo'}
           </Text>
           <Text style={styles.time}>Hora: {formatTime(cita.CITCLIE_HORA)}</Text>
-          <Text style={styles.info}>Cédula: {cliente.CLI_CEDULAJURI}</Text>
+          <Text style={styles.info}>Cédula: {cliente.CLI_CEDULA}</Text>
           <Text style={styles.info}>
             Vehículo: {vehiculo.VEH_MARCA} {vehiculo.VEH_ESTILO} -{' '}
             {vehiculo.VEH_ANIO}

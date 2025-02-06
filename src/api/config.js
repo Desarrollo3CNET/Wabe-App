@@ -3,9 +3,7 @@ import axios from 'axios';
 // Creamos una instancia de Axios (api) con la URL base de la API de pruebas.
 // Todas las solicitudes posteriores usando api.get, api.post, etc., utilizarán esta URL base
 const api = axios.create({
-  //baseURL: 'http://localhost:52385/api',
-  //baseURL: 'https://api.brakesuspension.com/api',
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'http://localhost:3000/api',
 });
 
 // Función para realizar una solicitud GET

@@ -87,9 +87,7 @@ const Login = () => {
           style={styles.input}
         />
       </View>
-      <TouchableOpacity>
-        <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
-      </TouchableOpacity>
+      <TouchableOpacity></TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}

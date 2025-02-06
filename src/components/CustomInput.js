@@ -9,7 +9,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
 
-const CustomInput = ({ label, type, value, options, onChange }) => {
+const CustomInput = ({ label, type, value, options = [], onChange }) => {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
 
   // Generar lista de horas cada media hora
@@ -79,10 +79,15 @@ const CustomInput = ({ label, type, value, options, onChange }) => {
               selectedValue={value}
               style={styles.input}
               onValueChange={(itemValue) => onChange(itemValue)}
+              enabled={options.length > 0} // Desactiva el Picker si no hay opciones
             >
-              {options.map((option, index) => (
-                <Picker.Item key={index} label={option} value={option} />
-              ))}
+              {options.length > 0 ? (
+                options.map((option, index) => (
+                  <Picker.Item key={index} label={option} value={option} />
+                ))
+              ) : (
+                <Picker.Item label="No hay opciones disponibles" value={null} />
+              )}
             </Picker>
           </View>
         );

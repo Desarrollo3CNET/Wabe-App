@@ -13,14 +13,3 @@ export async function createClient(clientData) {
     throw error;
   }
 }
-
-// Función para obtener los clientes
-export async function getClients() {
-  try {
-    const response = await get(`${controller}`);
-    return response;
-  } catch (error) {
-    console.error('Error obteniendo los clientes:', error);
-    throw error;
-  }
-}

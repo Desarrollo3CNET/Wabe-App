@@ -1,26 +1,13 @@
-import { post, get } from '../api/config';
+import { get } from '../api/config';
 
-const controller1 = 'Accesorio';
-const controller2 = 'TipoAccesorio';
-
-// Función para guardar accesorios
-export async function saveAccesories(accesoriesData) {
-  try {
-    // Utiliza el método post para enviar los datos de accesorios al endpoint
-    const data = await post(`${controller1}/Save`, accesoriesData);
-    return data;
-  } catch (error) {
-    // Maneja errores en caso de fallos en la solicitud
-    console.error('Error al guardar accesorios:', error);
-    throw error;
-  }
-}
+const controller = 'TipoAccesorio';
 
 // Función para obtener accesorios
 export async function getAccesories() {
   try {
     // Utiliza el método get para obtener los datos de accesorios al endpoint
-    const data = await get(`${controller2}/List`);
+    // const data = await get(`${controller}/ListApp`);
+    const data = await get(`${controller}/List`);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud
@@ -33,7 +20,7 @@ export async function getAccesories() {
 export async function getAccesoriesByBoleta(BoletaId) {
   try {
     // Utiliza el método get para obtener los datos de accesorios al endpoint
-    const data = await get(`${controller2}/ListByIdBol?id=${BoletaId}`);
+    const data = await get(`${controller}/ListByIdBol?id=${BoletaId}`);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud

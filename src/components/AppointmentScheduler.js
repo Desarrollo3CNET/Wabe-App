@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,45 +10,75 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Calendar from './Calendar'; // Asegúrate de importar correctamente el componente del calendario
+import { getHorasDisponibles } from '../services/CitaService';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const AppointmentScheduler = ({ onAppointmentSelect }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null); // Fecha seleccionada
-  const [selectedTime, setSelectedTime] = useState(null); // Hora seleccionada
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [hours, setHours] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date); // Actualizar la fecha seleccionada
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAvailableHours(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const fetchAvailableHours = async (date) => {
+    setLoading(true);
+    setErrorMessage('');
+    setHours([]);
+
+    try {
+      const formattedDate = date.toISOString().split('T')[0]; // Formato AAAA-MM-DD
+      const availableHours = await getHorasDisponibles(formattedDate);
+      console.log('availableHours', availableHours);
+
+      if (!availableHours || availableHours.length === 0) {
+        setErrorMessage(
+          `No hay horas disponibles para la fecha: ${formattedDate}`,
+        );
+      } else {
+        const formattedHours = availableHours.map(({ Hours, Minutes }) => {
+          const hour = Hours % 12 || 12;
+          const amPm = Hours < 12 ? 'AM' : 'PM';
+          const minutes = Minutes === 0 ? '00' : Minutes;
+          return `${hour}:${minutes} ${amPm}`;
+        });
+
+        setHours(formattedHours);
+      }
+    } catch (error) {
+      setErrorMessage(
+        `No hay horas disponibles para la fecha: ${date.toISOString().split('T')[0]}`,
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleConfirm = () => {
-    setModalVisible(false); // Cerrar modal después de confirmar
+    setModalVisible(false);
     if (selectedDate && selectedTime && onAppointmentSelect) {
       onAppointmentSelect(selectedDate, selectedTime);
     }
   };
 
-  const formatDate = (date) => {
-    return date
+  const formatDate = (date) =>
+    date
       ? date.toLocaleDateString('es-ES', {
           day: '2-digit',
           month: 'long',
           year: 'numeric',
         })
       : 'No seleccionada';
-  };
-
-  const hours = Array.from({ length: 12 }, (_, i) => {
-    const hour = 8 + i;
-    const amPm = hour < 12 ? 'AM' : 'PM';
-    const formattedHour = hour > 12 ? hour - 12 : hour;
-    return `${formattedHour}:00 ${amPm}`;
-  });
 
   return (
     <View>
-      {/* Botón para abrir el modal */}
       <TouchableOpacity
         style={styles.openButton}
         onPress={() => setModalVisible(true)}
@@ -61,58 +91,63 @@ const AppointmentScheduler = ({ onAppointmentSelect }) => {
         <Ionicons name="calendar-outline" size={20} color="#000" />
       </TouchableOpacity>
 
-      {/* Modal para seleccionar fecha y hora */}
       <Modal
         visible={modalVisible}
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {/* Selección de fecha */}
             <Text style={styles.modalTitle}>Selecciona una fecha</Text>
             <View style={styles.calendarContainer}>
               <Calendar
                 currentMonth={new Date()}
-                onDateSelect={handleDateSelect}
+                onDateSelect={setSelectedDate}
               />
             </View>
             <Text style={styles.selectedText}>
               Fecha seleccionada: {formatDate(selectedDate)}
             </Text>
 
-            {/* Carrusel de horas */}
             <Text style={styles.modalTitle}>Selecciona una hora</Text>
-            <FlatList
-              horizontal
-              data={hours}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.timeButton,
-                    item === selectedTime && styles.timeButtonSelected,
-                  ]}
-                  onPress={() => setSelectedTime(item)}
-                >
-                  <Text
-                    style={[
-                      styles.timeText,
-                      item === selectedTime && styles.timeTextSelected,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              showsHorizontalScrollIndicator={false}
-            />
 
-            {/* Botón para confirmar */}
+            {loading ? (
+              <Text style={styles.loadingText}>
+                Cargando horas disponibles...
+              </Text>
+            ) : errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : (
+              <FlatList
+                horizontal
+                data={hours}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.timeButton,
+                      item === selectedTime && styles.timeButtonSelected,
+                    ]}
+                    onPress={() => setSelectedTime(item)}
+                  >
+                    <Text
+                      style={[
+                        styles.timeText,
+                        item === selectedTime && styles.timeTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                showsHorizontalScrollIndicator={false}
+              />
+            )}
+
             <TouchableOpacity
               style={styles.confirmButton}
               onPress={handleConfirm}
-              disabled={!selectedDate || !selectedTime} // Deshabilitar si falta alguna selección
+              disabled={!selectedDate || !selectedTime}
             >
               <Text style={styles.confirmText}>
                 {selectedDate && selectedTime
@@ -171,6 +206,18 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  errorText: {
+    fontSize: 14,
+    color: 'red',
+    textAlign: 'center',
+    marginVertical: 10,
   },
   timeButton: {
     padding: 10,

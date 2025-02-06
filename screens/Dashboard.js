@@ -56,8 +56,20 @@ const Dashboard = ({ navigation }) => {
   }, [dispatch]);
 
   // Sincronizar citas filtradas con el estado global
+  // useEffect(() => {
+  //   setFilteredCitas(citas);
+  // }, [citas]);
+
   useEffect(() => {
-    setFilteredCitas(citas);
+    const today = new Date().toISOString().split('T')[0];
+
+    if (filteredCitas.length === 0) {
+      // Solo aplica el filtro inicial si no hay filtros activos
+      const filtered = citas.filter(
+        (cita) => cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0] === today,
+      );
+      setFilteredCitas(filtered);
+    }
   }, [citas]);
 
   // Función para manejar búsqueda por número de cita
@@ -73,9 +85,6 @@ const Dashboard = ({ navigation }) => {
   const handleApplyFilters = async (filters) => {
     const { startDate, endDate, estado, sucursal } = filters;
 
-    console.log('startDate ', startDate);
-    console.log('endDate ', endDate);
-
     let estadoParam = -1;
     if (estado === 'Activo') estadoParam = 1;
     if (estado === 'Finalizado') estadoParam = 0;
@@ -90,17 +99,16 @@ const Dashboard = ({ navigation }) => {
         dispatch(addCita(cita));
       });
 
-      // Filtramos las citas localmente por rango de fechas
+      // Filtramos las citas localmente sin restringir a la fecha de hoy
       const filtered = processedCitas.filter((cita) => {
-        const citaDate = new Date(cita.CITA.CITCLIE_FECHA_RESERVA); // Convertimos la fecha de la cita
-        console.log('citaDate', citaDate);
+        const citaDate = new Date(cita.CITA.CITCLIE_FECHA_RESERVA);
         return (
           (!startDate || citaDate >= new Date(startDate)) &&
           (!endDate || citaDate <= new Date(endDate))
         );
       });
 
-      setFilteredCitas(filtered);
+      setFilteredCitas(filtered); // Se actualiza con todas las citas disponibles y no solo las de hoy
     } catch (error) {
       console.error('Error aplicando filtros y obteniendo citas:', error);
     } finally {
@@ -405,8 +413,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   scrollview: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 15,
+    backgroundColor: '#333',
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',

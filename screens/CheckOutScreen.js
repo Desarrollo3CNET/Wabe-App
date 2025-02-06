@@ -224,7 +224,6 @@ const CheckOutScreen = ({ navigation }) => {
         setModalVisible(true);
       }
     } catch (error) {
-      console.error('Error generando la orden de trabajo:', error);
       // Mostrar mensaje de error en el modal
       setModalMessage(
         'Hubo un error al intentar generar la orden de trabajo. Por favor, inténtalo de nuevo.',

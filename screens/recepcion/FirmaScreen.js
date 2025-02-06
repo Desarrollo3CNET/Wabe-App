@@ -27,7 +27,7 @@ const FirmaScreen = ({ navigation, route }) => {
       boleta.BOL_CLI_NOMBRE &&
       boleta.BOL_FIRMA_CLIENTE
     ) {
-      navigation.navigate('PhotosAndVideosScreen', {
+      navigation.navigate('TipoTrabajoScreen', {
         fromScreen: 'FirmaScreen',
       });
     } else {
@@ -43,7 +43,7 @@ const FirmaScreen = ({ navigation, route }) => {
   const renderFooterButtons = () => {
     switch (fromScreen) {
       case 'VehicleDetailsScreen':
-      case 'PhotosAndVideosScreen':
+      case 'TipoTrabajoScreen':
         return (
           <FooterButtons
             onBack={() => navigation.navigate('VehicleDetailsScreen')}
