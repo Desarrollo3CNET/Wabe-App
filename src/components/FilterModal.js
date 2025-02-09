@@ -8,7 +8,7 @@ import {
   Picker,
 } from 'react-native';
 import DateRangeButton from './DateRangeButton'; // Se vuelve a importar
-import { getSucursales } from '../../src/services/CitaService';
+import { getSucursales } from '../../src/services/BoletaService';
 import { useSelector } from 'react-redux';
 
 const FilterModal = ({ visible, onClose, onApplyFilters }) => {

@@ -6,7 +6,7 @@ const controller = 'Cliente';
 // Función para crear un cliente
 export async function createClient(clientData) {
   try {
-    const response = await post(`${controller}/SaveCliente`, clientData);
+    const response = await post(`api/SaveCliente`, clientData);
     return response;
   } catch (error) {
     console.error('Error creando cliente:', error);

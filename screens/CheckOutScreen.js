@@ -16,11 +16,17 @@ import {
   generarOrdenTrabajo,
 } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import { getAccesoriesByBoleta } from '../src/services/AccesorioService'; // Importa la función para obtener boletas
+import { ObtenerArticulosMantenimiento } from '../src/services/ArticulosService'; // Importa la función para obtener boletas
+import { processArticulos } from '../src/utils/processData/processArticulos'; // Importa la función para obtener boletas
+
 import { GetImages } from '../src/services/FotografiasService'; // Importa la función para obtener boletas
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 
 import { useDispatch, useSelector } from 'react-redux';
-import { resetAllStates } from '../src/contexts/RevisionSlice';
+import {
+  resetAllStates,
+  setArticulosMantenimiento,
+} from '../src/contexts/RevisionSlice';
 import { setCreatingRevisionTrue } from '../src/contexts/AppSlice';
 import {
   setBoletaData,
@@ -165,15 +171,12 @@ const CheckOutScreen = ({ navigation }) => {
       if (Array.isArray(images) && images.length > 0) {
         // Realizamos el dispatch para guardar las imágenes en el slice
         dispatch(setImages(images));
-
-        navigation.navigate('PhotosAndVideosScreen', {
-          fromScreen: 'CheckOutScreen',
-        });
-      } else {
-        console.warn('No se encontraron imágenes para este ítem.');
       }
+
+      navigation.navigate('PhotosAndVideosScreen', {
+        fromScreen: 'CheckOutScreen',
+      });
     } catch (error) {
-      console.error('Error al obtener o guardar imágenes:', error);
       setModalMessage(
         'Hubo un error al intentar redirigir a la pantalla de Fotografías. Por favor, inténtalo de nuevo.',
       ); // Mensaje del modal
@@ -187,25 +190,62 @@ const CheckOutScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       dispatch(resetAllStates());
+
       // Obtener detalles de la boleta
       const boletaDetails = await getBoletaById(item.BOL_CODE);
 
       if (boletaDetails) {
-        // Actualizar el estado del slice de boleta con toda la información obtenida
         dispatch(setBoletaData(boletaDetails));
       }
+
+      // Obtener los artículos en mantenimiento
+      const articulosMantenimiento = await ObtenerArticulosMantenimiento(
+        user.EMP_CODE,
+      );
+
+      // Agregar la propiedad ESTADO a los artículos
+      const articulosConEstado = processArticulos(articulosMantenimiento);
+
+      // Guardar en Redux
+      console.log('articulosConEstado', articulosConEstado);
+      dispatch(setArticulosMantenimiento(articulosConEstado));
+
       dispatch(setCreatingRevisionTrue());
-      navigation.navigate('SuspensionReviewScreen');
+      navigation.navigate('ReviewScreen');
     } catch (error) {
       console.error('Error al iniciar la revisión:', error);
       setModalMessage(
         'Hubo un error al intentar redirigir a la pantalla de Revisión. Por favor, inténtalo de nuevo.',
-      ); // Mensaje del modal
+      );
       setModalVisible(true);
     } finally {
-      setIsLoading(false); // Detiene el indicador de carga para boleta
+      setIsLoading(false);
     }
   };
+
+  // const handleNavigateToRevision = async (item) => {
+  //   setIsLoading(true);
+  //   try {
+  //     dispatch(resetAllStates());
+  //     // Obtener detalles de la boleta
+  //     const boletaDetails = await getBoletaById(item.BOL_CODE);
+
+  //     if (boletaDetails) {
+  //       // Actualizar el estado del slice de boleta con toda la información obtenida
+  //       dispatch(setBoletaData(boletaDetails));
+  //     }
+  //     dispatch(setCreatingRevisionTrue());
+  //     navigation.navigate('ReviewScreen');
+  //   } catch (error) {
+  //     console.error('Error al iniciar la revisión:', error);
+  //     setModalMessage(
+  //       'Hubo un error al intentar redirigir a la pantalla de Revisión. Por favor, inténtalo de nuevo.',
+  //     ); // Mensaje del modal
+  //     setModalVisible(true);
+  //   } finally {
+  //     setIsLoading(false); // Detiene el indicador de carga para boleta
+  //   }
+  // };
 
   const handleGenerateWorkOrder = async (item) => {
     setIsLoading(true); // Inicia el indicador de carga

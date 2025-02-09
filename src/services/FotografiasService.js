@@ -4,7 +4,7 @@ import { get } from '../api/config';
 export async function GetImages(placa, fecha) {
   try {
     // Utiliza el método get para obtener los datos de fotos
-    const data = await get(`/GetImages?placa=${placa}&fecha=${fecha}`);
+    const data = await get(`api/GetImages?placa=${placa}&fecha=${fecha}`);
 
     // Verifica si el mensaje indica que no se encontraron imágenes
     if (
@@ -26,7 +26,7 @@ export async function GetImages(placa, fecha) {
 export async function saveImages(listaFotos) {
   try {
     // Utiliza el método post para enviar los datos de fotos al endpoint
-    const data = await post(`SaveImages`, listaFotos);
+    const data = await post(`api/SaveImages`, listaFotos);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud

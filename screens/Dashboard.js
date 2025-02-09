@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import AppointmentCard from '../src/components/AppointmentCard';
 import FilterModal from '../src/components/FilterModal';
-import { getCitas } from '../src/services/CitaService'; // Importa getCitas
+import { getCitas } from '../src/services/DashboardService'; // Importa getCitas
 import { processCitas } from '../src/utils/processData/processCitas'; // Importa processCitas
 import { clearCitas, addCita } from '../src/contexts/CitasSlice'; // Importa directamente la acción addCita
 import { getDashboardData } from '../src/services/DashboardService'; // Importación del nuevo servicio
@@ -34,16 +34,14 @@ const Dashboard = ({ navigation }) => {
     const fetchCitas = async () => {
       setIsLoading(true); // Mostrar el spinner mientras se cargan datos
       try {
+        const dashboardResponse = await getDashboardData(user?.EMP_CODE);
+        setDashboardData(dashboardResponse[0]);
+
         const rawCitas = await getCitas(-1, -1, -1); // Parámetros iniciales para getCitas
         const processedCitas = processCitas(rawCitas); // Procesa las citas con processCitas
-
         // Añade las citas procesadas al slice de Redux
         processedCitas.forEach(async (cita) => {
           dispatch(addCita(cita)); // Realiza un dispatch de addCita por cada elemento
-
-          const dashboardResponse = await getDashboardData(user?.EMP_CODE);
-          console.log(dashboardResponse);
-          setDashboardData(dashboardResponse[0]);
         });
       } catch (error) {
         console.error('Error obteniendo citas:', error);
@@ -53,12 +51,7 @@ const Dashboard = ({ navigation }) => {
     };
 
     fetchCitas(); // Llamar a la función fetchCitas al montar el componente
-  }, [dispatch]);
-
-  // Sincronizar citas filtradas con el estado global
-  // useEffect(() => {
-  //   setFilteredCitas(citas);
-  // }, [citas]);
+  }, []);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];

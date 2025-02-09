@@ -1,6 +1,6 @@
 import { get } from '../api/config';
 
-const controller = 'TipoAccesorio';
+const controller = 'api/TipoAccesorio';
 
 // Función para obtener accesorios
 export async function getAccesories() {

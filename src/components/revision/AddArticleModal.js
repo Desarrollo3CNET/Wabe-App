@@ -23,6 +23,7 @@ const AddArticleModal = ({ visible, onClose }) => {
   const [modalVisible, setModalVisible] = useState(false); // Estado para mostrar el modal
   const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
   const dispatch = useDispatch();
+
   const { buenos, malos } = useSelector(
     (state) => state.revision.articulosGenericos,
   );

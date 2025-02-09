@@ -1,7 +1,7 @@
 import { get } from '../api/config';
 
 // Define el controlador como una constante desacoplada
-const controller = 'TipoTrabajo';
+const controller = 'api/TipoTrabajo';
 
 // Función para obtener los tipos de accesorios por identificador
 export async function listTipoTrabajo() {

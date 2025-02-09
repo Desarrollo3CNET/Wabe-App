@@ -14,11 +14,11 @@ import FooterButtons from '../src/components/recepcion/FooterButtons';
 import AppointmentScheduler from '../src/components/AppointmentScheduler';
 import GenericModal from '../src/components/recepcion/GenericModal';
 import {
-  getSucursales,
   getByCedula,
   getByPlaca,
   getModelosByMarca,
 } from '../src/services/CitaService';
+import { getSucursales } from '../src/services/BoletaService';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { marcas } from '../src/utils/dataMarcas';
@@ -36,20 +36,15 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     sucursal: '',
     fecha: '',
     hora: '',
+    tipoCedula: '',
   });
-  const [acceptTerms, setAcceptTerms] = useState(false);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const user = useSelector((state) => state.app.user);
   const [sucursal, setSucursal] = useState(-1);
   const [sucursalOptions, setSucursalOptions] = useState([]);
   const [modelos, setModelos] = useState([]);
-  // const handleUpdate = (key, value) => {
-  //   setAppointmentDetails((prevState) => ({
-  //     ...prevState,
-  //     [key]: value,
-  //   }));
-  // };
 
   const [messages, setMessages] = useState({
     placa: '',
@@ -123,10 +118,35 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         }));
       }
     }
-
     if (field === 'marca' && value) {
       fetchModelosByMarca(value);
     }
+  };
+
+  const handleUpdateTipoCedula = (label) => {
+    let value;
+
+    switch (label) {
+      case 'Persona Física':
+        value = 1;
+        break;
+      case 'Persona Jurídica':
+        value = 2;
+        break;
+      case 'DIMEX':
+        value = 3;
+        break;
+      case 'NITE':
+        value = 4;
+        break;
+      default:
+        value = null; // Manejo de error si el label no coincide
+    }
+
+    setAppointmentDetails((prev) => ({
+      ...prev,
+      tipoCedula: value, // Guarda el número correspondiente
+    }));
   };
 
   const fetchModelosByMarca = async (marca) => {
@@ -169,13 +189,127 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     handleUpdate('hora', hora);
   };
 
-  const handleNext = () => {
-    if (!acceptTerms) {
+  const handleNext = async () => {
+    // Verifica que todos los campos de appointmentDetails estén llenos
+    for (const key in appointmentDetails) {
+      if (!appointmentDetails[key]) {
+        setModalMessage(`El campo ${key} es obligatorio.`);
+        setModalVisible(true);
+        return;
+      }
+    }
+
+    // Validación de cédula según el tipo de cédula seleccionado
+    if (appointmentDetails.tipoCedula === 1) {
+      if (!/^\d{9}$/.test(appointmentDetails.cedula)) {
+        setModalMessage(
+          'La cédula de Persona Física debe tener exactamente 9 dígitos numéricos.',
+        );
+        setModalVisible(true);
+        return;
+      }
+    } else if (appointmentDetails.tipoCedula === 2) {
+      if (!/^\d{10}$/.test(appointmentDetails.cedula)) {
+        setModalMessage(
+          'La cédula de Persona Jurídica debe tener exactamente 10 dígitos numéricos.',
+        );
+        setModalVisible(true);
+        return;
+      }
+    } else if (appointmentDetails.tipoCedula > 2) {
+      if (!/^\d{10}$/.test(appointmentDetails.cedula)) {
+        setModalMessage(
+          'La cédula debe tener exactamente 12 dígitos numéricos.',
+        );
+        setModalVisible(true);
+        return;
+      }
+    }
+
+    // Validación de teléfono (debe ser solo números y tener al menos 8 dígitos)
+    if (!/^\d{8,}$/.test(appointmentDetails.telefono)) {
       setModalMessage(
-        'Debe aceptar los términos y condiciones para continuar.',
+        'El número de teléfono debe contener al menos 8 dígitos numéricos.',
       );
       setModalVisible(true);
       return;
+    }
+
+    // Validación de año del vehículo (debe ser un número válido entre 1900 y el año actual)
+    const currentYear = new Date().getFullYear();
+    if (
+      !/^\d{4}$/.test(appointmentDetails.anio) ||
+      appointmentDetails.anio < 1900 ||
+      appointmentDetails.anio > currentYear
+    ) {
+      setModalMessage(
+        `El año del vehículo debe ser un número entre 1900 y ${currentYear}`,
+      );
+      setModalVisible(true);
+      return;
+    }
+
+    // Validación de nombre (debe contener solo letras y espacios)
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/.test(appointmentDetails.nombre)) {
+      setModalMessage('El nombre solo puede contener letras y espacios');
+      setModalVisible(true);
+      return;
+    }
+
+    // Validación de dirección
+    if (appointmentDetails.direccion.length == 0) {
+      setModalMessage('La dirección no puede estar vacía');
+      setModalVisible(true);
+      return;
+    }
+
+    // Validación de correo electrónico
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(appointmentDetails.correo)) {
+      setModalMessage('El correo electrónico no es válido');
+      setModalVisible(true);
+      return;
+    }
+
+    // Crear el objeto cliente
+    const cliente = {
+      TIPC_CODE: appointmentDetails.tipoCedula,
+      CLI_CEDULAJURI: appointmentDetails.cedula,
+      CLI_PHONE1: appointmentDetails.telefono,
+      CLI_EMAIL: appointmentDetails.correo,
+      CLI_NAME: appointmentDetails.nombre,
+      CLI_DIRECCION1: appointmentDetails.direccion,
+      TERMINOSYCONDICIONES: true,
+    };
+
+    // Crear el objeto vehiculo
+    const vehiculo = {
+      VEH_PLACA: appointmentDetails.placa,
+      VEH_MARCA: appointmentDetails.marca,
+      VEH_ESTILO: appointmentDetails.estilo,
+      VEH_ANIO: appointmentDetails.anio,
+    };
+
+    // Crear el objeto cita
+    const cita = {
+      CITCLIE_FECHA_RESERVA: appointmentDetails.fecha,
+      CITCLIE_HORA: appointmentDetails.hora,
+      SUR_CODE: appointmentDetails.sucursal,
+    };
+
+    try {
+      const response = await crearCita(cliente, cita, vehiculo);
+
+      // Mostrar mensaje en el modal según la respuesta del backend
+      setModalMessage(response.mensaje);
+      setModalVisible(true);
+
+      // Si la cita se creó correctamente, redirigir al usuario
+      if (response.resultado) {
+        navigation.navigate('Dashboard');
+      }
+    } catch (error) {
+      setModalMessage('Error al agendar la cita. Inténtalo de nuevo.');
+      setModalVisible(true);
     }
   };
 
@@ -253,8 +387,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                     'DIMEX',
                     'NITE',
                   ]}
-                  value={appointmentDetails.tipoCedula}
-                  onChange={(value) => handleUpdate('tipoCedula', value)}
+                  onChange={handleUpdateTipoCedula} // Llama a la función con el label seleccionado
                 />
               </View>
               <View style={styles.column}>
@@ -331,18 +464,6 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                 handleAppointmentSelect(fecha, hora)
               }
             />
-
-            {/* Checkbox de aceptación */}
-            {/* <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setAcceptTerms(!acceptTerms)}
-            >
-              <Text style={styles.checkbox}>{acceptTerms ? '✓' : ' '}</Text>
-              <Text style={styles.checkboxText}>
-                Acepto dar mi información y estoy de acuerdo con los{' '}
-                <Text style={styles.link}>términos y condiciones</Text>.
-              </Text>
-            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

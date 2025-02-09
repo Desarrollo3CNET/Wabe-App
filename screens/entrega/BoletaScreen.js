@@ -28,7 +28,7 @@ const BoletaScreen = ({ navigation, route }) => {
       case 'EntregaScreen':
         return (
           <FooterButtons
-            onBack={() => navigation.navigate('EntregaScreen')}
+            onBack={() => navigation.navigate('Dashboard')}
             onNext={() =>
               navigation.navigate('FirmaScreen', {
                 fromScreen: 'BoletaScreen',

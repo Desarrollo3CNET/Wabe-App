@@ -21,14 +21,7 @@ import PhotosAndVideosScreen from './screens/recepcion/PhotosAndVideosScreen';
 import AccesoriosScreen from './screens/recepcion/AccesoriosScreen';
 
 //Pantallas de Revisión
-import SuspensionReviewScreen from './screens/revision/SuspensionReviewScreen';
-import SuspensionReviewScreenBack from './screens/revision/SuspensionReviewScreenBack';
-import FrenosReviewScreen from './screens/revision/FrenosReviewScreen';
-import FrenosReviewScreenBack from './screens/revision/FrenosReviewScreenBack';
-import RodamientosReviewScreen from './screens/revision/RodamientosReviewScreen';
-import RodamientosReviewScreenBack from './screens/revision/RodamientosReviewScreenBack';
-import DireccionReviewScreen from './screens/revision/DireccionReviewScreen';
-import ExtrasReviewScreen from './screens/revision/ExtrasReviewScreen';
+import ReviewScreen from './screens/revision/ReviewScreen';
 import ArticulosScreen from './screens/revision/ArticulosScreen';
 
 //Pantallas de Entrega
@@ -65,32 +58,7 @@ const DrawerNavigator = () => {
         component={PhotosAndVideosScreen}
       />
       <Drawer.Screen name="AccesoriosScreen" component={AccesoriosScreen} />
-      <Drawer.Screen
-        name="SuspensionReviewScreen"
-        component={SuspensionReviewScreen}
-      />
-      <Drawer.Screen
-        name="SuspensionReviewScreenBack"
-        component={SuspensionReviewScreenBack}
-      />
-      <Drawer.Screen name="FrenosReviewScreen" component={FrenosReviewScreen} />
-      <Drawer.Screen
-        name="FrenosReviewScreenBack"
-        component={FrenosReviewScreenBack}
-      />
-      <Drawer.Screen
-        name="RodamientosReviewScreen"
-        component={RodamientosReviewScreen}
-      />
-      <Drawer.Screen
-        name="RodamientosReviewScreenBack"
-        component={RodamientosReviewScreenBack}
-      />
-      <Drawer.Screen
-        name="DireccionReviewScreen"
-        component={DireccionReviewScreen}
-      />
-      <Drawer.Screen name="ExtrasReviewScreen" component={ExtrasReviewScreen} />
+      <Drawer.Screen name="ReviewScreen" component={ReviewScreen} />
       <Drawer.Screen name="BoletaScreen" component={BoletaScreen} />
       <Drawer.Screen name="ArticulosScreen" component={ArticulosScreen} />
       <Drawer.Screen

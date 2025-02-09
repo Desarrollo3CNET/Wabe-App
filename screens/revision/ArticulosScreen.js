@@ -11,77 +11,30 @@ const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
   const [observaciones, setObservaciones] = useState('');
   const { fromScreen } = route.params || {};
-
-  const boleta = useSelector((state) => state.boleta);
-
-  // Selectors to fetch articles from all slices
-  const suspensionDelantera = useSelector(
-    (state) => state.revision.suspensionDelantera,
-  );
-  const suspensionTrasera = useSelector(
-    (state) => state.revision.suspensionTrasera,
-  );
-  const frenosDelanteros = useSelector(
-    (state) => state.revision.frenosDelanteros,
-  );
-  const frenosTraseros = useSelector((state) => state.revision.frenosTraseros);
-  const rodamientos = useSelector((state) => state.revision.rodamientos);
-  const rodamientosTraseros = useSelector(
-    (state) => state.revision.rodamientosTraseros,
-  );
-  const direccion = useSelector((state) => state.revision.direccion);
-  const extras = useSelector((state) => state.revision.extras);
-  const articulosGenericosMalos = useSelector(
-    (state) => state.revision.articulosGenericos.malos,
-  );
-  const articulos = useSelector((state) => state.revision.articulosBoleta);
-
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
   const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
 
-  // Helper function to get "malo" articles
-  const getMaloArticles = (items, sectionName, isBack = false) => {
-    const malos = [];
-    const section = isBack ? 'Trasera' : 'Delantera';
+  const boleta = useSelector((state) => state.boleta);
 
-    items.forEach((item) => {
-      if (item.estadoDerecha === 'Malo') {
-        malos.push({
-          nombre: item.nombre,
-          lado: 'Derecha',
-          seccion: sectionName,
-          posicion: section,
-        });
-      }
-      if (item.estadoIzquierda === 'Malo') {
-        malos.push({
-          nombre: item.nombre,
-          lado: 'Izquierda',
-          seccion: sectionName,
-          posicion: section,
-        });
-      }
-      if (item.estadoGeneral === 'Malo') {
-        malos.push({
-          nombre: item.nombre,
-          lado: 'General',
-          seccion: sectionName,
-          posicion: section,
-        });
-      }
-    });
-
-    return malos;
-  };
+  const articulosMantenimiento = useSelector((state) =>
+    state.revision.articulosMantenimiento
+      .map((categoria) => ({
+        ...categoria,
+        Articulos: categoria.Articulos.filter(
+          (articulo) => articulo.ESTADO === false,
+        ),
+      }))
+      .filter((categoria) => categoria.Articulos.length > 0),
+  );
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
-      case 'ExtrasReviewScreen':
+      case 'ReviewScreen':
         return (
           <FooterButtons
-            onBack={() => navigation.navigate('ExtrasReviewScreen')}
+            onBack={() => navigation.navigate('ReviewScreen')}
             onDelete={() => setModalVisibleArticulo(true)}
             onNext={handleNext}
           />
@@ -104,38 +57,14 @@ const ArticulosScreen = ({ navigation, route }) => {
         );
     }
   };
-
-  // Aggregate all "malo" articles
-  const articulosMalos = [
-    ...getMaloArticles(suspensionDelantera, 'Suspensión', false),
-    ...getMaloArticles(suspensionTrasera, 'Suspensión', true),
-    ...getMaloArticles(frenosDelanteros, 'Frenos', false),
-    ...getMaloArticles(frenosTraseros, 'Frenos', true),
-    ...getMaloArticles(rodamientos, 'Rodamientos', false),
-    ...getMaloArticles(rodamientosTraseros, 'Rodamientos', true),
-    ...getMaloArticles(direccion, 'Dirección', false),
-    ...extras
-      .filter((item) => item.estado === 'Malo')
-      .map((item) => ({
-        nombre: item.nombre,
-        lado: 'General',
-        seccion: item.section,
-        posicion: 'General',
-      })),
-    ...articulosGenericosMalos.map((nombre) => ({
-      nombre,
-      lado: 'General',
-      seccion: 'Artículos Genéricos',
-      posicion: 'General',
-    })),
-  ];
-
   const handleNext = async () => {
     setCaseType('Notificacion');
 
     try {
       // Crear el array de nombres de artículos malos
-      const listArticulos = articulosMalos.map((articulo) => articulo.nombre);
+      const listArticulos = articulosMantenimiento.map(
+        (articulo) => articulo.ART_NOMBRE,
+      );
 
       // Llamar a la función SaveArticulos con los parámetros correspondientes
       const response = await saveArticulos(
@@ -177,8 +106,8 @@ const ArticulosScreen = ({ navigation, route }) => {
         <View style={styles.content}>
           <Text style={styles.title}>Lista de Artículos</Text>
           <ScrollView>
-            {articulos.length > 0 ? (
-              articulos.map((articulo, index) => (
+            {articulosMantenimiento.length > 0 ? (
+              articulosMantenimiento.map((articulo, index) => (
                 <View key={index} style={styles.simpleCard}>
                   <Text style={styles.cardTitle}>{articulo}</Text>
                 </View>
@@ -209,22 +138,25 @@ const ArticulosScreen = ({ navigation, route }) => {
 
         <Text style={styles.sectionTitle}>Artículos Seleccionados</Text>
         <ScrollView>
-          {articulosMalos.length > 0 ? (
-            articulosMalos.map((articulo, index) => (
-              <View key={index} style={styles.card}>
-                <Text style={styles.cardTitle}>{articulo.nombre}</Text>
-                <Text style={styles.cardText}>
-                  <Text style={styles.cardLabel}>Lado: </Text>
-                  {articulo.lado}
+          {articulosMantenimiento.length > 0 ? (
+            articulosMantenimiento.map((categoria, index) => (
+              <View key={index}>
+                <Text style={styles.sectionTitle}>
+                  {categoria.CATEGORIA_NOMBRE}
                 </Text>
-                <Text style={styles.cardText}>
-                  <Text style={styles.cardLabel}>Sección: </Text>
-                  {articulo.seccion}
-                </Text>
-                <Text style={styles.cardText}>
-                  <Text style={styles.cardLabel}>Posición: </Text>
-                  {articulo.posicion}
-                </Text>
+                {categoria.Articulos.length > 0 ? (
+                  categoria.Articulos.map((articulo, index) => (
+                    <View key={index} style={styles.card}>
+                      <Text style={styles.cardTitle}>
+                        {articulo.ART_NOMBRE} - {articulo.ART_CODE}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.noArticles}>
+                    No hay artículos en esta categoría
+                  </Text>
+                )}
               </View>
             ))
           ) : (
@@ -235,10 +167,10 @@ const ArticulosScreen = ({ navigation, route }) => {
 
       {renderFooterButtons()}
 
-      <AddArticleModal
+      {/* <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
-      />
+      /> */}
       <GenericModal
         visible={modalVisibleRevision}
         onClose={() => setModalVisibleRevision(false)}
