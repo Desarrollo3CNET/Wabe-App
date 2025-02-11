@@ -1,4 +1,4 @@
-import { get } from '../api/config';
+import { get, post } from '../api/config';
 
 const controller = 'Citas';
 
@@ -52,7 +52,7 @@ export async function getModelosByMarca(marca) {
 // Función para crear una cita
 export async function crearCita(cliente, cita, vehiculo) {
   try {
-    const response = await get(
+    const response = await post(
       `${controller}/CrearCitaAsyncAPP`,
       cliente,
       cita,

@@ -17,6 +17,7 @@ import {
   getByCedula,
   getByPlaca,
   getModelosByMarca,
+  crearCita,
 } from '../src/services/CitaService';
 import { getSucursales } from '../src/services/BoletaService';
 import { useSelector } from 'react-redux';
@@ -36,7 +37,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     sucursal: '',
     fecha: '',
     hora: '',
-    tipoCedula: '',
+    tipoCedula: 1,
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -75,6 +76,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
             ...prev,
             placa: 'Vehículo encontrado.',
           }));
+          fetchModelosByMarca(data.marca);
         } else {
           setMessages((prev) => ({
             ...prev,
@@ -152,10 +154,9 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const fetchModelosByMarca = async (marca) => {
     try {
       const response = await getModelosByMarca(marca);
-      if (response.data.success) {
-        const modelosLista = response.data.data.map(
-          (modelo) => modelo.MOD_NAME,
-        );
+
+      if (response.success) {
+        const modelosLista = response.data.map((modelo) => modelo.MOD_NAME);
         setModelos(modelosLista);
       } else {
         setModelos([]);
@@ -181,6 +182,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         }
       };
       fetchSucursales();
+      fetchModelosByMarca(marcas[0]);
     }
   }, [user]);
 
@@ -443,16 +445,27 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
               <CustomInput
                 label="Sucursal"
                 type="select"
-                options={sucursalOptions.map((option) => option.label)}
+                options={[
+                  'Seleccione',
+                  ...sucursalOptions.map((option) => option.label),
+                ]}
                 value={
                   sucursalOptions.find((opt) => opt.value === sucursal)
-                    ?.label || ''
+                    ?.label || 'Seleccione'
                 }
                 onChange={(selectedLabel) => {
+                  if (selectedLabel === 'Seleccione') {
+                    setSucursal(-1);
+                    handleUpdate('sucursal', null);
+                    return;
+                  }
+
                   const selectedOption = sucursalOptions.find(
                     (opt) => opt.label === selectedLabel,
                   );
+
                   setSucursal(selectedOption ? selectedOption.value : -1);
+                  handleUpdate('sucursal', selectedOption);
                 }}
               />
             </View>

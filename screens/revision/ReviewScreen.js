@@ -7,7 +7,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleEstadoArticulo } from '../../src/contexts/RevisionSlice';
+import {
+  activarArticulo,
+  desactivarArticulo,
+} from '../../src/contexts/RevisionSlice';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtonsRevision from '../../src/components/recepcion/FooterButtonsRevision';
 import AddArticleModal from '../../src/components/revision/AddArticleModal';
@@ -25,15 +28,13 @@ const ReviewScreen = ({ navigation }) => {
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
 
-  const handleUpdateStatus = (ART_CODE) => {
-    dispatch(toggleEstadoArticulo(ART_CODE));
-  };
-
   const handleNext = async () => {
     const isValid = await ValidateRevisionItems(articulosMantenimiento);
 
     if (isValid) {
-      navigation.navigate('ArticulosScreen');
+      navigation.navigate('ArticulosScreen', {
+        fromScreen: 'ReviewScreen',
+      });
     } else {
       setCaseType('Notificacion');
       setModalMessage(
@@ -62,7 +63,7 @@ const ReviewScreen = ({ navigation }) => {
                         styles.statusButton,
                         item.ESTADO === true && styles.selected,
                       ]}
-                      onPress={() => handleUpdateStatus(item.ART_CODE)}
+                      onPress={() => dispatch(activarArticulo(item.ART_CODE))}
                     >
                       <Text style={styles.statusText}>Bueno</Text>
                     </TouchableOpacity>
@@ -72,7 +73,9 @@ const ReviewScreen = ({ navigation }) => {
                         styles.statusButton,
                         item.ESTADO === false && styles.selected,
                       ]}
-                      onPress={() => handleUpdateStatus(item.ART_CODE)}
+                      onPress={() =>
+                        dispatch(desactivarArticulo(item.ART_CODE))
+                      }
                     >
                       <Text style={styles.statusText}>Malo</Text>
                     </TouchableOpacity>
@@ -97,10 +100,10 @@ const ReviewScreen = ({ navigation }) => {
         onNext={handleNext}
       />
 
-      {/* <AddArticleModal
+      <AddArticleModal
         visible={modalVisibleArticulo}
         onClose={() => setModalVisibleArticulo(false)}
-      /> */}
+      />
 
       <GenericModal
         visible={modalVisibleRevision}

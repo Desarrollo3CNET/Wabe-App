@@ -358,7 +358,7 @@ const EntregaScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#333',
     padding: 10,
   },
   filters: {
@@ -377,13 +377,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFF', // Fondo blanco para destacar el mensaje
+    backgroundColor: '#333', // Fondo blanco para destacar el mensaje
     borderRadius: 5,
   },
   noDataText: {
     fontSize: 16,
-    color: '#666', // Gris suave para el texto
+    color: '#555', // Gris suave para el texto
     textAlign: 'center',
+    marginVertical: 10,
   },
   searchInput: {
     flex: 1,

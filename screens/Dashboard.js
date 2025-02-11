@@ -244,7 +244,7 @@ const Dashboard = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#333',
     paddingTop: 10,
   },
   headerSection: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   dateHeader: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
     marginBottom: 10,
   },
   card: {

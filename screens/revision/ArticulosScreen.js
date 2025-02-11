@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
-import AddArticleModal from '../../src/components/revision/AddArticleModal';
 import GenericModal from '../../src/components/recepcion/GenericModal';
 import saveArticulos from '../../src/services/ArticulosService';
 
@@ -11,7 +10,6 @@ const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
   const [observaciones, setObservaciones] = useState('');
   const { fromScreen } = route.params || {};
-  const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
   const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
@@ -28,6 +26,11 @@ const ArticulosScreen = ({ navigation, route }) => {
       }))
       .filter((categoria) => categoria.Articulos.length > 0),
   );
+  const articulosAgregados = useSelector((state) =>
+    state.revision.articulosAgregados.filter(
+      (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
+    ),
+  );
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
@@ -35,7 +38,7 @@ const ArticulosScreen = ({ navigation, route }) => {
         return (
           <FooterButtons
             onBack={() => navigation.navigate('ReviewScreen')}
-            onDelete={() => setModalVisibleArticulo(true)}
+            showDelete={false}
             onNext={handleNext}
           />
         );
@@ -62,9 +65,30 @@ const ArticulosScreen = ({ navigation, route }) => {
 
     try {
       // Crear el array de nombres de artículos malos
-      const listArticulos = articulosMantenimiento.map(
-        (articulo) => articulo.ART_NOMBRE,
+      // Combina los dos arrays: articulosMantenimiento y articulosAgregados
+      const todosLosArticulos = [
+        ...this.articulosMantenimiento,
+        ...this.articulosAgregados,
+      ];
+
+      // Filtra los artículos cuyo ESTADO sea false o "false"
+      const filteredArticulos = todosLosArticulos.filter(
+        (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
       );
+
+      // Mapea los artículos filtrados para crear el array listArticulos
+      const listArticulos = filteredArticulos.map((articulo) => {
+        // Verificar si ART_CODE es válido
+        const codigoValido =
+          articulo.ART_CODE !== null &&
+          articulo.ART_CODE !== undefined &&
+          articulo.ART_CODE !== '';
+
+        // Construir el string con o sin ART_CODE
+        return codigoValido
+          ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
+          : articulo.ART_NOMBRE;
+      });
 
       // Llamar a la función SaveArticulos con los parámetros correspondientes
       const response = await saveArticulos(
@@ -126,7 +150,7 @@ const ArticulosScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Header title="Artículos" />
       <View style={styles.content}>
-        <Text style={styles.title}>Elegir Artículos</Text>
+        <Text style={styles.title}>Artículos Seleccionados</Text>
         <Text style={styles.subtitle}>Observaciones</Text>
         <TextInput
           style={styles.input}
@@ -136,14 +160,11 @@ const ArticulosScreen = ({ navigation, route }) => {
         />
         <View style={styles.divider} />
 
-        <Text style={styles.sectionTitle}>Artículos Seleccionados</Text>
         <ScrollView>
           {articulosMantenimiento.length > 0 ? (
             articulosMantenimiento.map((categoria, index) => (
               <View key={index}>
-                <Text style={styles.sectionTitle}>
-                  {categoria.CATEGORIA_NOMBRE}
-                </Text>
+                <Text style={styles.sectionTitle}>{categoria.CAT_NOMBRE}</Text>
                 {categoria.Articulos.length > 0 ? (
                   categoria.Articulos.map((articulo, index) => (
                     <View key={index} style={styles.card}>
@@ -162,15 +183,23 @@ const ArticulosScreen = ({ navigation, route }) => {
           ) : (
             <Text style={styles.noArticles}>No hay artículos</Text>
           )}
+          <Text style={styles.sectionTitle}>Artículos Agregados</Text>
+          {articulosAgregados.length > 0 ? (
+            articulosAgregados.map((articulo, index) => (
+              <View key={index} style={styles.card}>
+                <Text style={styles.cardTitle}>{articulo.ART_NOMBRE}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noArticles}>
+              No hay artículos en esta categoría
+            </Text>
+          )}
         </ScrollView>
       </View>
 
       {renderFooterButtons()}
 
-      {/* <AddArticleModal
-        visible={modalVisibleArticulo}
-        onClose={() => setModalVisibleArticulo(false)}
-      /> */}
       <GenericModal
         visible={modalVisibleRevision}
         onClose={() => setModalVisibleRevision(false)}

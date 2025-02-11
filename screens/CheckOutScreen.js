@@ -205,7 +205,7 @@ const CheckOutScreen = ({ navigation }) => {
 
       // Agregar la propiedad ESTADO a los artículos
       const articulosConEstado = processArticulos(articulosMantenimiento);
-
+      console.log(articulosConEstado);
       // Guardar en Redux
       console.log('articulosConEstado', articulosConEstado);
       dispatch(setArticulosMantenimiento(articulosConEstado));
@@ -222,30 +222,6 @@ const CheckOutScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-
-  // const handleNavigateToRevision = async (item) => {
-  //   setIsLoading(true);
-  //   try {
-  //     dispatch(resetAllStates());
-  //     // Obtener detalles de la boleta
-  //     const boletaDetails = await getBoletaById(item.BOL_CODE);
-
-  //     if (boletaDetails) {
-  //       // Actualizar el estado del slice de boleta con toda la información obtenida
-  //       dispatch(setBoletaData(boletaDetails));
-  //     }
-  //     dispatch(setCreatingRevisionTrue());
-  //     navigation.navigate('ReviewScreen');
-  //   } catch (error) {
-  //     console.error('Error al iniciar la revisión:', error);
-  //     setModalMessage(
-  //       'Hubo un error al intentar redirigir a la pantalla de Revisión. Por favor, inténtalo de nuevo.',
-  //     ); // Mensaje del modal
-  //     setModalVisible(true);
-  //   } finally {
-  //     setIsLoading(false); // Detiene el indicador de carga para boleta
-  //   }
-  // };
 
   const handleGenerateWorkOrder = async (item) => {
     setIsLoading(true); // Inicia el indicador de carga
@@ -407,7 +383,7 @@ const CheckOutScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#333',
     padding: 10,
   },
   noDataContainer: {
@@ -415,12 +391,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFF', // Fondo blanco para destacar el mensaje
+    backgroundColor: '#333', // Fondo blanco para destacar el mensaje
     borderRadius: 5,
   },
   noDataText: {
     fontSize: 16,
-    color: '#666', // Gris suave para el texto
+    color: '#555', // Gris suave para el texto
     textAlign: 'center',
     marginVertical: 10,
   },

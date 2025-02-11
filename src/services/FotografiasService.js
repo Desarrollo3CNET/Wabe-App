@@ -26,7 +26,7 @@ export async function GetImages(placa, fecha) {
 export async function saveImages(listaFotos) {
   try {
     // Utiliza el método post para enviar los datos de fotos al endpoint
-    const data = await post(`api/SaveImages`, listaFotos);
+    const data = await post(`api/SaveImagesApp`, listaFotos);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud

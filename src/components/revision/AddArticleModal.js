@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,36 +19,74 @@ import GenericModal from '../../components/recepcion/GenericModal'; // Importaci
 
 const AddArticleModal = ({ visible, onClose }) => {
   const [articleName, setArticleName] = useState('');
-  const [articleState, setArticleState] = useState('Bueno');
-  const [modalVisible, setModalVisible] = useState(false); // Estado para mostrar el modal
-  const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
+  const [articleState, setArticleState] = useState();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const dispatch = useDispatch();
 
-  const { buenos, malos } = useSelector(
-    (state) => state.revision.articulosGenericos,
+  const articulosAgregados = useSelector(
+    (state) => state.revision.articulosAgregados,
   );
+
+  // Estado local para los artículos filtrados
+  const [buenos, setBuenos] = useState([]);
+  const [malos, setMalos] = useState([]);
 
   const handleAdd = () => {
     if (articleName.trim() === '') {
-      setModalMessage('Por favor ingrese un nombre de artículo.'); // Establecer mensaje
-      setModalVisible(true); // Mostrar modal
+      setModalMessage('Por favor ingrese un nombre de artículo.');
+      setModalVisible(true);
       return;
     }
 
-    dispatch(agregarArticulo({ nombre: articleName, estado: articleState }));
+    if (!articleState) {
+      setModalMessage('Por favor seleccione el estado del artículo.');
+      setModalVisible(true);
+      return;
+    }
+
+    const articuloExistente = articulosAgregados.some(
+      (art) => art.ART_NOMBRE.toLowerCase() === articleName.toLowerCase(),
+    );
+
+    if (articuloExistente) {
+      setModalMessage('El artículo ya existe.');
+      setModalVisible(true);
+      return;
+    }
+
+    const newArticle = { ART_NOMBRE: articleName, ESTADO: articleState };
+    dispatch(agregarArticulo(newArticle));
+
+    // **Actualiza los estados locales manualmente**
+    if (articleState == 'true') {
+      setBuenos((prevBuenos) => [...prevBuenos, newArticle]);
+    } else {
+      setMalos((prevMalos) => [...prevMalos, newArticle]);
+    }
+
+    // Reiniciar el formulario
     setArticleName('');
   };
 
-  const handleDelete = (nombre, estado) => {
-    dispatch(eliminarArticulo({ nombre, estado }));
+  const handleDelete = (ART_NOMBRE) => {
+    dispatch(eliminarArticulo(ART_NOMBRE));
+
+    // Filtra los artículos para eliminar el que coincida con ART_NOMBRE
+    setBuenos((prevBuenos) =>
+      prevBuenos.filter((art) => art.ART_NOMBRE !== ART_NOMBRE),
+    );
+    setMalos((prevMalos) =>
+      prevMalos.filter((art) => art.ART_NOMBRE !== ART_NOMBRE),
+    );
   };
 
-  const renderArticleItem = (item, estado) => (
+  const renderArticleItem = ({ item }) => (
     <View style={styles.listItemContainer}>
-      <Text style={styles.listItem}>{item}</Text>
+      <Text style={styles.listItem}>{item.ART_NOMBRE}</Text>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => handleDelete(item, estado)}
+        onPress={() => handleDelete(item.ART_NOMBRE)}
       >
         <Text style={styles.deleteButtonText}>Eliminar</Text>
       </TouchableOpacity>
@@ -80,8 +118,9 @@ const AddArticleModal = ({ visible, onClose }) => {
                 style={styles.picker}
                 onValueChange={(itemValue) => setArticleState(itemValue)}
               >
-                <Picker.Item label="Bueno" value="Bueno" />
-                <Picker.Item label="Malo" value="Malo" />
+                <Picker.Item label="Seleccione una opción..." value={null} />
+                <Picker.Item label="Bueno" value={true} />
+                <Picker.Item label="Malo" value={false} />
               </Picker>
             </View>
 
@@ -96,16 +135,16 @@ const AddArticleModal = ({ visible, onClose }) => {
               <Text style={styles.listTitle}>Artículos Buenos</Text>
               <FlatList
                 data={buenos}
-                renderItem={({ item }) => renderArticleItem(item, 'Bueno')}
-                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderArticleItem}
+                keyExtractor={(_, index) => index.toString()}
               />
             </View>
             <View style={styles.listSection}>
               <Text style={styles.listTitle}>Artículos Malos</Text>
               <FlatList
                 data={malos}
-                renderItem={({ item }) => renderArticleItem(item, 'Malo')}
-                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderArticleItem}
+                keyExtractor={(_, index) => index.toString()}
               />
             </View>
           </View>
@@ -243,19 +282,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     marginLeft: 5,
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#FFD700',
-    padding: 15,
-    borderRadius: 5,
-    marginLeft: 5,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
   },
 });
 
