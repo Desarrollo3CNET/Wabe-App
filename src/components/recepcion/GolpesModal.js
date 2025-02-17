@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   Switch,
+  ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
@@ -48,13 +49,19 @@ const GolpesModal = ({ visible, onClose }) => {
 
   const handleStart = (x, y) => {
     if (!isDrawing) return;
-    const startPoint = `M ${x},${y}`;
+    // Ajustar las coordenadas para el zoom y pan
+    const adjustedX = (x - panX) / zoom;
+    const adjustedY = (y - panY) / zoom;
+    const startPoint = `M ${adjustedX},${adjustedY}`;
     setLocalPath(startPoint);
   };
 
   const handleMove = (x, y) => {
-    if (!isDrawing || !localPath) return;
-    const newPoint = `L ${x},${y}`;
+    if (!isDrawing || !localPath || isNaN(x) || isNaN(y)) return;
+    // Ajustar las coordenadas para el zoom y pan
+    const adjustedX = (x - panX) / zoom;
+    const adjustedY = (y - panY) / zoom;
+    const newPoint = `L ${adjustedX},${adjustedY}`;
     setLocalPath((prevPath) => `${prevPath} ${newPoint}`);
   };
 
@@ -97,9 +104,9 @@ const GolpesModal = ({ visible, onClose }) => {
   };
 
   const handlePanMove = (x, y) => {
-    if (isPanning) {
-      const dx = x - startX;
-      const dy = y - startY;
+    if (isPanning && !isNaN(x) && !isNaN(y)) {
+      const dx = x - startX || 0;
+      const dy = y - startY || 0;
       setPanX((prevX) => prevX + dx);
       setPanY((prevY) => prevY + dy);
       setStartX(x);
@@ -115,6 +122,8 @@ const GolpesModal = ({ visible, onClose }) => {
     <Modal transparent visible={visible}>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
+          <ZoomBar zoom={zoom} setZoom={setZoom} />
+
           <View style={styles.headerContainer}>
             <View style={[styles.headerColumn, styles.titleContainer]}>
               <Text style={styles.title}>Golpes</Text>
@@ -128,12 +137,7 @@ const GolpesModal = ({ visible, onClose }) => {
                 selectedValue={BOL_VEH_ESTILO}
                 style={styles.picker}
                 onValueChange={(value) =>
-                  dispatch(
-                    setProperty({
-                      key: 'BOL_VEH_ESTILO',
-                      value: value,
-                    }),
-                  )
+                  dispatch(setProperty({ key: 'BOL_VEH_ESTILO', value }))
                 }
               >
                 <Picker.Item label="Sedán" value="Sedán" />
@@ -145,52 +149,53 @@ const GolpesModal = ({ visible, onClose }) => {
                 <Picker.Item label="SUV" value="SUV" />
               </Picker>
             </View>
-            <View style={styles.headerColumn}>
-              <View style={styles.toolbar}>
-                <TouchableOpacity
-                  style={styles.toolButton}
-                  onPress={handleUndo}
-                >
-                  <Icon name="undo" size={18} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.toolButton}
-                  onPress={handleRedo}
-                >
-                  <Icon name="repeat" size={18} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.toolButton}
-                  onPress={() => setIsDrawing(!isDrawing)}
-                >
-                  <Icon
-                    name="pencil"
-                    size={18}
-                    color={isDrawing ? 'white' : '#000'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.toolButton}
-                  onPress={handleClear}
-                >
-                  <Icon name="eraser" size={18} color="#000" />
-                </TouchableOpacity>
-              </View>
-            </View>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Icon name="close" size={18} color="#000" />
             </TouchableOpacity>
           </View>
 
+          {/* Nueva fila para la barra de herramientas */}
+          <View style={styles.toolbarContainer}>
+            <View style={styles.toolbar}>
+              <TouchableOpacity style={styles.toolButton} onPress={handleUndo}>
+                <Icon name="undo" size={30} color="#000" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.toolButton} onPress={handleRedo}>
+                <Icon name="repeat" size={30} color="#000" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.toolButton}
+                onPress={() => setIsDrawing(!isDrawing)}
+              >
+                <Icon
+                  name="pencil"
+                  size={30}
+                  color={isDrawing ? 'white' : '#000'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.toolButton} onPress={handleClear}>
+                <Icon name="eraser" size={30} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <View style={styles.canvasContainer}>
+            {/* Agregado el ScrollView horizontal para la imagen */}
             <Image
               source={images[BOL_VEH_ESTILO]}
-              style={[styles.vehicleImage, { transform: [{ scale: zoom }] }]}
+              style={[
+                styles.vehicleImage,
+                {
+                  transform: [{ scale: zoom }],
+                  width: 'auto', // Ajuste para que la imagen no se deforme
+                },
+              ]}
               resizeMode="contain"
             />
+
             <Svg
               style={styles.canvas}
-              transform={`translate(${panX}, ${panY}) scale(${zoom})`}
+              transform={`translate(${panX || 0}, ${panY || 0}) scale(${zoom || 1})`}
             >
               {paths.map((path, index) => (
                 <Path
@@ -201,7 +206,6 @@ const GolpesModal = ({ visible, onClose }) => {
                   fill="none"
                 />
               ))}
-
               {localPath ? (
                 <Path
                   d={localPath}
@@ -211,6 +215,7 @@ const GolpesModal = ({ visible, onClose }) => {
                 />
               ) : null}
             </Svg>
+
             <View
               style={styles.canvasTouchArea}
               onStartShouldSetResponder={() => true}
@@ -235,7 +240,6 @@ const GolpesModal = ({ visible, onClose }) => {
               onResponderTerminate={handlePanEnd}
             />
           </View>
-          <ZoomBar zoom={zoom} setZoom={setZoom} />
 
           <View style={styles.footer}>
             <View style={styles.switchContainer}>
@@ -245,11 +249,12 @@ const GolpesModal = ({ visible, onClose }) => {
                 golpes ocultos.
               </Text>
             </View>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Icon name="save" size={18} color="#000" />
-              <Text style={styles.saveText}>Guardar</Text>
-            </TouchableOpacity>
           </View>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Icon name="save" size={18} color="#000" />
+            <Text style={styles.saveText}>Guardar</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -286,7 +291,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderColor: '#D1D1D1',
+    zIndex: 99,
   },
+  toolbarContainer: {
+    zIndex: 2,
+    marginTop: 10, // Espacio entre el header y la barra de herramientas
+  },
+
   headerColumn: {
     flex: 1,
     justifyContent: 'center',
@@ -366,6 +377,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     marginTop: 10,
+    overflow: 'hidden', // Esto asegura que el zoom no afecte el contenedor
   },
   vehicleImage: {
     width: '100%',

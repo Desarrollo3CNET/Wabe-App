@@ -6,17 +6,20 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  Modal,
 } from 'react-native';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+// import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker'; // Importar expo-image-picker
+
 import GolpesModal from '../../src/components/recepcion/GolpesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  addAttachment,
-  toggleSelectAttachment,
-  deleteSelectedAttachments,
+  addImage,
+  toggleSelectImage,
+  deleteSelectedImage,
 } from '../../src/contexts/BoletaSlice';
 import GenericModal from '../../src/components/recepcion/GenericModal';
 
@@ -26,6 +29,9 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
   const [modalVisibleBoleta, setmodalVisibleBoleta] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
+
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isModalImageVisible, setModalImageVisible] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -92,52 +98,86 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleUploadFile = () => {
-    launchImageLibrary(
-      { mediaType: 'mixed', selectionLimit: 1 },
-      (response) => {
-        if (response.didCancel) return;
-        if (response.assets) {
-          const newAttachment = {
-            id: Date.now(),
-            uri: response.assets[0].uri,
-            type: response.assets[0].type.includes('image') ? 'photo' : 'video',
-            selected: false,
-          };
-          dispatch(addAttachment(newAttachment));
-        }
-      },
-    );
+  const handleUploadFile = async () => {
+    // Solicitar permisos para acceder a la galería
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permiso de galería necesario');
+      return;
+    }
+
+    // Abrir la galería para seleccionar una imagen
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Solo imágenes
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true, // Solicitar el base64 de la imagen
+    });
+
+    // Verificar si el usuario canceló la selección
+    if (result.canceled || !result.assets || result.assets.length === 0) {
+      return; // No hacer nada si no se seleccionó imagen
+    }
+
+    // Obtener la imagen seleccionada
+    const selectedImage = result.assets[0];
+
+    const newAttachment = {
+      id: Date.now(),
+      uri: selectedImage.uri,
+      type: 'photo',
+      base64: selectedImage.base64, // Guardamos la imagen en base64
+      selected: false,
+    };
+
+    dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
-  const handleOpenCamera = () => {
-    launchCamera({ mediaType: 'mixed', saveToPhotos: true }, (response) => {
-      if (response.didCancel) return;
-      if (response.assets) {
-        const newAttachment = {
-          id: Date.now(),
-          uri: response.assets[0].uri,
-          type: response.assets[0].type.includes('image') ? 'photo' : 'video',
-          selected: false,
-        };
-        dispatch(addAttachment(newAttachment));
-      }
+  const handleOpenCamera = async () => {
+    // Solicitar permisos para la cámara
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permiso de cámara necesario');
+      return;
+    }
+
+    // Abrir la cámara para capturar una foto
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true, // Solicitar el base64 de la imagen
     });
+    // Verificar si se ha cancelado la acción o si no se tomó ninguna foto
+    if (result.canceled || !result.assets) {
+      return; // No hacer nada si no se tomó una foto
+    }
+
+    const newAttachment = {
+      id: Date.now(),
+      uri: result.uri,
+      type: 'photo',
+      base64: result.base64, // Guardamos la imagen en base64
+      selected: false,
+    };
+
+    dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
     if (!isEditing) {
-      dispatch(toggleSelectAttachment(null)); // Deselect all attachments
+      dispatch(toggleSelectImage(null)); // Deselect all attachments
     }
   };
 
   const handleSelectItem = (id) => {
-    dispatch(toggleSelectAttachment(id));
+    dispatch(toggleSelectImage(id));
   };
 
   const handleDeleteSelected = () => {
-    dispatch(deleteSelectedAttachments());
+    dispatch(deleteSelectedImage());
   };
 
   const decodeBase64Image = (base64) => {
@@ -172,9 +212,17 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
     return (
       <TouchableOpacity
-        style={styles.attachmentItem}
-        disabled={!isEditing}
-        onPress={() => handleSelectItem(item.id)}
+        style={[styles.attachmentItem, isSelected && styles.selectedAttachment]}
+        onPress={() => {
+          if (isEditing) {
+            // Si está en modo edición, seleccionar/deseleccionar imagen
+            handleSelectItem(item.id);
+          } else {
+            // Si NO está en modo edición, mostrar la imagen en el modal
+            setSelectedImage(item.uri);
+            setModalImageVisible(true);
+          }
+        }}
       >
         <Icon
           name={item.type === 'photo' ? 'image' : 'film'}
@@ -194,6 +242,8 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Header title="Recepción" />
 
+      {/* {renderFooterButtons()} */}
+
       <View style={styles.content}>
         <Text style={styles.title}>Fotografías y Videos</Text>
 
@@ -203,40 +253,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
             {renderEsquema()}
           </View>
         ) : (
-          // <>
-          //   {/* Título para la sección de fotos y videos */}
-          //   <Text style={styles.sectionTitle}>Fotos y Videos</Text>
-
-          //   {/* Renderizar fotos decodificadas de cadenas Base64 */}
-          //   <FlatList
-          //     data={attachments} // No hay filtro porque ya contiene el array de cadenas en Base64
-          //     renderItem={({ item }) => (
-          //       <View style={styles.decodedPhotoContainer}>
-          //         {/* Renderizar la imagen decodificada del string Base64 */}
-          //         <Image
-          //           source={{ uri: `data:image/png;base64,${item}` }} // Decodificamos el string Base64
-          //           style={styles.decodedImage}
-          //         />
-          //       </View>
-          //     )}
-          //     keyExtractor={(item, index) => index.toString()} // Usamos el índice como clave
-          //     contentContainerStyle={styles.decodedPhotoList}
-          //   />
-
-          //   {/* Título para la sección del esquema */}
-          //   <Text style={styles.sectionTitle}>Esquema</Text>
-
-          //   {/* Mostrar esquema en grande */}
-          //   <View style={styles.decodedPhotoContainer}>
-          //     <Image
-          //       source={{
-          //         uri: `data:image/png;base64,${useSelector((state) => state.boleta.golpes.esquema)}`, // Decodificar el esquema en Base64
-          //       }}
-          //       style={styles.largeDecodedImage} // Nuevo estilo para la imagen del esquema
-          //     />
-          //   </View>
-          // </>
-
           // Renderizar el bloque original para otras pantallas
           <>
             <View style={styles.actionButtons}>
@@ -273,6 +289,33 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
               horizontal
               contentContainerStyle={styles.attachmentList}
             />
+
+            {/* MODAL PARA MOSTRAR LA IMAGEN */}
+            <Modal
+              visible={isModalImageVisible}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setModalImageVisible(false)}
+            >
+              <TouchableOpacity
+                style={styles.modalContainer}
+                activeOpacity={1}
+                onPress={() => setModalImageVisible(false)}
+              >
+                <View style={styles.modalContent}>
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={styles.fullImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setModalImageVisible(false)}
+                  >
+                    <Icon name="times" size={30} color="white" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </Modal>
 
             <TouchableOpacity
               style={styles.editButton}
@@ -429,6 +472,30 @@ const styles = StyleSheet.create({
     width: '100%', // Toma todo el ancho disponible
     height: 200, // Ajusta según tus necesidades
     resizeMode: 'contain', // Mantiene las proporciones de la imagen
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    position: 'relative',
+    width: '90%',
+    height: '80%',
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 10,
+    borderRadius: 20,
   },
 });
 

@@ -1,12 +1,12 @@
 import { get } from '../api/config';
 
 // Define el controlador como una constante desacoplada
-const controller = 'api/Articulo';
+const controller = 'Articulo';
 
 // Función para obtener el listado de tipos de articulos
 export async function getArticulosByBoleta(BoletaId) {
   try {
-    const response = await get(`${controller}/GetByBoleta?id=${BoletaId}`);
+    const response = await get(`${controller}/GetByBoletaApp?id=${BoletaId}`);
     return response;
   } catch (error) {
     console.error('Error obteniendo los tipos de articulos:', error);
@@ -18,7 +18,7 @@ export async function getArticulosByBoleta(BoletaId) {
 export async function ObtenerArticulosMantenimiento(idEmpresa) {
   try {
     const response = await get(
-      `Mantenimiento/ObtenerArticulosMantenimiento?idEmpresa=${idEmpresa}`,
+      `${controller}/ObtenerArticulosMantenimientoApp?idEmpresa=${idEmpresa}`,
     );
     return response;
   } catch (error) {

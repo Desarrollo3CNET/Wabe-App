@@ -1,13 +1,15 @@
 import { post, get } from '../api/config';
 
 // Define el controlador como una constante desacoplada
-const controller = 'api/Boleta';
+const controller = 'Boleta';
 
 // Función para obtener sucursales
 export async function getSucursales(idEmpresa) {
   try {
     // Utiliza el método get para obtener los datos de sucursales al endpoint
-    const data = await get(`/api/ListSucursales?idEmpresa=${idEmpresa}`);
+    const data = await get(
+      `${controller}/ListSucursalesApp?idEmpresa=${idEmpresa}`,
+    );
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud
@@ -16,22 +18,11 @@ export async function getSucursales(idEmpresa) {
   }
 }
 
-// Función para crear una boleta
-export async function createBoleta(boletaData, idCita) {
-  try {
-    const response = await post(`/api/SaveBoleta?idCita=${idCita}`, boletaData);
-    return response;
-  } catch (error) {
-    console.error('Error creando boleta:', error);
-    throw error;
-  }
-}
-
 // Función para obtener la lista de boletas
 export async function getBoletas(estado, idEmpresa) {
   try {
     const response = await get(
-      `${controller}/ListApp?estado=${estado}&idEmpresa=${idEmpresa}`,
+      `${controller}/ListBoletaApp?estado=${estado}&idEmpresa=${idEmpresa}`,
     );
     return response;
   } catch (error) {
@@ -40,6 +31,15 @@ export async function getBoletas(estado, idEmpresa) {
   }
 }
 
+export async function createBoleta(boletaData) {
+  try {
+    const response = await post(`${controller}/SaveBoletaApp`, boletaData);
+    return response;
+  } catch (error) {
+    console.error('Error creando boleta:', error);
+    throw error;
+  }
+}
 // Función para obtener una boleta específica
 export async function getBoletaById(BoletaId) {
   try {
@@ -54,7 +54,7 @@ export async function getBoletaById(BoletaId) {
 // Función para actualizar una boleta
 export async function updateBoleta(boletaData) {
   try {
-    const response = await post(`/api/UpdateBoleta`, boletaData);
+    const response = await post(`${controller}/UpdateBoletaApp`, boletaData);
     return response;
   } catch (error) {
     console.error('Error actualizando boleta:', error);

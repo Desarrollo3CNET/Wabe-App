@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
-import saveArticulos from '../../src/services/ArticulosService';
+import { saveArticulos } from '../../src/services/BoletaService';
+import { setCreatingRevisionFalse } from '../../src/contexts/AppSlice';
 
 const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
@@ -13,6 +21,7 @@ const ArticulosScreen = ({ navigation, route }) => {
   const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Estado para mostrar el spinner
 
   const boleta = useSelector((state) => state.boleta);
 
@@ -64,12 +73,14 @@ const ArticulosScreen = ({ navigation, route }) => {
     setCaseType('Notificacion');
 
     try {
-      // Crear el array de nombres de artículos malos
-      // Combina los dos arrays: articulosMantenimiento y articulosAgregados
+      setIsLoading(true);
+
       const todosLosArticulos = [
-        ...this.articulosMantenimiento,
-        ...this.articulosAgregados,
+        ...articulosAgregados,
+        ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
       ];
+
+      console.log(todosLosArticulos);
 
       // Filtra los artículos cuyo ESTADO sea false o "false"
       const filteredArticulos = todosLosArticulos.filter(
@@ -91,35 +102,26 @@ const ArticulosScreen = ({ navigation, route }) => {
       });
 
       // Llamar a la función SaveArticulos con los parámetros correspondientes
-      const response = await saveArticulos(
+      await saveArticulos(
         boleta.BOL_CODE, // idBoleta
         observaciones, // observaciones
         boleta.EMP_CODE, // idEmpresa
         listArticulos, // lista de artículos
       );
 
-      if (response && response.success) {
-        // Mensaje de éxito
-        setModalMessage(`Se ha finalizado la revisión correctamente`);
-        navigation.navigate('CheckOutScreen');
-      } else {
-        // Mensaje de error en caso de respuesta no exitosa
-        setModalMessage(
-          'Ocurrió un error al guardar los artículos. Por favor, intente de nuevo.',
-        );
-      }
+      dispatch(setCreatingRevisionFalse());
+      setModalMessage(`Se ha finalizado la revisión correctamente`);
+      navigation.navigate('CheckOutScreen');
     } catch (error) {
       console.error('Error en handleNext:', error);
-
       // Mensaje de error en caso de excepción
-      setCaseType('Error');
       setModalMessage(
-        'Ocurrió un error inesperado al intentar guardar los artículos. Por favor, intente más tarde.',
+        'Ocurrió un error al guardar los artículos. Por favor, intente de nuevo.',
       );
+    } finally {
+      setIsLoading(false);
+      setModalVisibleRevision(true);
     }
-
-    // Mostrar el modal de resultado
-    setModalVisibleRevision(true);
   };
 
   // Render a simple list of articles for "EntregaScreen"
@@ -196,6 +198,13 @@ const ArticulosScreen = ({ navigation, route }) => {
             </Text>
           )}
         </ScrollView>
+        {isLoading && (
+          <ActivityIndicator
+            size="large"
+            color="#FFD700"
+            style={styles.spinner}
+          />
+        )}
       </View>
 
       {renderFooterButtons()}
@@ -215,6 +224,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+  },
+  spinner: {
+    marginTop: 30,
   },
   content: {
     flex: 1,

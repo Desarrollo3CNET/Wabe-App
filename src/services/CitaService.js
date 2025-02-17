@@ -1,6 +1,6 @@
 import { get, post } from '../api/config';
 
-const controller = 'Citas';
+const controller = 'Cita';
 
 export async function getHorasDisponibles(fecha) {
   try {
@@ -41,7 +41,7 @@ export async function getByCedula(cedula) {
 // Función para obtener modelos de vehículos por su marca
 export async function getModelosByMarca(marca) {
   try {
-    const response = await get(`${controller}/BuscaModelos?pMarca=${marca}`);
+    const response = await get(`${controller}/BuscaModelosApp?pMarca=${marca}`);
     return response;
   } catch (error) {
     console.error('Error obteniendo modelos de vehículos', error);
@@ -50,18 +50,29 @@ export async function getModelosByMarca(marca) {
 }
 
 // Función para crear una cita
-export async function crearCita(cliente, cita, vehiculo) {
-  try {
-    const response = await post(
-      `${controller}/CrearCitaAsyncAPP`,
-      cliente,
-      cita,
-      vehiculo,
-    );
+export async function crearCita(citaDto) {
+  // try {
+  const response = await post(`${controller}/CrearCitaApp`, citaDto);
+  console.log('responsexd', response);
 
-    return response;
+  return response;
+  // } catch (error) {
+  //   console.error('Error creando cita:', error);
+  //   throw error;
+  // }
+}
+
+// Función para obtener citas
+export async function getCitas(estado, idCita, idSucursal) {
+  try {
+    // Utiliza el método get para obtener los datos de citas al endpoint
+    const data = await get(
+      `${controller}/ListCitaApp?estado=${estado}&idCita=${idCita}&idSucursal=${idSucursal}`,
+    );
+    return data;
   } catch (error) {
-    console.error('Error creando cita:', error);
+    // Maneja errores en caso de fallos en la solicitud
+    console.error('Error al obtener citas:', error);
     throw error;
   }
 }

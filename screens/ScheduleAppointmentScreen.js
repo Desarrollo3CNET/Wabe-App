@@ -154,9 +154,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const fetchModelosByMarca = async (marca) => {
     try {
       const response = await getModelosByMarca(marca);
+      console.log('response', response);
 
       if (response.success) {
         const modelosLista = response.data.map((modelo) => modelo.MOD_NAME);
+
         setModelos(modelosLista);
       } else {
         setModelos([]);
@@ -272,6 +274,21 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       return;
     }
 
+    // Obtener la fecha actual sin la hora (solo YYYY-MM-DD)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Resetear las horas para comparar solo fechas
+
+    const appointmentDate = new Date(appointmentDetails.fecha);
+
+    // Validar si la fecha ingresada es menor a hoy
+    if (appointmentDate < today) {
+      setModalMessage(
+        'La fecha de la cita no puede ser menor a la fecha actual.',
+      );
+      setModalVisible(true);
+      return;
+    }
+
     // Crear el objeto cliente
     const cliente = {
       TIPC_CODE: appointmentDetails.tipoCedula,
@@ -291,15 +308,36 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       VEH_ANIO: appointmentDetails.anio,
     };
 
+    function convertirHoraATimeSpan(hora12) {
+      const [hora, minutoParte] = hora12.split(':');
+      const minutos = minutoParte.slice(0, 2);
+      const periodo = minutoParte.slice(3).toUpperCase();
+
+      let horas24 = parseInt(hora, 10);
+      if (periodo === 'PM' && horas24 !== 12) {
+        horas24 += 12;
+      } else if (periodo === 'AM' && horas24 === 12) {
+        horas24 = 0;
+      }
+
+      return `${horas24.toString().padStart(2, '0')}:${minutos}:00`;
+    }
+
     // Crear el objeto cita
     const cita = {
       CITCLIE_FECHA_RESERVA: appointmentDetails.fecha,
-      CITCLIE_HORA: appointmentDetails.hora,
-      SUR_CODE: appointmentDetails.sucursal,
+      CITCLIE_HORA: convertirHoraATimeSpan(appointmentDetails.hora),
+      SUR_CODE: appointmentDetails.sucursal.value,
+    };
+
+    const citaRequestDTO = {
+      Cliente: cliente,
+      Cita: cita,
+      Vehiculo: vehiculo,
     };
 
     try {
-      const response = await crearCita(cliente, cita, vehiculo);
+      const response = await crearCita(citaRequestDTO);
 
       // Mostrar mensaje en el modal según la respuesta del backend
       setModalMessage(response.mensaje);

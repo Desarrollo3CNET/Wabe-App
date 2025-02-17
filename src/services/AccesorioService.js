@@ -1,13 +1,13 @@
 import { get } from '../api/config';
 
-const controller = 'api/TipoAccesorio';
+const controller = 'TipoAccesorio';
 
 // Función para obtener accesorios
 export async function getAccesories() {
   try {
     // Utiliza el método get para obtener los datos de accesorios al endpoint
     // const data = await get(`${controller}/ListApp`);
-    const data = await get(`${controller}/List`);
+    const data = await get(`${controller}/ListTipoAccesorioApp`);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud
@@ -20,7 +20,7 @@ export async function getAccesories() {
 export async function getAccesoriesByBoleta(BoletaId) {
   try {
     // Utiliza el método get para obtener los datos de accesorios al endpoint
-    const data = await get(`${controller}/ListByIdBol?id=${BoletaId}`);
+    const data = await get(`${controller}/ListByIdBolApp?id=${BoletaId}`);
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud

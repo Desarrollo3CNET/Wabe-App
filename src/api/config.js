@@ -3,7 +3,7 @@ import axios from 'axios';
 // Creamos una instancia de Axios (api) con la URL base de la API de pruebas.
 // Todas las solicitudes posteriores usando api.get, api.post, etc., utilizarán esta URL base
 const api = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL: 'http://192.168.1.80:3000/api/',
 });
 
 // Función para realizar una solicitud GET

@@ -19,7 +19,7 @@ const Index = () => {
           if (sessionObj && Object.keys(sessionObj).length > 0) {
             dispatch(setLoggedIn(sessionObj));
 
-            navigation.replace('Login');
+            navigation.replace('Dashboard');
           } else {
             navigation.replace('Login');
           }

@@ -34,7 +34,7 @@ const AppointmentScheduler = ({ onAppointmentSelect }) => {
     setHours([]);
 
     try {
-      const formattedDate = date.toISOString().split('T')[0]; // Formato AAAA-MM-DD
+      const formattedDate = date.toISOString().split('T')[0]; // AAAA-MM-DD
       const availableHours = await getHorasDisponibles(formattedDate);
       console.log('availableHours', availableHours);
 
@@ -43,11 +43,12 @@ const AppointmentScheduler = ({ onAppointmentSelect }) => {
           `No hay horas disponibles para la fecha: ${formattedDate}`,
         );
       } else {
-        const formattedHours = availableHours.map(({ Hours, Minutes }) => {
-          const hour = Hours % 12 || 12;
-          const amPm = Hours < 12 ? 'AM' : 'PM';
-          const minutes = Minutes === 0 ? '00' : Minutes;
-          return `${hour}:${minutes} ${amPm}`;
+        const formattedHours = availableHours.map((time) => {
+          const [hour, minutes] = time.split(':').map(Number);
+          const amPm = hour < 12 ? 'AM' : 'PM';
+          const formattedHour = hour % 12 || 12; // Convertir 0 y 12 a 12, 13 a 1, etc.
+
+          return `${formattedHour}:${minutes.toString().padStart(2, '0')} ${amPm}`;
         });
 
         setHours(formattedHours);

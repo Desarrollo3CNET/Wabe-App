@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  Picker,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+
 import DateRangeButton from './DateRangeButton'; // Se vuelve a importar
 import { getSucursales } from '../../src/services/BoletaService';
 import { useSelector } from 'react-redux';

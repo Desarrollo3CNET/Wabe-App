@@ -79,9 +79,15 @@ const TipoTrabajoScreen = ({ navigation }) => {
               <View key={tipo.TIPTRA_CODE} style={styles.switchContainer}>
                 <Text style={styles.switchLabel}>{tipo.TIPTRA_NOMBRE}</Text>
                 <Switch
-                  style={{ transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }] }} // Aumenta el tamaño
+                  style={styles.switch}
                   value={boleta.TIPTRA_CODE === tipo.TIPTRA_CODE}
                   onValueChange={() => handleSwitchChange(tipo.TIPTRA_CODE)}
+                  trackColor={{ false: '#767577', true: '#767577' }} // Siempre gris
+                  thumbColor={
+                    boleta.TIPTRA_CODE === tipo.TIPTRA_CODE
+                      ? '#FFD700'
+                      : '#f4f3f4'
+                  } // Amarillo cuando está encendido, gris claro cuando está apagado
                 />
               </View>
             ))
@@ -122,6 +128,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 10,
   },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15, // Mantiene una distancia similar al resto de elementos
+  },
+  switchLabel: {
+    fontSize: 18,
+    color: '#333', // Color de texto similar a otros textos
+    marginRight: 10, // Espaciado entre el texto y el Switch
+  },
+  switch: {
+    transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }], // Mantén la transformación de escala que quieres
+    marginLeft: 5, // Espaciado a la izquierda del switch para darle un poco de separación
+    color: '#E0E0E0',
+  },
   contentContainer: {
     backgroundColor: '#FFF',
     borderRadius: 20,
@@ -142,10 +163,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-  },
-  switchLabel: {
-    fontSize: 26,
-    color: '#000',
   },
 });
 

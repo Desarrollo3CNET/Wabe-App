@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { View, Dimensions, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Provider } from 'react-redux';
 import store from './src/contexts/Store';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 //Pantallas generales
 import Login from './screens/Login';
@@ -70,28 +73,58 @@ const DrawerNavigator = () => {
 };
 
 export default function App() {
+  const { width, height } = Dimensions.get('window');
+  const isTablet = width > 600;
+
+  useEffect(() => {
+    const setOrientation = async () => {
+      if (isTablet) {
+        // Si es tablet, poner
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        );
+      } else {
+        // Si es smartphone, poner portrait
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT,
+        );
+      }
+    };
+
+    setOrientation();
+  }, []);
+
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* Pantallas iniciales fuera del contexto del Drawer */}
-          <Stack.Screen name="Index" component={Index} />
-          <Stack.Screen name="Login" component={Login} />
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Asegurar que la StatusBar se mantenga visible */}
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="dark-content"
+        />
 
-          {/* DrawerNavigator contiene todas las demás pantallas */}
-          <Stack.Screen name="Dashboard" component={DrawerNavigator} />
-          <Stack.Screen
-            name="VehicleDetailsScreen"
-            component={DrawerNavigator}
-          />
-          <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
-          <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
-          <Stack.Screen
-            name="ScheduleAppointmentScreen"
-            component={ScheduleAppointmentScreen}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {/* Pantallas iniciales fuera del contexto del Drawer */}
+            <Stack.Screen name="Index" component={Index} />
+            <Stack.Screen name="Login" component={Login} />
+
+            {/* DrawerNavigator contiene todas las demás pantallas */}
+            <Stack.Screen name="Dashboard" component={DrawerNavigator} />
+            <Stack.Screen
+              name="VehicleDetailsScreen"
+              component={DrawerNavigator}
+            />
+            <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
+            <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
+            <Stack.Screen
+              name="ScheduleAppointmentScreen"
+              component={ScheduleAppointmentScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
     </Provider>
   );
 }

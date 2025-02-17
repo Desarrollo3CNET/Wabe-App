@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import AppointmentCard from '../src/components/AppointmentCard';
 import FilterModal from '../src/components/FilterModal';
-import { getCitas } from '../src/services/DashboardService'; // Importa getCitas
+import { getCitas } from '../src/services/CitaService'; // Importa getCitas
 import { processCitas } from '../src/utils/processData/processCitas'; // Importa processCitas
 import { clearCitas, addCita } from '../src/contexts/CitasSlice'; // Importa directamente la acción addCita
 import { getDashboardData } from '../src/services/DashboardService'; // Importación del nuevo servicio
@@ -32,38 +32,35 @@ const Dashboard = ({ navigation }) => {
   // Efecto para cargar citas desde la API
   useEffect(() => {
     const fetchCitas = async () => {
-      setIsLoading(true); // Mostrar el spinner mientras se cargan datos
+      setIsLoading(true); // Show the spinner while loading data
       try {
         const dashboardResponse = await getDashboardData(user?.EMP_CODE);
         setDashboardData(dashboardResponse[0]);
 
-        const rawCitas = await getCitas(-1, -1, -1); // Parámetros iniciales para getCitas
-        const processedCitas = processCitas(rawCitas); // Procesa las citas con processCitas
-        // Añade las citas procesadas al slice de Redux
-        processedCitas.forEach(async (cita) => {
-          dispatch(addCita(cita)); // Realiza un dispatch de addCita por cada elemento
+        const rawCitas = await getCitas(-1, -1, -1); // Initial parameters for getCitas
+        const processedCitas = processCitas(rawCitas); // Process the citas data
+
+        // Dispatch the citas to Redux store
+        dispatch(clearCitas());
+        processedCitas.forEach((cita) => {
+          dispatch(addCita(cita)); // Add each cita to Redux store
         });
+
+        // Filter citas based on today's date once and update the state
+        const today = new Date().toISOString().split('T')[0];
+        const filtered = processedCitas.filter(
+          (cita) => cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0] === today,
+        );
+        setFilteredCitas(filtered); // Set filtered citas once
       } catch (error) {
-        console.error('Error obteniendo citas:', error);
+        console.error('Error fetching citas:', error);
       } finally {
-        setIsLoading(false); // Ocultar el spinner al finalizar
+        setIsLoading(false); // Hide the spinner when done
       }
     };
 
-    fetchCitas(); // Llamar a la función fetchCitas al montar el componente
-  }, []);
-
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-
-    if (filteredCitas.length === 0) {
-      // Solo aplica el filtro inicial si no hay filtros activos
-      const filtered = citas.filter(
-        (cita) => cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0] === today,
-      );
-      setFilteredCitas(filtered);
-    }
-  }, [citas]);
+    fetchCitas(); // Call the function on mount
+  }, [dispatch, user?.EMP_CODE]); // Dependencies to only run when necessary (e.g., user code)
 
   // Función para manejar búsqueda por número de cita
   const handleSearch = (query) => {
@@ -136,17 +133,32 @@ const Dashboard = ({ navigation }) => {
         {dashboardData && (
           <View style={styles.dashboardContainer}>
             <View style={[styles.card, styles.pendingCard]}>
-              <Ionicons name="clipboard-outline" size={20} color="#005EB8" />
+              <Ionicons
+                name="clipboard-outline"
+                size={20}
+                color="#005EB8"
+                style={styles.cardIcon}
+              />
               <Text style={styles.cardNumber}>{dashboardData.PENDIENTES}</Text>
               <Text style={styles.cardLabel}>Vehículos Pendientes</Text>
             </View>
             <View style={[styles.card, styles.receivedCard]}>
-              <Ionicons name="car-outline" size={20} color="#D32F2F" />
+              <Ionicons
+                name="car-outline"
+                size={20}
+                color="#D32F2F"
+                style={styles.cardIcon}
+              />
               <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
               <Text style={styles.cardLabel}>Vehículos Recibidos</Text>
             </View>
             <View style={[styles.card, styles.deliveredCard]}>
-              <Ionicons name="car-sport-outline" size={20} color="#FFA000" />
+              <Ionicons
+                name="car-sport-outline"
+                size={20}
+                color="#FFA000"
+                style={styles.cardIcon}
+              />
               <Text style={styles.cardNumber}>{dashboardData.ENTREGADOS}</Text>
               <Text style={styles.cardLabel}>Vehículos Entregados</Text>
             </View>
@@ -320,10 +332,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 70,
     borderRadius: 8,
     marginHorizontal: 10,
-    borderWidth: 2,
+    borderWidth: 1,
   },
   pendingCard: {
     borderColor: '#FFD700',
