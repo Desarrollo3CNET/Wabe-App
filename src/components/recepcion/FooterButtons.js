@@ -26,7 +26,7 @@ const FooterButtons = ({
       )}
       {showNext && (
         <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-          <Text style={styles.buttonText}>Siguiente </Text>
+          <Text style={styles.buttonText}>Siguiente</Text>
           <Icon name="arrow-right" size={20} color="#000" />
         </TouchableOpacity>
       )}
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     marginLeft: 5,
+    marginHorizontal: 5,
   },
 });
 

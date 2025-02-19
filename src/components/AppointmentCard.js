@@ -11,14 +11,11 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import buttonIcon from '../../assets/buttonIcon.png';
+import { setProperty, resetBoleta } from '../contexts/BoletaSlice';
+import { setCreatingBoletaTrue } from '../contexts/AppSlice'; // Importar acción
+import { addAccesorio } from '../contexts/BoletaSlice';
 import { getAccesories } from '../services/AccesorioService';
 import { processAccessories } from '../utils/processData/processAccessories';
-import {
-  addAccesorio,
-  setProperty,
-  resetBoleta,
-} from '../contexts/BoletaSlice';
-import { setCreatingBoletaTrue } from '../contexts/AppSlice'; // Importar acción
 
 const { width } = Dimensions.get('window');
 
@@ -34,6 +31,8 @@ const AppointmentCard = ({
   const user = useSelector((state) => state.app.user);
 
   const [loading, setLoading] = useState(false);
+
+  //console.log(cliente);
 
   const formatTime = (time) => {
     try {
@@ -55,46 +54,61 @@ const AppointmentCard = ({
       dispatch(resetBoleta());
       dispatch(setCreatingBoletaTrue());
 
+      const rawAccessories = await getAccesories();
+      const processedAccessories = await processAccessories(rawAccessories);
+
+      processedAccessories.forEach((accessory) => {
+        dispatch(addAccesorio(accessory));
+      });
+
       const today = new Date();
       const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
 
       const InitializeBoleta = {
         CITCLIE_CODE: cita.CITCLIE_CODE,
+        BOL_CODE: null,
         EMP_CODE: user.EMP_CODE,
-        CLI_CODE: cita.CLI_CODE,
+        CLI_CODE: cliente.CLI_CODE,
         VEH_CODE: vehiculo.VEH_CODE,
         TIPTRA_CODE: null,
+        BOL_FECHA: null,
         BOL_CLI_NOMBRE: cliente.CLI_NOMBRE,
-        BOL_CLI_TELEFONO: cliente.CLI_PHONE1,
+        BOL_CLI_TELEFONO: cliente.CLI_TELEFONO,
         BOL_VEH_PLACA: vehiculo.VEH_PLACA,
         BOL_VEH_ANIO: vehiculo.VEH_ANIO.toString(),
         BOL_VEH_MARCA: vehiculo.VEH_MARCA,
         BOL_VEH_ESTILO: 'Sedán',
         BOL_VEH_MODELO: vehiculo.VEH_MODELO,
         BOL_VEH_COLOR: vehiculo.VEH_COLOR,
+        BOL_VEH_KM: null,
         BOL_VEH_COMBUSTIBLE: '1/4',
+        BOL_CREATEDATE: null,
+        BOL_UPDATEDATE: null,
         BOL_CREATEUSER: user.USU_USERNAME,
         BOL_UPDATEUSER: user.USU_USERNAME,
+        BOL_FIRMA_CLIENTE: null,
         BOL_ESTADO: 0,
         BOL_UNWASHED: false,
         BOL_DELIVERED: false,
-        BOL_CLI_CORREO: cliente.CLI_EMAIL,
+        BOL_CLI_CORREO: cliente.CLI_CORREO,
         CITCLI_CODE: cita.CITCLIE_CODE,
+        BOL_FIRMA_CONSENTIMIENTO: null,
+        BOL_ENTREGADOPOR: null,
+        BOL_OBSERVACIONES: null,
+        BOL_RECIBIDOPOR: null,
+        BOL_RECIBIDOCONFORME: null,
+        BOL_CAR_EXQUEMA: null,
         BOL_RECIBIDOPOR: user.USU_USERNAME,
         VEH_VEHICULO: vehiculo,
+        LIST_IMAGES: [],
+        paths: [],
+        undonePaths: [],
         fechaIngreso: formattedDate,
         horaIngreso: formatTime(cita.CITCLIE_HORA),
       };
 
       Object.entries(InitializeBoleta).forEach(([key, value]) => {
         dispatch(setProperty({ key, value }));
-      });
-
-      const rawAccessories = await getAccesories();
-      const processedAccessories = processAccessories(rawAccessories);
-
-      processedAccessories.forEach((accessory) => {
-        dispatch(addAccesorio(accessory));
       });
 
       navigation.navigate('VehicleDetailsScreen');

@@ -13,10 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import AppointmentCard from '../src/components/AppointmentCard';
 import FilterModal from '../src/components/FilterModal';
-import { getCitas } from '../src/services/CitaService'; // Importa getCitas
-import { processCitas } from '../src/utils/processData/processCitas'; // Importa processCitas
-import { clearCitas, addCita } from '../src/contexts/CitasSlice'; // Importa directamente la acción addCita
-import { getDashboardData } from '../src/services/DashboardService'; // Importación del nuevo servicio
+import { getCitas } from '../src/services/CitaService';
+import { processCitas } from '../src/utils/processData/processCitas';
+import { clearCitas, addCita } from '../src/contexts/CitasSlice';
+import { getDashboardData } from '../src/services/DashboardService';
+import { ReadEmpresa } from '../src/services/EmpresaService';
+import { setEmpresa } from '../src/contexts/AppSlice';
 
 const Dashboard = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -34,6 +36,9 @@ const Dashboard = ({ navigation }) => {
     const fetchCitas = async () => {
       setIsLoading(true); // Show the spinner while loading data
       try {
+        const empresa = await ReadEmpresa(user.EMP_CODE);
+        dispatch(setEmpresa(empresa));
+
         const dashboardResponse = await getDashboardData(user?.EMP_CODE);
         setDashboardData(dashboardResponse[0]);
 
@@ -53,14 +58,14 @@ const Dashboard = ({ navigation }) => {
         );
         setFilteredCitas(filtered); // Set filtered citas once
       } catch (error) {
-        console.error('Error fetching citas:', error);
+        console.error('Error fetching:', error);
       } finally {
         setIsLoading(false); // Hide the spinner when done
       }
     };
 
     fetchCitas(); // Call the function on mount
-  }, [dispatch, user?.EMP_CODE]); // Dependencies to only run when necessary (e.g., user code)
+  }, [dispatch, user]); // Dependencies to only run when necessary (e.g., user code)
 
   // Función para manejar búsqueda por número de cita
   const handleSearch = (query) => {

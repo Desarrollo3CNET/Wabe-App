@@ -39,7 +39,7 @@ const AddArticleModal = ({ visible, onClose }) => {
       return;
     }
 
-    if (!articleState) {
+    if (articleState == null) {
       setModalMessage('Por favor seleccione el estado del artículo.');
       setModalVisible(true);
       return;
@@ -59,7 +59,7 @@ const AddArticleModal = ({ visible, onClose }) => {
     dispatch(agregarArticulo(newArticle));
 
     // **Actualiza los estados locales manualmente**
-    if (articleState == 'true') {
+    if (articleState == true) {
       setBuenos((prevBuenos) => [...prevBuenos, newArticle]);
     } else {
       setMalos((prevMalos) => [...prevMalos, newArticle]);
@@ -123,10 +123,6 @@ const AddArticleModal = ({ visible, onClose }) => {
                 <Picker.Item label="Malo" value={false} />
               </Picker>
             </View>
-
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-              <Text style={styles.addButtonText}>Agregar Artículo +</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Listas de Artículos */}
@@ -154,6 +150,10 @@ const AddArticleModal = ({ visible, onClose }) => {
             <TouchableOpacity style={styles.backButton} onPress={onClose}>
               <Icon name="arrow-left" size={20} color="#000" />
               <Text style={styles.backButtonText}>Volver</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+              <Text style={styles.addButtonText}>Agregar Artículo +</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -274,6 +274,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#E0E0E0',
     padding: 15,
+    marginRight: 10,
     borderRadius: 10,
     flex: 1,
   },

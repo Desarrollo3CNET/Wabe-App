@@ -7,12 +7,12 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
 import { saveArticulos } from '../../src/services/BoletaService';
 import { setCreatingRevisionFalse } from '../../src/contexts/AppSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
@@ -22,6 +22,7 @@ const ArticulosScreen = ({ navigation, route }) => {
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Estado para mostrar el spinner
+  const dispatch = useDispatch();
 
   const boleta = useSelector((state) => state.boleta);
 
@@ -80,8 +81,6 @@ const ArticulosScreen = ({ navigation, route }) => {
         ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
       ];
 
-      console.log(todosLosArticulos);
-
       // Filtra los artículos cuyo ESTADO sea false o "false"
       const filteredArticulos = todosLosArticulos.filter(
         (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
@@ -110,6 +109,7 @@ const ArticulosScreen = ({ navigation, route }) => {
       );
 
       dispatch(setCreatingRevisionFalse());
+      setObservaciones('');
       setModalMessage(`Se ha finalizado la revisión correctamente`);
       navigation.navigate('CheckOutScreen');
     } catch (error) {
@@ -132,10 +132,10 @@ const ArticulosScreen = ({ navigation, route }) => {
         <View style={styles.content}>
           <Text style={styles.title}>Lista de Artículos</Text>
           <ScrollView>
-            {articulosMantenimiento.length > 0 ? (
-              articulosMantenimiento.map((articulo, index) => (
+            {articulosAgregados.length > 0 ? (
+              articulosAgregados.map((articulo, index) => (
                 <View key={index} style={styles.simpleCard}>
-                  <Text style={styles.cardTitle}>{articulo}</Text>
+                  <Text style={styles.cardTitle}>{articulo.ART_NOMBRE}</Text>
                 </View>
               ))
             ) : (

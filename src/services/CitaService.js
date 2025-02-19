@@ -76,3 +76,15 @@ export async function getCitas(estado, idCita, idSucursal) {
     throw error;
   }
 }
+
+export async function tieneCitaActiva(cliCedulaJuri, vehPlaca, apiKeyEmpresa) {
+  try {
+    const response = await get(
+      `${controller}/TieneCitaActivaApp?cliCedulaJuri=${cliCedulaJuri}&vehPlaca=${vehPlaca}&apiKeyEmpresa=${apiKeyEmpresa}`,
+    );
+    return response; // Devuelve true o false según la respuesta del backend
+  } catch (error) {
+    console.error('Error al verificar cita activa:', error.message);
+    throw error;
+  }
+}

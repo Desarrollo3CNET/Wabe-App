@@ -1,4 +1,4 @@
-export function processAccessories(data) {
+export async function processAccessories(data) {
   // Verificamos que la data sea un array válido
   if (!Array.isArray(data)) {
     throw new Error('La data proporcionada no es un array válido');

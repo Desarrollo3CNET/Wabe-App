@@ -31,12 +31,15 @@ export async function getBoletas(estado, idEmpresa) {
   }
 }
 
-export async function createBoleta(boletaData) {
+export async function createBoleta(boletaData, idCita) {
   try {
-    const response = await post(`${controller}/SaveBoletaApp`, boletaData);
+    const response = await post(
+      `${controller}/SaveBoletaApp?idCita=${idCita}`,
+      boletaData,
+    );
     return response;
   } catch (error) {
-    console.error('Error creando boleta:', error);
+    console.error('Error creando boleta:', error.message);
     throw error;
   }
 }
@@ -65,7 +68,10 @@ export async function updateBoleta(boletaData) {
 // Función para reenviar un correo
 export async function reenviarCorreo(idBoleta) {
   try {
-    const response = await post(`${controller}/CorreoBoleta`, idBoleta);
+    const response = await get(
+      // `${controller}/CorreoBoletaApp?idBoleta=${idBoleta}`,
+      `${controller}/CorreoBoletaApsspdddddddd?idBoleta=${idBoleta}`,
+    );
     return response;
   } catch (error) {
     console.error('Error reenviando un correo:', error);
@@ -76,7 +82,9 @@ export async function reenviarCorreo(idBoleta) {
 // Función para generar una orden de trabajo
 export async function generarOrdenTrabajo(idBoleta) {
   try {
-    const response = await get(`${controller}/GenerarOrdenTrabajo`, idBoleta);
+    const response = await get(
+      `${controller}/GenerarOrdenTrabajoApp?idBoleta=${idBoleta}`,
+    );
     return response;
   } catch (error) {
     console.error('Error obteniendo la boleta:', error);
@@ -93,7 +101,7 @@ export async function saveArticulos(
 ) {
   try {
     const response = await post(
-      `${controller}/SaveArt?idBoleta=${idBoleta}&observaciones=${observaciones}&idEmpresa=${idEmpresa}`,
+      `${controller}/SaveArtApp?idBoleta=${idBoleta}&observaciones=${observaciones}&idEmpresa=${idEmpresa}`,
       listArticulos,
     );
     return response;

@@ -5,9 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
+import Icon from 'react-native-vector-icons/FontAwesome'; // Asegúrate de importar el icono
 
 const CustomInput = ({ label, type, value, options = [], onChange }) => {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
@@ -94,33 +96,51 @@ const CustomInput = ({ label, type, value, options = [], onChange }) => {
 
       case 'date':
         return (
-          <TouchableOpacity
-            onPress={() => setIsCalendarVisible(true)}
-            style={styles.input}
-          >
-            <Text style={{ color: value ? '#000' : '#aaa' }}>
-              {value || 'Selecciona una fecha'}
-            </Text>
-            {isCalendarVisible && (
-              <View style={styles.calendarOverlay}>
-                <Calendar
-                  currentMonth={new Date()}
-                  onDateSelect={(date) => {
-                    setIsCalendarVisible(false);
-                    const formattedDate = `${date.getFullYear()}/${(
-                      date.getMonth() + 1
-                    )
-                      .toString()
-                      .padStart(
-                        2,
-                        '0',
-                      )}/${date.getDate().toString().padStart(2, '0')}`;
-                    onChange(formattedDate);
-                  }}
-                />
+          <View>
+            <TouchableOpacity
+              onPress={() => setIsCalendarVisible(true)}
+              style={styles.input}
+            >
+              <Text style={{ color: value ? '#000' : '#aaa' }}>
+                {value || 'Selecciona una fecha'}
+              </Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={isCalendarVisible}
+              transparent={true}
+              animationType="slide"
+              onRequestClose={() => setIsCalendarVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <Calendar
+                    currentMonth={new Date()}
+                    onDateSelect={(date) => {
+                      setIsCalendarVisible(false);
+                      const formattedDate = `${date.getFullYear()}/${(
+                        date.getMonth() + 1
+                      )
+                        .toString()
+                        .padStart(
+                          2,
+                          '0',
+                        )}/${date.getDate().toString().padStart(2, '0')}`;
+                      onChange(formattedDate);
+                    }}
+                  />
+
+                  {/* Botón de Cerrar con el mismo estilo que "Eliminar Boleta" */}
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => setIsCalendarVisible(false)}
+                  >
+                    <Text style={styles.buttonText}>Cerrar</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
-          </TouchableOpacity>
+            </Modal>
+          </View>
         );
 
       case 'time':
@@ -152,6 +172,49 @@ const CustomInput = ({ label, type, value, options = [], onChange }) => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 15,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semitransparente
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '80%',
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
+    marginLeft: 5,
+    marginHorizontal: 5,
+  },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    width: '100%',
+  },
+  closeButtonText: {
+    fontSize: 14,
+    color: '#FFF',
+    textAlign: 'center',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFD700', // Mismo color dorado
+    padding: 15,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    justifyContent: 'center',
+    marginTop: 15, // Espaciado superior
   },
   label: {
     fontSize: 16,

@@ -18,6 +18,7 @@ import {
   getByPlaca,
   getModelosByMarca,
   crearCita,
+  tieneCitaActiva,
 } from '../src/services/CitaService';
 import { getSucursales } from '../src/services/BoletaService';
 import { useSelector } from 'react-redux';
@@ -154,8 +155,6 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const fetchModelosByMarca = async (marca) => {
     try {
       const response = await getModelosByMarca(marca);
-      console.log('response', response);
-
       if (response.success) {
         const modelosLista = response.data.map((modelo) => modelo.MOD_NAME);
 
@@ -289,6 +288,27 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       return;
     }
 
+    try {
+      const citaActiva = await tieneCitaActiva(
+        appointmentDetails.cedula,
+        appointmentDetails.placa,
+        '123', // Reemplaza esto con la API Key real
+      );
+
+      if (citaActiva) {
+        resetForm();
+        setModalMessage(
+          'El cliente ya tiene una cita activa. No puede agendar otra.',
+        );
+        setModalVisible(true);
+        return;
+      }
+    } catch (error) {
+      setModalMessage('Error al verificar citas activas. Inténtalo de nuevo.');
+      setModalVisible(true);
+      return;
+    }
+
     // Crear el objeto cliente
     const cliente = {
       TIPC_CODE: appointmentDetails.tipoCedula,
@@ -340,9 +360,10 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       const response = await crearCita(citaRequestDTO);
 
       // Mostrar mensaje en el modal según la respuesta del backend
-      setModalMessage(response.mensaje);
+      setModalMessage('La cita se agendó correctamente');
       setModalVisible(true);
 
+      resetForm();
       // Si la cita se creó correctamente, redirigir al usuario
       if (response.resultado) {
         navigation.navigate('Dashboard');
@@ -351,6 +372,28 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       setModalMessage('Error al agendar la cita. Inténtalo de nuevo.');
       setModalVisible(true);
     }
+  };
+
+  const resetForm = () => {
+    setAppointmentDetails({
+      placa: '',
+      marca: '',
+      estilo: '',
+      anio: '',
+      cedula: '',
+      nombre: '',
+      telefono: '',
+      correo: '',
+      direccion: '',
+      sucursal: '',
+      fecha: '',
+      hora: '',
+      tipoCedula: 1,
+    });
+
+    setSucursal(-1);
+    setModelos([]);
+    setMessages({ placa: '', cedula: '' });
   };
 
   return (

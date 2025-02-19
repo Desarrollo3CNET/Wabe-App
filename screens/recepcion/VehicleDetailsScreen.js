@@ -65,6 +65,9 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('BOL_VEH_ESTILO', value)}
               />
             </View>
+          </View>
+
+          <View style={styles.row}>
             <View style={styles.column}>
               <CustomInput
                 label="Año del Vehículo"
@@ -73,9 +76,6 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('BOL_VEH_ANIO', value)}
               />
             </View>
-          </View>
-
-          <View style={styles.row}>
             <View style={styles.column}>
               <CustomInput
                 label="Kilometraje"
@@ -84,6 +84,9 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('BOL_VEH_KM', value)}
               />
             </View>
+          </View>
+
+          <View style={styles.row}>
             <View style={styles.column}>
               <CustomInput
                 label="Hora de Ingreso"
@@ -112,7 +115,6 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 onChange={(value) => handleUpdate('BOL_VEH_COMBUSTIBLE', value)}
               />
             </View>
-            <View style={styles.column}></View>
           </View>
         </View>
       </ScrollView>

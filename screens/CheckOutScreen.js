@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import Header from '../src/components/recepcion/Header';
 import DateRangeButton from './../src/components/DateRangeButton';
@@ -46,18 +47,20 @@ const CheckOutScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const user = useSelector((state) => state.app.user); // Estado global del usuario
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
+    setRefreshing(true); // Activa la animación de refresco
     setIsLoading(true);
     try {
-      // Obtén los datos de getBoletas en lugar del slice de Redux
       const boletas = await getBoletas(0, user.EMP_CODE);
-      setData(boletas); // Asigna los datos al estado local
-      setFilteredData(boletas); // Asigna también los datos filtrados
+      setData(boletas);
+      setFilteredData(boletas);
     } catch (error) {
       console.error('Error al obtener boletas:', error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false); // Desactiva la animación de refresco
     }
   };
 
@@ -319,7 +322,7 @@ const CheckOutScreen = ({ navigation }) => {
       ) : (
         <>
           <View style={styles.filters}>
-            <DateRangeButton onRangeSelect={handleDateRangeSelect} />
+            {/* Campo de búsqueda */}
             <View style={styles.searchContainer}>
               <TextInput
                 style={styles.searchInput}
@@ -328,14 +331,17 @@ const CheckOutScreen = ({ navigation }) => {
                 value={searchPlaca}
                 onChangeText={handleSearchChange}
               />
+              {/* Botón de limpiar */}
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={handleClearFilters}
+              >
+                <Text style={styles.clearButtonText}>Limpiar</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={handleClearFilters}
-            >
-              <Text style={styles.clearButtonText}>Limpiar</Text>
-            </TouchableOpacity>
           </View>
+          {/* Botón para seleccionar el rango de fechas */}
+          <DateRangeButton onRangeSelect={handleDateRangeSelect} />
 
           {filteredData.length === 0 ? (
             <View style={styles.noDataContainer}>
@@ -365,6 +371,12 @@ const CheckOutScreen = ({ navigation }) => {
                 renderItem={renderItem}
                 keyExtractor={(item) => item.BOL_CODE.toString()}
                 contentContainerStyle={styles.list}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={fetchData}
+                  />
+                }
               />
             </>
           )}
@@ -391,12 +403,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#333', // Fondo blanco para destacar el mensaje
+    backgroundColor: '#333',
     borderRadius: 5,
   },
   noDataText: {
     fontSize: 16,
-    color: '#555', // Gris suave para el texto
+    color: '#555',
     textAlign: 'center',
     marginVertical: 10,
   },
@@ -432,16 +444,15 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#E0E0E0',
-    borderRadius: 5,
-    paddingVertical: 6,
-    marginBottom: 6,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    marginTop: 15,
   },
+
   tableHeaderText: {
-    flex: 1,
     fontWeight: 'bold',
+    fontSize: 16,
     color: '#000',
-    textAlign: 'center',
   },
   list: {
     marginTop: 10,
@@ -451,19 +462,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 5,
     paddingVertical: 6,
-    paddingHorizontal: 0, // Elimina padding horizontal
+    paddingHorizontal: 0,
     marginBottom: 6,
   },
   cell: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 2, // Reduce espacio horizontal
+    justifyContent: 'center',
+    padding: 5,
   },
   cellText: {
     textAlign: 'center',
     color: '#000',
-    fontSize: 14, // Aumenta tamaño de fuente
+    fontSize: 14,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -479,10 +490,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,
-    minWidth: 80, // Asegura uniformidad de botones superiores
+    minWidth: 80,
   },
   longActionButton: {
-    flex: 1, // Hace que el botón ocupe todo el ancho restante
+    flex: 1,
     paddingVertical: 6,
     backgroundColor: '#FFD700',
     borderRadius: 5,
@@ -490,7 +501,7 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   actionButtonText: {
-    fontSize: 12, // Aumenta tamaño de fuente
+    fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#000',

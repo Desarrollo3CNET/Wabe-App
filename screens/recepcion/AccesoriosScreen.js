@@ -15,10 +15,9 @@ import {
   toggleInfo,
   updateAccesorio,
 } from '../../src/contexts/BoletaSlice';
-import {
-  resetBoleta,
-  setCreatingBoletaFalse,
-} from '../../src/contexts/AppSlice';
+import { setCreatingBoletaFalse } from '../../src/contexts/AppSlice';
+import { resetBoleta, resetAccesorios } from '../../src/contexts/BoletaSlice';
+
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
@@ -27,12 +26,10 @@ import { saveImages } from '../../src/services/FotografiasService';
 import convertSignatureToBase64 from '../../src/utils/convertSignatureToBase64';
 import generateImageWithPathsInBase64 from '../../src/utils/generateImageWithPathsInBase64';
 
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-
 const AccesoriosScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const boleta = useSelector((state) => state.boleta);
+  const empresa = useSelector((state) => state.app.empresa);
   const user = useSelector((state) => state.app.user); // Estado global del usuario
   const accesorios = boleta.ACC_ACCESORIOS;
 
@@ -49,41 +46,9 @@ const AccesoriosScreen = ({ navigation }) => {
     dispatch(toggleAccesorio(id));
   };
 
-  const handleUpdate = (id, key, value) => {
-    dispatch(updateAccesorio({ id, updates: { [key]: value } }));
+  const handleUpdate = (TIPACC_CODE, key, value) => {
+    dispatch(updateAccesorio({ TIPACC_CODE, updates: { [key]: value } }));
   };
-
-  // const handleNext = async () => {
-  //   const base64Image = await generateImageWithPathsInBase64(
-  //     boleta.paths,
-  //     'Sedán',
-  //   );
-
-  //   console.log('Imagen combinada en Base64:', base64Image);
-
-  //   //Guardar el base64 en un archivo usando expo-file-system
-  //   const fileUri = FileSystem.documentDirectory + 'base64Image.txt'; // Ruta del archivo en el dispositivo
-
-  //   try {
-  //     // Guardar el base64 en el archivo
-  //     await FileSystem.writeAsStringAsync(fileUri, base64Image, {
-  //       encoding: FileSystem.EncodingType.UTF8,
-  //     });
-
-  //     console.log('Base64 guardado en:', fileUri);
-
-  //     // Verificar si el archivo existe antes de intentar compartirlo
-  //     const fileInfo = await FileSystem.getInfoAsync(fileUri);
-  //     if (fileInfo.exists) {
-  //       // Usar expo-sharing para compartir el
-  //       await Sharing.shareAsync(fileUri);
-  //     } else {
-  //       console.log('El archivo no existe');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error al guardar o compartir el archivo:', error);
-  //   }
-  // }
 
   const handleNext = async () => {
     try {
@@ -112,7 +77,7 @@ const AccesoriosScreen = ({ navigation }) => {
 
       const imagenesBase64 = boleta.LIST_IMAGES.map((image) => image.base64);
 
-      //Prepara el objeto listaFotos con la estructura requerida
+      //Prepara el objeto listaFotos con la estructura
       const listaFotos = {
         Fecha: new Date().toISOString(), // Fecha de hoy en formato ISO 8601
         Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
@@ -123,32 +88,28 @@ const AccesoriosScreen = ({ navigation }) => {
       // Llama a saveImages y guarda el resultado
       await saveImages(listaFotos);
 
-      const listaAccesorios = (data) => {
-        const ACC_ACCESORIOS = data
-          .filter((item) => item.habilitado === true) // Filtramos solo los elementos habilitados
-          .map((item, index) => ({
-            ACC_CODE: '',
-            EMP_CODE: user.EMP_CODE,
-            BOL_CODE: '',
-            TIPACC_CODE: item.TIPACC_CODE,
-            ACC_VISIBLE: true,
-            ACC_CREATEDATE: new Date().toISOString(),
-            ACC_UPDATEDATE: new Date().toISOString(),
-            ACC_CREATEUSER: user.USU_USERNAME,
-            ACC_UPDATEUSER: user.USU_USERNAME,
-            ACC_MARCA: item.TIPACC_SETMARCA || '',
-            ACC_ESTADO: item.TIPACC_SETESTADO || '',
-            ACC_DESCRIPCION: item.TIPACC_SETDESCRIPCION || '',
-            ACC_CANTIDAD: item.TIPACC_SETCANTIDAD
-              ? parseFloat(item.TIPACC_SETCANTIDAD)
-              : 0,
-            BOL_BOLETA: null,
-            EMP_EMPRESA: null,
-            TIPACC_TIPO_ACCESORIO: null,
-          }));
-
-        return ACC_ACCESORIOS;
-      };
+      const ACC_ACCESORIOS = boleta.ACC_ACCESORIOS.filter(
+        (item) => item.habilitado === true,
+      ).map((item) => ({
+        ACC_CODE: null,
+        EMP_CODE: item.EMP_CODE,
+        BOL_CODE: null,
+        TIPACC_CODE: item.TIPACC_CODE,
+        ACC_VISIBLE: true,
+        ACC_CREATEDATE: new Date().toISOString(),
+        ACC_UPDATEDATE: new Date().toISOString(),
+        ACC_CREATEUSER: user.USU_USERNAME,
+        ACC_UPDATEUSER: user.USU_USERNAME,
+        ACC_MARCA: item.TIPACC_SETMARCA || '',
+        ACC_ESTADO: item.TIPACC_SETESTADO || '',
+        ACC_DESCRIPCION: item.TIPACC_SETDESCRIPCION || '',
+        ACC_CANTIDAD: item.TIPACC_SETCANTIDAD
+          ? parseFloat(item.TIPACC_SETCANTIDAD)
+          : 0,
+        BOL_BOLETA: null,
+        EMP_EMPRESA: null,
+        TIPACC_TIPO_ACCESORIO: null,
+      }));
 
       let esquema64 = await generateImageWithPathsInBase64(
         boleta.paths,
@@ -178,20 +139,21 @@ const AccesoriosScreen = ({ navigation }) => {
       };
 
       const EMP_EMPRESA = {
-        EMP_CODE: 6,
-        EMP_NOMBRE: 'BRAKE & SUSPENSION # 2',
-        EMP_LOGO: null,
-        EMP_DIRECCION: 'SAN JOSE PAVAS FRENTE A SYLVANIA',
-        EMP_EMAIL: 'ventas@brakesuspension.com',
-        EMP_TELEFONO: '506-22969353',
-        EMP_FAX: '',
-        EMP_APDO: '',
-        EMP_CEDULA: '3-102-302312',
-        EMP_VISIBLE: true,
-        EMP_CREATEDATE: '2020-08-14T00:00:00',
-        EMP_UPDATEDATE: '2025-02-14T17:04:00',
-        EMP_CREATEUSER: 'ADMIN',
-        EMP_UPDATEUSER: 'SMARANINI',
+        EMP_CODE: empresa.EMP_CODE,
+        EMP_NOMBRE: empresa.EMP_NOMBRE,
+        EMP_LOGO: empresa.EMP_LOGO,
+        // EMP_LOGO: '',
+        EMP_DIRECCION: empresa.EMP_DIRECCION,
+        EMP_EMAIL: empresa.EMP_EMAIL,
+        EMP_TELEFONO: empresa.EMP_TELEFONO,
+        EMP_FAX: empresa.EMP_FAX,
+        EMP_APDO: empresa.EMP_APDO,
+        EMP_CEDULA: empresa.EMP_CEDULA,
+        EMP_VISIBLE: empresa.EMP_VISIBLE,
+        EMP_CREATEDATE: empresa.EMP_CREATEDATE,
+        EMP_UPDATEDATE: empresa.EMP_UPDATEDATE,
+        EMP_CREATEUSER: empresa.EMP_CREATEUSER,
+        EMP_UPDATEUSER: empresa.EMP_UPDATEUSER,
         ACC_ACCESORIOS: [],
         BOL_BOLETA: [],
         CLI_CLIENTE: [],
@@ -216,7 +178,7 @@ const AccesoriosScreen = ({ navigation }) => {
         BOL_CLI_TELEFONO: boleta.BOL_CLI_TELEFONO,
         BOL_VEH_PLACA: boleta.BOL_VEH_PLACA,
         BOL_VEH_MARCA: boleta.BOL_VEH_MARCA,
-        BOL_VEH_ESTILO: boleta.BOL_VEH_MODELO,
+        BOL_VEH_ESTILO: boleta.BOL_VEH_ESTILO,
         BOL_VEH_COLOR: boleta.BOL_VEH_COLOR,
         BOL_VEH_KM: boleta.BOL_VEH_KM,
         BOL_VEH_COMBUSTIBLE: boleta.BOL_VEH_COMBUSTIBLE,
@@ -233,21 +195,23 @@ const AccesoriosScreen = ({ navigation }) => {
         BOL_RECIBIDOPOR: user.USU_USERNAME,
         BOL_RECIBIDOCONFORME: boleta.BOL_RECIBIDOCONFORME,
         BOL_CAR_EXQUEMA: esquema64,
-        //BOL_CAR_EXQUEMA: boleta.BOL_CAR_EXQUEMA,
+        // BOL_CAR_EXQUEMA: boleta.BOL_CAR_EXQUEMA,
         BOL_ESTADO: boleta.BOL_ESTADO,
         BOL_UNWASHED: boleta.BOL_UNWASHED,
         BOL_DELIVERED: boleta.BOL_DELIVERED,
         BOL_CLI_CORREO: boleta.BOL_CLI_CORREO,
-        ACC_ACCESORIOS: await listaAccesorios(boleta.ACC_ACCESORIOS),
+        ACC_ACCESORIOS: ACC_ACCESORIOS,
         EMP_EMPRESA: EMP_EMPRESA,
         VEH_VEHICULO: VEH_VEHICULO,
       };
-      console.log(JSON.stringify(boletaData));
 
-      const respuesta = await createBoleta(boletaData);
+      const respuesta = await createBoleta(boletaData, boleta.CITCLIE_CODE);
+      //console.log(boletaData);
+      // const respuesta = false;
 
       if (respuesta) {
         dispatch(resetBoleta());
+        dispatch(resetAccesorios());
         dispatch(setCreatingBoletaFalse());
         setModalMessage('Se ha finalizado la boleta correctamente.');
         navigation.navigate('CheckOutScreen');

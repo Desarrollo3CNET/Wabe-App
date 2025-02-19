@@ -8,6 +8,7 @@ const initialState = {
   loading: false,
   isCreatingBoleta: false,
   isCreatingRevision: false,
+  empresa: null,
 };
 
 // Slice para la gestión del estado de la aplicación
@@ -46,6 +47,9 @@ const appSlice = createSlice({
     setCreatingRevisionFalse: (state) => {
       state.isCreatingRevision = false; // Reducer para desactivar la creación de Revision
     },
+    setEmpresa: (state, action) => {
+      state.empresa = action.payload; // Actualiza la propiedad empresa
+    },
     resetState: () => initialState, // Usa initialState correctamente aquí
   },
 });
@@ -58,6 +62,7 @@ export const {
   setCreatingBoletaFalse,
   setCreatingRevisionTrue,
   setCreatingRevisionFalse,
+  setEmpresa,
   resetState,
 } = appSlice.actions;
 

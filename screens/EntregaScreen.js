@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import Header from '../src/components/recepcion/Header';
 import DateRangeButton from './../src/components/DateRangeButton';
@@ -27,7 +28,7 @@ import {
   setImages,
 } from '../src/contexts/BoletaSlice';
 
-import { agregarArticuloBoleta } from '../src/contexts/RevisionSlice';
+import { agregarArticulo } from '../src/contexts/RevisionSlice';
 
 const EntregaScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -41,8 +42,10 @@ const EntregaScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const user = useSelector((state) => state.app.user); // Estado global del usuario
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
+    setRefreshing(true); // Activa la animación de refresco
     setIsLoading(true);
     try {
       // Obtén los datos de getBoletas en lugar del slice de Redux
@@ -53,6 +56,7 @@ const EntregaScreen = ({ navigation }) => {
       console.error('Error al obtener boletas:', error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false); // Desactiva la animación de refresco
     }
   };
 
@@ -149,11 +153,10 @@ const EntregaScreen = ({ navigation }) => {
     try {
       // Llama a la función para obtener los artículos por BoletaId.
       const articulos = await getArticulosByBoleta(item.BOL_CODE);
+      // console.log(articulos);
       // Extrae las descripciones de los artículos y envíalos al slice.
       articulos.forEach((articulo) => {
-        if (articulo.ART_DESCRIPCION) {
-          dispatch(agregarArticuloBoleta({ nombre: articulo.ART_DESCRIPCION }));
-        }
+        dispatch(agregarArticulo({ ART_NOMBRE: articulo, ESTADO: false }));
       });
 
       // Navega a la pantalla de artículos.
@@ -211,7 +214,7 @@ const EntregaScreen = ({ navigation }) => {
     }
   };
 
-  async function handleSendEmail(idBoleta) {
+  const handleSendEmail = async (idBoleta) => {
     setIsLoading(true);
     try {
       const response = await reenviarCorreo(idBoleta);
@@ -220,14 +223,14 @@ const EntregaScreen = ({ navigation }) => {
       return response; // Devuelve la respuesta en caso de que sea necesario manejarla
     } catch (error) {
       setModalMessage(
-        `Error al intentar reenviar el correo: ${error.message}`, // Mensaje del modal
+        `Error al intentar reenviar el correo`, // Mensaje del modal
       );
       setModalVisible(true); // Mostrar el modal
       console.error('Error al intentar reenviar el correo:', error);
     } finally {
       setIsLoading(false); // Detiene el indicador de carga para boleta
     }
-  }
+  };
 
   const renderItem = ({ item }) => {
     const formattedDate = new Date(item.BOL_FECHA)
@@ -271,7 +274,7 @@ const EntregaScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={handleSendEmail}
+              onPress={() => handleSendEmail(item.BOL_CODE)}
             >
               <Text style={styles.actionButtonText}>REENVIAR CORREO</Text>
             </TouchableOpacity>
@@ -293,7 +296,7 @@ const EntregaScreen = ({ navigation }) => {
       ) : (
         <>
           <View style={styles.filters}>
-            <DateRangeButton onRangeSelect={handleDateRangeSelect} />
+            {/* Campo de búsqueda */}
             <View style={styles.searchContainer}>
               <TextInput
                 style={styles.searchInput}
@@ -302,14 +305,17 @@ const EntregaScreen = ({ navigation }) => {
                 value={searchPlaca}
                 onChangeText={handleSearchChange}
               />
+              {/* Botón de limpiar */}
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={handleClearFilters}
+              >
+                <Text style={styles.clearButtonText}>Limpiar</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={handleClearFilters}
-            >
-              <Text style={styles.clearButtonText}>Limpiar</Text>
-            </TouchableOpacity>
           </View>
+          {/* Botón para seleccionar el rango de fechas */}
+          <DateRangeButton onRangeSelect={handleDateRangeSelect} />
 
           {/* Verificar si filteredData está vacío */}
           {filteredData.length === 0 ? (
@@ -340,6 +346,12 @@ const EntregaScreen = ({ navigation }) => {
                 renderItem={renderItem}
                 keyExtractor={(item) => item.BOL_CODE.toString()}
                 contentContainerStyle={styles.list}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={fetchData}
+                  />
+                }
               />
             </>
           )}
@@ -361,6 +373,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     padding: 10,
   },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#333',
+    borderRadius: 5,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
   filters: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -371,20 +397,6 @@ const styles = StyleSheet.create({
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  noDataContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#333', // Fondo blanco para destacar el mensaje
-    borderRadius: 5,
-  },
-  noDataText: {
-    fontSize: 16,
-    color: '#555', // Gris suave para el texto
-    textAlign: 'center',
-    marginVertical: 10,
   },
   searchInput: {
     flex: 1,
@@ -407,16 +419,15 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#E0E0E0',
-    borderRadius: 5,
-    paddingVertical: 6,
-    marginBottom: 6,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    marginTop: 15,
   },
+
   tableHeaderText: {
-    flex: 1,
     fontWeight: 'bold',
+    fontSize: 16,
     color: '#000',
-    textAlign: 'center',
   },
   list: {
     marginTop: 10,
@@ -426,19 +437,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 5,
     paddingVertical: 6,
-    paddingHorizontal: 0, // Elimina padding horizontal
+    paddingHorizontal: 0,
     marginBottom: 6,
   },
   cell: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 2, // Reduce espacio horizontal
+    justifyContent: 'center',
+    padding: 5,
   },
   cellText: {
     textAlign: 'center',
     color: '#000',
-    fontSize: 14, // Aumenta tamaño de fuente
+    fontSize: 14,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -454,10 +465,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,
-    minWidth: 80, // Asegura uniformidad de botones superiores
+    minWidth: 80,
   },
   longActionButton: {
-    flex: 1, // Hace que el botón ocupe todo el ancho restante
+    flex: 1,
     paddingVertical: 6,
     backgroundColor: '#FFD700',
     borderRadius: 5,
@@ -465,7 +476,7 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   actionButtonText: {
-    fontSize: 12, // Aumenta tamaño de fuente
+    fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#000',

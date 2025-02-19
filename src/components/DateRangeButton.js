@@ -109,14 +109,12 @@ const DateRangeButton = ({ onRangeSelect }) => {
 
 const styles = StyleSheet.create({
   rangeButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#F5F5F5', // Gris claro como en los otros botones
     borderRadius: 10, // Bordes redondeados para consistencia
     paddingHorizontal: 15,
     paddingVertical: 10,
-    marginRight: 5, // Espaciado con el siguiente botón en la fila
   },
   rangeText: {
     fontSize: 14,

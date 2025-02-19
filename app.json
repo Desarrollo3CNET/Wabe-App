@@ -28,6 +28,16 @@
         "projectId": "28581ad7-247d-44da-be0b-3af2e8b03996"
       }
     },
-    "owner": "practicante2cnet"
+    "owner": "practicante2cnet",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ]
   }
 }

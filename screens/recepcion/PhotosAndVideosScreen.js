@@ -15,6 +15,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker'; // Importar expo-image-picker
 
 import GolpesModal from '../../src/components/recepcion/GolpesModal';
+import VideoModal from '../../src/components/recepcion/VideoModal';
+
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addImage,
@@ -32,6 +34,7 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [isModalImageVisible, setModalImageVisible] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -131,6 +134,8 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       selected: false,
     };
 
+    console.log('newAttachment file', newAttachment);
+
     dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
@@ -149,18 +154,24 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       quality: 1,
       base64: true, // Solicitar el base64 de la imagen
     });
+
     // Verificar si se ha cancelado la acción o si no se tomó ninguna foto
-    if (result.canceled || !result.assets) {
+    if (result.canceled || !result.assets || result.assets.length === 0) {
       return; // No hacer nada si no se tomó una foto
     }
 
+    const selectedImage = result.assets[0]; // Obtén la imagen capturada
+
+    // Verifica si la propiedad base64 está presente en selectedImage
     const newAttachment = {
       id: Date.now(),
-      uri: result.uri,
+      uri: selectedImage.uri,
       type: 'photo',
-      base64: result.base64, // Guardamos la imagen en base64
+      base64: selectedImage.base64 || '', // Asegúrate de que la propiedad base64 esté presente
       selected: false,
     };
+
+    console.log('newAttachment camara', newAttachment);
 
     dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
@@ -170,6 +181,10 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     if (!isEditing) {
       dispatch(toggleSelectImage(null)); // Deselect all attachments
     }
+  };
+
+  const handleOpenVideo = async () => {
+    setVideoVisible(!videoVisible);
   };
 
   const handleSelectItem = (id) => {
@@ -242,7 +257,7 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Header title="Recepción" />
 
-      {/* {renderFooterButtons()} */}
+      {videoVisible && <VideoModal />}
 
       <View style={styles.content}>
         <Text style={styles.title}>Fotografías y Videos</Text>
@@ -258,6 +273,16 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.actionButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <Icon name="car" size={20} color="#000" />
+                <Text style={styles.actionText}>Indicar Golpe(s)</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.actionButton}
                 onPress={handleUploadFile}
               >
                 <Icon name="upload" size={20} color="#000" />
@@ -268,14 +293,15 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
                 onPress={handleOpenCamera}
               >
                 <Icon name="camera" size={20} color="#000" />
-                <Text style={styles.actionText}>Abrir Cámara</Text>
+                <Text style={styles.actionText}>Tomar foto</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => setModalVisible(true)}
+                onPress={handleOpenVideo}
               >
-                <Icon name="car" size={20} color="#000" />
-                <Text style={styles.actionText}>Indicar Golpe(s)</Text>
+                <Icon name="video-camera" size={20} color="#000" />
+                <Text style={styles.actionText}>Grabar video</Text>
               </TouchableOpacity>
             </View>
 
@@ -354,6 +380,7 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       </View>
 
       {renderFooterButtons()}
+
       <GenericModal
         visible={modalVisibleBoleta}
         onClose={() => setmodalVisibleBoleta(false)}

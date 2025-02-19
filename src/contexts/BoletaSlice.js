@@ -25,9 +25,9 @@ const boletaSlice = createSlice({
     BOL_CREATEUSER: '',
     BOL_UPDATEUSER: '',
     BOL_FIRMA_CLIENTE: '',
-    BOL_ESTADO: '',
+    BOL_ESTADO: 0,
     BOL_UNWASHED: false,
-    BOL_DELIVERED: '',
+    BOL_DELIVERED: false,
     BOL_CLI_CORREO: '',
     CITCLI_CODE: '',
     ACC_ACCESORIOS: [],
@@ -153,6 +153,24 @@ const boletaSlice = createSlice({
         }
       });
     },
+    resetAccesorios: (state) => {
+      state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.map((accesorio) => ({
+        ...accesorio, // Mantiene todas las propiedades del accesorio
+        habilitado: false,
+        infoVisible: false,
+        ...(accesorio.TIPACC_SETMARCA !== undefined && { TIPACC_SETMARCA: '' }),
+        ...(accesorio.TIPACC_SETESTADO !== undefined && {
+          TIPACC_SETESTADO: '',
+        }),
+        ...(accesorio.TIPACC_SETDESCRIPCION !== undefined && {
+          TIPACC_SETDESCRIPCION: '',
+        }),
+        ...(accesorio.TIPACC_SETCANTIDAD !== undefined && {
+          TIPACC_SETCANTIDAD: 0,
+        }),
+      }));
+    },
+
     // Reducer para limpiar el estado y restablecerlo al estado inicial
     resetBoleta: (state) => {
       Object.assign(state, {
@@ -217,6 +235,7 @@ export const {
   setBoletaData,
   setImages,
   resetBoleta,
+  resetAccesorios,
 } = boletaSlice.actions;
 
 export default boletaSlice.reducer;
