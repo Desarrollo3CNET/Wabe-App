@@ -20,7 +20,7 @@ import { getAccesoriesByBoleta } from '../src/services/AccesorioService'; // Imp
 import { ObtenerArticulosMantenimiento } from '../src/services/ArticulosService'; // Importa la función para obtener boletas
 import { processArticulos } from '../src/utils/processData/processArticulos'; // Importa la función para obtener boletas
 
-import { GetImages } from '../src/services/FotografiasService'; // Importa la función para obtener boletas
+import { GetImagesBoleta } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -101,13 +101,6 @@ const CheckOutScreen = ({ navigation }) => {
     filterData(searchPlaca, start, end);
   };
 
-  const handleClearFilters = () => {
-    setSearchPlaca('');
-    setStartDate(null);
-    setEndDate(null);
-    setFilteredData(data);
-  };
-
   const handleNavigateToBoleta = async (item) => {
     setIsLoading(true); // Inicia el indicador de carga para boleta
     try {
@@ -168,8 +161,8 @@ const CheckOutScreen = ({ navigation }) => {
         .toISOString()
         .split('T')[0];
 
-      // Ejecutar GetImages con los parámetros necesarios
-      const images = await GetImages(item.BOL_VEH_PLACA, formattedDate);
+      // Ejecutar GetImagesBoleta con los parámetros necesarios
+      const images = await GetImagesBoleta(item.BOL_VEH_PLACA, formattedDate);
 
       if (Array.isArray(images) && images.length > 0) {
         // Realizamos el dispatch para guardar las imágenes en el slice
@@ -208,13 +201,11 @@ const CheckOutScreen = ({ navigation }) => {
 
       // Agregar la propiedad ESTADO a los artículos
       const articulosConEstado = processArticulos(articulosMantenimiento);
-      console.log(articulosConEstado);
       // Guardar en Redux
-      console.log('articulosConEstado', articulosConEstado);
       dispatch(setArticulosMantenimiento(articulosConEstado));
 
       dispatch(setCreatingRevisionTrue());
-      navigation.navigate('ReviewScreen');
+      navigation.navigate('SuspencionDelanteraScreen');
     } catch (error) {
       console.error('Error al iniciar la revisión:', error);
       setModalMessage(
@@ -321,27 +312,19 @@ const CheckOutScreen = ({ navigation }) => {
         />
       ) : (
         <>
-          <View style={styles.filters}>
-            {/* Campo de búsqueda */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Buscar por placa o cliente"
-                placeholderTextColor="#AAA"
-                value={searchPlaca}
-                onChangeText={handleSearchChange}
-              />
-              {/* Botón de limpiar */}
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={handleClearFilters}
-              >
-                <Text style={styles.clearButtonText}>Limpiar</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={{ marginTop: 10 }}>
+            <DateRangeButton onRangeSelect={handleDateRangeSelect} />
           </View>
-          {/* Botón para seleccionar el rango de fechas */}
-          <DateRangeButton onRangeSelect={handleDateRangeSelect} />
+
+          <View style={styles.filters}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar por placa o cliente"
+              placeholderTextColor="#AAA"
+              value={searchPlaca}
+              onChangeText={handleSearchChange}
+            />
+          </View>
 
           {filteredData.length === 0 ? (
             <View style={styles.noDataContainer}>
@@ -414,12 +397,11 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 10,
   },
   searchContainer: {
-    flex: 2,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -431,21 +413,21 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#FFF',
   },
-  clearButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FF5252',
-    borderRadius: 5,
-    marginLeft: 5,
-  },
-  clearButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
+  // clearButton: {
+  //   flex: 1,
+  //   paddingVertical: 8,
+  //   paddingHorizontal: 12,
+  //   backgroundColor: '#FF5252',
+  //   borderRadius: 5,
+  // },
+  // clearButtonText: {
+  //   color: '#FFF',
+  //   fontWeight: 'bold',
+  // },
   tableHeader: {
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#FFD700',
     marginTop: 15,
   },
 

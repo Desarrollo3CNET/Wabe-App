@@ -134,8 +134,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       selected: false,
     };
 
-    console.log('newAttachment file', newAttachment);
-
     dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
@@ -170,8 +168,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
       base64: selectedImage.base64 || '', // Asegúrate de que la propiedad base64 esté presente
       selected: false,
     };
-
-    console.log('newAttachment camara', newAttachment);
 
     dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
@@ -239,16 +235,17 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
           }
         }}
       >
-        <Icon
+        {/* <Icon
           name={item.type === 'photo' ? 'image' : 'film'}
           size={40}
           color="#888"
-        />
+        /> */}
         {isEditing && (
           <View style={[styles.selectionCircle, isSelected && styles.selected]}>
             {isSelected && <View style={styles.innerCircle} />}
           </View>
         )}
+        <Image source={{ uri: item.uri }} style={styles.thumbnailImage} />
       </TouchableOpacity>
     );
   };
@@ -273,16 +270,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => setModalVisible(true)}
-              >
-                <Icon name="car" size={20} color="#000" />
-                <Text style={styles.actionText}>Indicar Golpe(s)</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.actionButton}
                 onPress={handleUploadFile}
               >
                 <Icon name="upload" size={20} color="#000" />
@@ -298,10 +285,10 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={handleOpenVideo}
+                onPress={() => setModalVisible(true)}
               >
-                <Icon name="video-camera" size={20} color="#000" />
-                <Text style={styles.actionText}>Grabar video</Text>
+                <Icon name="car" size={20} color="#000" />
+                <Text style={styles.actionText}>Indicar Golpe(s)</Text>
               </TouchableOpacity>
             </View>
 
@@ -451,6 +438,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#000',
+  },
+  thumbnailImage: {
+    width: 60, // Ajusta el tamaño de la miniatura según lo necesites
+    height: 60,
+    borderRadius: 10, // Si deseas bordes redondeados
+    resizeMode: 'cover', // Asegura que la imagen se ajuste al contenedor
   },
   editButton: { flexDirection: 'row', alignSelf: 'flex-end', marginTop: 10 },
   editText: { marginLeft: 5, fontWeight: 'bold' },

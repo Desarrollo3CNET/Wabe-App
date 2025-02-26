@@ -44,7 +44,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const user = useSelector((state) => state.app.user);
-  const [sucursal, setSucursal] = useState(-1);
+  const [sucursal, setSucursal] = useState();
   const [sucursalOptions, setSucursalOptions] = useState([]);
   const [modelos, setModelos] = useState([]);
 
@@ -60,18 +60,19 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     if (field === 'placa' && value) {
       try {
         const data = await getByPlaca(value);
+
         if (data) {
           setAppointmentDetails((prev) => ({
             ...prev,
             marca: data.marca,
             estilo: data.estilo,
-            anio: data.anio,
-            nombre: data.cliente.nombre,
-            telefono: data.cliente.telefono,
-            correo: data.cliente.correo,
-            direccion: data.cliente.direccion,
-            cedula: data.cliente.cedula,
-            tipoCliente: data.cliente.tipoCliente,
+            anio: data.anio.toString(),
+            // nombre: data.cliente.nombre,
+            // telefono: data.cliente.telefono,
+            // correo: data.cliente.correo,
+            // direccion: data.cliente.direccion,
+            // cedula: data.cliente.cedula,
+            // tipoCliente: data.cliente.tipoCliente,
           }));
           setMessages((prev) => ({
             ...prev,
@@ -92,35 +93,36 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       }
     }
 
-    if (field === 'cedula' && value) {
-      try {
-        const data = await getByCedula(value);
-        if (data) {
-          setAppointmentDetails((prev) => ({
-            ...prev,
-            nombre: data.nombre,
-            telefono: data.telefono,
-            correo: data.correo,
-            direccion: data.direccion,
-            tipoCliente: data.tipoCliente,
-          }));
-          setMessages((prev) => ({
-            ...prev,
-            cedula: 'Cliente encontrado.',
-          }));
-        } else {
-          setMessages((prev) => ({
-            ...prev,
-            cedula: 'No se encontraron datos para esta cédula.',
-          }));
-        }
-      } catch (error) {
-        setMessages((prev) => ({
-          ...prev,
-          cedula: 'Error al buscar la cédula.',
-        }));
-      }
-    }
+    // if (field === 'cedula' && value) {
+    //   try {
+    //     const data = await getByCedula(value);
+    //     if (data) {
+    //       setAppointmentDetails((prev) => ({
+    //         ...prev,
+    //         nombre: data.nombre,
+    //         telefono: data.telefono,
+    //         correo: data.correo,
+    //         direccion: data.direccion,
+    //         tipoCliente: data.tipoCliente,
+    //       }));
+    //       setMessages((prev) => ({
+    //         ...prev,
+    //         cedula: 'Cliente encontrado.',
+    //       }));
+    //     } else {
+    //       setMessages((prev) => ({
+    //         ...prev,
+    //         cedula: 'No se encontraron datos para esta cédula.',
+    //       }));
+    //     }
+    //   } catch (error) {
+    //     setMessages((prev) => ({
+    //       ...prev,
+    //       cedula: 'Error al buscar la cédula.',
+    //     }));
+    //   }
+    // }
+
     if (field === 'marca' && value) {
       fetchModelosByMarca(value);
     }
@@ -178,6 +180,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
             value: s.SUR_CODE,
           }));
           setSucursalOptions(formattedOptions);
+          setSucursal(formattedOptions[0].value);
+          setAppointmentDetails((prev) => ({
+            ...prev,
+            ['sucursal']: formattedOptions[0].value,
+          }));
         } catch (error) {
           console.error('Error al cargar sucursales:', error);
         }
@@ -190,6 +197,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const handleAppointmentSelect = (fecha, hora) => {
     handleUpdate('fecha', fecha);
     handleUpdate('hora', hora);
+  };
+
+  const handleBack = async () => {
+    resetForm();
+    navigation.navigate('Dashboard');
   };
 
   const handleNext = async () => {
@@ -347,7 +359,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     const cita = {
       CITCLIE_FECHA_RESERVA: appointmentDetails.fecha,
       CITCLIE_HORA: convertirHoraATimeSpan(appointmentDetails.hora),
-      SUR_CODE: appointmentDetails.sucursal.value,
+      SUR_CODE: appointmentDetails.sucursal,
     };
 
     const citaRequestDTO = {
@@ -385,13 +397,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       telefono: '',
       correo: '',
       direccion: '',
-      sucursal: '',
       fecha: '',
       hora: '',
       tipoCedula: 1,
     });
 
-    setSucursal(-1);
     setModelos([]);
     setMessages({ placa: '', cedula: '' });
   };
@@ -564,7 +574,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 
       <FooterButtons
         showDelete={false}
-        onBack={() => navigation.navigate('Dashboard')}
+        onBack={handleBack}
         onNext={handleNext}
       />
       <GenericModal

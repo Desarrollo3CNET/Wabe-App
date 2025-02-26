@@ -54,17 +54,6 @@ export async function getBoletaById(BoletaId) {
   }
 }
 
-// Función para actualizar una boleta
-export async function updateBoleta(boletaData) {
-  try {
-    const response = await post(`${controller}/UpdateBoletaApp`, boletaData);
-    return response;
-  } catch (error) {
-    console.error('Error actualizando boleta:', error);
-    throw error;
-  }
-}
-
 // Función para reenviar un correo
 export async function reenviarCorreo(idBoleta) {
   try {
@@ -107,6 +96,56 @@ export async function saveArticulos(
     return response;
   } catch (error) {
     console.error('Error guardando artículo:', error);
+    throw error;
+  }
+}
+
+// Función para guardar fotos
+export async function saveImagesArticulos(listaFotos) {
+  try {
+    // Utiliza el método post para enviar los datos de fotos al endpoint
+    const data = await post(`${controller}/SaveImagesArticulosApp`, listaFotos);
+    return data;
+  } catch (error) {
+    // Maneja errores en caso de fallos en la solicitud
+    console.error('Error al guardar fotos:', error);
+    throw error;
+  }
+}
+
+// Función para obtener fotos
+export async function GetImagesBoleta(placa, fecha) {
+  try {
+    // Utiliza el método get para obtener los datos de fotos
+    const data = await get(
+      `${controller}/GetImagesBoletaApp?placa=${placa}&fecha=${fecha}`,
+    );
+
+    // Verifica si el mensaje indica que no se encontraron imágenes
+    if (
+      data?.Message ===
+      'No se encontraron imágenes para la placa y fecha proporcionadas.'
+    ) {
+      return {}; // Devuelve un objeto vacío
+    }
+
+    return data; // Devuelve los datos si existen
+  } catch (error) {
+    // Maneja errores en caso de fallos en la solicitud
+    console.error('Error al obtener fotos:', error);
+    throw error;
+  }
+}
+
+// Función para guardar fotos
+export async function saveImagesBoleta(listaFotos) {
+  try {
+    // Utiliza el método post para enviar los datos de fotos al endpoint
+    const data = await post(`${controller}/SaveImagesBoletaApp`, listaFotos);
+    return data;
+  } catch (error) {
+    // Maneja errores en caso de fallos en la solicitud
+    console.error('Error al guardar fotos:', error);
     throw error;
   }
 }

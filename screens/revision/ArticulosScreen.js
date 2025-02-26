@@ -10,9 +10,13 @@ import {
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
-import { saveArticulos } from '../../src/services/BoletaService';
+import {
+  saveArticulos,
+  saveImagesArticulos,
+} from '../../src/services/BoletaService';
 import { setCreatingRevisionFalse } from '../../src/contexts/AppSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import ArticulosPhotosModal from '../../src/components/revision/ArticulosPhotosModal';
 
 const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
@@ -25,6 +29,7 @@ const ArticulosScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
 
   const boleta = useSelector((state) => state.boleta);
+  const fotos = useSelector((state) => state.revision.articulosFotos);
 
   const articulosMantenimiento = useSelector((state) =>
     state.revision.articulosMantenimiento
@@ -44,10 +49,10 @@ const ArticulosScreen = ({ navigation, route }) => {
 
   const renderFooterButtons = () => {
     switch (fromScreen) {
-      case 'ReviewScreen':
+      case 'ServiciosScreen':
         return (
           <FooterButtons
-            onBack={() => navigation.navigate('ReviewScreen')}
+            onBack={() => navigation.navigate('ServiciosScreen')}
             showDelete={false}
             onNext={handleNext}
           />
@@ -72,46 +77,52 @@ const ArticulosScreen = ({ navigation, route }) => {
   };
   const handleNext = async () => {
     setCaseType('Notificacion');
-
     try {
       setIsLoading(true);
 
-      const todosLosArticulos = [
-        ...articulosAgregados,
-        ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
-      ];
+      const imagenesBase64 = fotos.map((articulo) => ({
+        ART_CODE: articulo.ART_CODE,
+        imagenes: articulo.imagenes.map((img) => img.base64), // Extrae solo la propiedad base64
+      }));
 
-      // Filtra los artículos cuyo ESTADO sea false o "false"
-      const filteredArticulos = todosLosArticulos.filter(
-        (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
-      );
+      const listaFotos = {
+        BOL_CODE: boleta.BOL_CODE, // Fecha de hoy en formato ISO 8601
+        Articulos: imagenesBase64, // Imágenes de la boleta
+      };
 
-      // Mapea los artículos filtrados para crear el array listArticulos
-      const listArticulos = filteredArticulos.map((articulo) => {
-        // Verificar si ART_CODE es válido
-        const codigoValido =
-          articulo.ART_CODE !== null &&
-          articulo.ART_CODE !== undefined &&
-          articulo.ART_CODE !== '';
+      await saveImagesArticulos(listaFotos);
 
-        // Construir el string con o sin ART_CODE
-        return codigoValido
-          ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
-          : articulo.ART_NOMBRE;
-      });
-
+      //   const todosLosArticulos = [
+      //     ...articulosAgregados,
+      //     ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
+      //   ];
+      //   // Filtra los artículos cuyo ESTADO sea false o "false"
+      //   const filteredArticulos = todosLosArticulos.filter(
+      //     (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
+      //   );
+      //   // Mapea los artículos filtrados para crear el array listArticulos
+      //   const listArticulos = filteredArticulos.map((articulo) => {
+      //     // Verificar si ART_CODE es válido
+      //     const codigoValido =
+      //       articulo.ART_CODE !== null &&
+      //       articulo.ART_CODE !== undefined &&
+      //       articulo.ART_CODE !== '';
+      //     // Construir el string con o sin ART_CODE
+      //     return codigoValido
+      //       ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
+      //       : articulo.ART_NOMBRE;
+      //   });
       // Llamar a la función SaveArticulos con los parámetros correspondientes
-      await saveArticulos(
-        boleta.BOL_CODE, // idBoleta
-        observaciones, // observaciones
-        boleta.EMP_CODE, // idEmpresa
-        listArticulos, // lista de artículos
-      );
-
-      dispatch(setCreatingRevisionFalse());
-      setObservaciones('');
-      setModalMessage(`Se ha finalizado la revisión correctamente`);
-      navigation.navigate('CheckOutScreen');
+      // await saveArticulos(
+      //   boleta.BOL_CODE, // idBoleta
+      //   observaciones, // observaciones
+      //   boleta.EMP_CODE, // idEmpresa
+      //   listArticulos, // lista de artículos
+      // );
+      //   dispatch(setCreatingRevisionFalse());
+      //   setObservaciones('');
+      //   setModalMessage(`Se ha finalizado la revisión correctamente`);
+      //   navigation.navigate('CheckOutScreen');
     } catch (error) {
       console.error('Error en handleNext:', error);
       // Mensaje de error en caso de excepción
@@ -133,11 +144,26 @@ const ArticulosScreen = ({ navigation, route }) => {
           <Text style={styles.title}>Lista de Artículos</Text>
           <ScrollView>
             {articulosAgregados.length > 0 ? (
-              articulosAgregados.map((articulo, index) => (
-                <View key={index} style={styles.simpleCard}>
-                  <Text style={styles.cardTitle}>{articulo.ART_NOMBRE}</Text>
-                </View>
-              ))
+              articulosAgregados.map((articulo, index) => {
+                // Dividir el nombre y el código
+                const [ART_NAME, ART_CODE] = articulo.ART_NOMBRE.split(' - ');
+                const [prefijo, codigo] = ART_CODE.split('-');
+
+                return (
+                  <View key={index} style={styles.simpleCard}>
+                    {/* Mostrar ART_NAME en una fila */}
+                    <Text style={styles.cardTitle}>{ART_NAME}</Text>
+                    {/* Mostrar ART_CODE en una fila diferente */}
+                    <Text style={styles.cardTitle}>{ART_CODE}</Text>
+
+                    <ArticulosPhotosModal
+                      ART_CODE={parseInt(codigo)} // Usar el código extraído
+                      ART_NOMBRE={ART_NAME}
+                      showCameraButton={false} // Hacer visible el botón de la cámara
+                    />
+                  </View>
+                );
+              })
             ) : (
               <Text style={styles.noArticles}>No hay artículos</Text>
             )}
@@ -224,6 +250,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+    paddingTop: 10,
   },
   spinner: {
     marginTop: 30,
@@ -283,7 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   cardTitle: {
     fontSize: 16,

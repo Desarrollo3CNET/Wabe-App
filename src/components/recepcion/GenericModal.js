@@ -19,12 +19,12 @@ const GenericModal = ({
 
   const handleAccept = () => {
     if (caseType === 'CancelBoleta') {
+      navigation.navigate('Dashboard');
       // Limpia el estado de la boleta
       dispatch(resetBoleta());
       dispatch(setCreatingBoletaFalse());
       // Cierra el modal y navega al Dashboard
       onClose();
-      navigation.navigate('Dashboard');
     } else if (caseType === 'CancelRevision') {
       // Limpia el estado de la revisión
       dispatch(resetAllStates());

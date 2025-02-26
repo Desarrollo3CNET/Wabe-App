@@ -11,7 +11,14 @@ import { Picker } from '@react-native-picker/picker';
 import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
 import Icon from 'react-native-vector-icons/FontAwesome'; // Asegúrate de importar el icono
 
-const CustomInput = ({ label, type, value, options = [], onChange }) => {
+const CustomInput = ({
+  label,
+  type,
+  value,
+  options = [],
+  onChange,
+  enabled = true,
+}) => {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
 
   // Generar lista de horas cada media hora
@@ -59,6 +66,7 @@ const CustomInput = ({ label, type, value, options = [], onChange }) => {
             placeholder="Ingresa un valor"
             placeholderTextColor="#aaa"
             keyboardType="default"
+            editable={enabled}
           />
         );
 
@@ -71,6 +79,7 @@ const CustomInput = ({ label, type, value, options = [], onChange }) => {
             placeholder="Ingresa un número"
             placeholderTextColor="#aaa"
             keyboardType="numeric"
+            editable={enabled}
           />
         );
 

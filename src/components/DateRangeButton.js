@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,15 @@ const DateRangeButton = ({ onRangeSelect }) => {
   const [step, setStep] = useState(1); // 1: Fecha inicial, 2: Fecha final
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [displayText, setDisplayText] = useState(null);
 
   const handleDateSelect = (date) => {
     if (step === 1) {
-      setStartDate(date);
-      setStep(2); // Cambiar al paso para seleccionar la fecha final
+      setStartDate(new Date(date)); // Crear una nueva instancia para forzar re-render
+      setStep(2);
     } else if (step === 2) {
-      setEndDate(date);
-      setStep(1); // Resetear al paso inicial para permitir cambios
+      setEndDate(new Date(date));
+      setStep(1);
     }
   };
 
@@ -36,14 +37,19 @@ const DateRangeButton = ({ onRangeSelect }) => {
   };
 
   const formatDate = (date) => {
-    return date
-      ? date.toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        })
-      : null;
+    if (!date || !(date instanceof Date)) return 'Fecha inválida';
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
   };
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      setDisplayText(`${formatDate(startDate)} - ${formatDate(endDate)}`);
+    }
+  }, [startDate, endDate]);
 
   return (
     <View>
@@ -52,12 +58,11 @@ const DateRangeButton = ({ onRangeSelect }) => {
         style={styles.rangeButton}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.rangeText}>
-          {startDate && endDate
-            ? `${formatDate(startDate)} - ${formatDate(endDate)}`
-            : 'Selecciona un rango de fechas'}
-        </Text>
-        <Ionicons name="calendar-outline" size={20} color="#000" />
+        {displayText ? (
+          <Text style={styles.rangeText}>{displayText}</Text>
+        ) : (
+          <Ionicons name="calendar-outline" size={20} color="#000" />
+        )}
       </TouchableOpacity>
 
       {/* Modal para seleccionar rango */}
@@ -110,17 +115,13 @@ const DateRangeButton = ({ onRangeSelect }) => {
 const styles = StyleSheet.create({
   rangeButton: {
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#F5F5F5', // Gris claro como en los otros botones
     borderRadius: 10, // Bordes redondeados para consistencia
-    paddingHorizontal: 15,
     paddingVertical: 10,
   },
   rangeText: {
     fontSize: 14,
     color: '#333', // Texto en negro para uniformidad
-    flex: 1,
-    marginRight: 5,
   },
   modalContainer: {
     flex: 1,

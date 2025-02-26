@@ -97,7 +97,7 @@ const TipoTrabajoScreen = ({ navigation }) => {
 
       <FooterButtons
         onBack={() =>
-          navigation.navigate('FirmaScreen', {
+          navigation.navigate('VehicleDetailsScreen', {
             fromScreen: 'TipoTrabajoScreen',
           })
         }

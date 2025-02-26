@@ -19,25 +19,93 @@ const VehicleDetailsScreen = ({ navigation }) => {
   };
 
   const handleNext = async () => {
-    if (
-      boleta.BOL_VEH_PLACA &&
-      boleta.BOL_VEH_ESTILO &&
-      boleta.BOL_VEH_ANIO &&
-      boleta.BOL_VEH_KM &&
-      boleta.horaIngreso &&
-      boleta.fechaIngreso &&
-      boleta.BOL_VEH_COMBUSTIBLE
-    ) {
-      navigation.navigate('FirmaScreen', {
-        fromScreen: 'VehicleDetailsScreen',
-      });
-    } else {
+    const requiredFields = [
+      'BOL_VEH_PLACA',
+      'BOL_VEH_ESTILO',
+      'BOL_VEH_ANIO',
+      'BOL_VEH_KM',
+      'horaIngreso',
+      'fechaIngreso',
+      'BOL_VEH_COMBUSTIBLE',
+    ];
+
+    // Verificar si hay campos vacíos
+    const missingFields = requiredFields.filter((field) => !boleta[field]);
+
+    if (missingFields.length > 0) {
       setCaseType('Notificacion');
       setModalMessage(
         'Por favor, complete todos los campos antes de continuar.',
       );
       setModalVisibleBoleta(true);
+      return;
     }
+
+    // Validar que BOL_VEH_PLACA no tenga más de 10 caracteres y sea alfanumérico
+    if (!/^[A-Za-z0-9]{1,10}$/.test(boleta.BOL_VEH_PLACA)) {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'La placa del vehículo no debe tener más de 10 caracteres.',
+      );
+      setModalVisibleBoleta(true);
+      return;
+    }
+
+    // Validar que BOL_VEH_ANIO tenga 4 dígitos y esté entre 1900 y el año actual
+    const currentYear = new Date().getFullYear();
+    if (
+      !/^\d{4}$/.test(boleta.BOL_VEH_ANIO) ||
+      boleta.BOL_VEH_ANIO < 1900 ||
+      boleta.BOL_VEH_ANIO > currentYear
+    ) {
+      setCaseType('Notificacion');
+      setModalMessage(
+        `El año del vehículo debe tener 4 dígitos y estar entre 1900 y ${currentYear}.`,
+      );
+      setModalVisibleBoleta(true);
+      return;
+    }
+
+    // Validar que BOL_VEH_ESTILO tenga un máximo de 50 caracteres
+    if (boleta.BOL_VEH_ESTILO.length > 50) {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'El estilo del vehículo no puede superar los 50 caracteres.',
+      );
+      setModalVisibleBoleta(true);
+      return;
+    }
+
+    // Validar que BOL_VEH_KM sea un número entero y tenga menos de 10 dígitos
+    if (!/^\d{1,9}$/.test(boleta.BOL_VEH_KM)) {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'El kilometraje debe ser un número entero de hasta 9 dígitos.',
+      );
+      setModalVisibleBoleta(true);
+      return;
+    }
+
+    // Validar que fechaIngreso no sea anterior a la fecha actual
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Eliminar horas para comparación
+
+    const [year, month, day] = boleta.fechaIngreso.split('/').map(Number);
+    const fechaIngreso = new Date(year, month - 1, day); // Mes en base 0
+
+    if (fechaIngreso < today) {
+      setCaseType('Notificacion');
+      setModalMessage(
+        'La fecha de ingreso no puede ser anterior a la fecha actual.',
+      );
+      setModalVisibleBoleta(true);
+      return;
+    }
+
+    // Si pasa todas las validaciones, navegar a la siguiente pantalla
+    navigation.navigate('TipoTrabajoScreen', {
+      fromScreen: 'VehicleDetailsScreen',
+    });
   };
 
   return (

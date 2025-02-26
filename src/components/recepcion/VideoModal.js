@@ -73,7 +73,6 @@ const VideoModal = () => {
         await MediaLibrary.saveToLibraryAsync(video.uri);
         Alert.alert('Éxito', 'Video guardado en la galería');
       } catch (error) {
-        console.log('error grabando');
         console.error(error);
         setRecording(false);
       }

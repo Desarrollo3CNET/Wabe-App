@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   articulosMantenimiento: [],
   articulosAgregados: [],
+  articulosFotos: [], // Array to hold articles with images
 };
 
 const revisionSlice = createSlice({
@@ -15,6 +16,7 @@ const revisionSlice = createSlice({
     resetAllStates: (state) => {
       state.articulosMantenimiento = [];
       state.articulosAgregados = [];
+      state.articulosFotos = [];
     },
     activarArticulo: (state, action) => {
       const artCode = action.payload;
@@ -65,6 +67,73 @@ const revisionSlice = createSlice({
         (articulo) => articulo.ART_NOMBRE !== ART_NOMBRE,
       );
     },
+    // Add an image to a specific article by ART_CODE
+    addImage: (state, action) => {
+      const { ART_CODE, image } = action.payload;
+
+      // Find the article in articulosFotos
+      const articulo = state.articulosFotos.find(
+        (item) => item.ART_CODE === ART_CODE,
+      );
+
+      if (articulo) {
+        articulo.imagenes.push(image); // Add image to the existing article
+      } else {
+        // If the article doesn't exist, create a new entry
+        state.articulosFotos.push({
+          ART_CODE,
+          imagenes: [image],
+        });
+      }
+    },
+
+    // Remove an image from a specific article by ART_CODE and image index
+    removeImage: (state, action) => {
+      const { ART_CODE, imageIndex } = action.payload;
+
+      // Find the article in articulosFotos
+      const articulo = state.articulosFotos.find(
+        (item) => item.ART_CODE === ART_CODE,
+      );
+
+      if (articulo && articulo.imagenes[imageIndex]) {
+        articulo.imagenes.splice(imageIndex, 1); // Remove image at the specified index
+      }
+    },
+
+    // Update an image for a specific article by ART_CODE and image index
+    updateImage: (state, action) => {
+      const { ART_CODE, imageIndex, newImage } = action.payload;
+
+      // Find the article in articulosFotos
+      const articulo = state.articulosFotos.find(
+        (item) => item.ART_CODE === ART_CODE,
+      );
+
+      if (articulo && articulo.imagenes[imageIndex]) {
+        articulo.imagenes[imageIndex] = newImage; // Replace the image at the specified index
+      }
+    },
+
+    // Set all images for a specific article by ART_CODE (replace all images)
+    setImages: (state, action) => {
+      const { ART_CODE, images } = action.payload;
+
+      // Find the article in articulosFotos
+      const articulo = state.articulosFotos.find(
+        (item) => item.ART_CODE === ART_CODE,
+      );
+
+      if (articulo) {
+        articulo.imagenes = images; // Set new images
+      } else {
+        // If the article doesn't exist, create a new entry
+        state.articulosFotos.push({
+          ART_CODE,
+          imagenes: images,
+        });
+      }
+    },
   },
 });
 
@@ -75,6 +144,10 @@ export const {
   desactivarArticulo,
   agregarArticulo,
   eliminarArticulo,
+  addImage,
+  removeImage,
+  updateImage,
+  setImages,
 } = revisionSlice.actions;
 
 export default revisionSlice.reducer;

@@ -32,8 +32,6 @@ const AppointmentCard = ({
 
   const [loading, setLoading] = useState(false);
 
-  //console.log(cliente);
-
   const formatTime = (time) => {
     try {
       const [hours, minutes] = time.split(':');

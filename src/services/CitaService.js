@@ -53,7 +53,6 @@ export async function getModelosByMarca(marca) {
 export async function crearCita(citaDto) {
   // try {
   const response = await post(`${controller}/CrearCitaApp`, citaDto);
-  console.log('responsexd', response);
 
   return response;
   // } catch (error) {

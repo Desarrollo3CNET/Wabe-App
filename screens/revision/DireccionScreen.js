@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,24 +17,29 @@ import AddArticleModal from '../../src/components/revision/AddArticleModal';
 import GenericModal from '../../src/components/recepcion/GenericModal';
 import { ValidateRevisionItems } from '../../src/utils/ValidateRevisionItems';
 
-const ReviewScreen = ({ navigation }) => {
+import ArticulosPhotosModal from '../../src/components/revision/ArticulosPhotosModal';
+import { Dimensions } from 'react-native';
+const { width } = Dimensions.get('window');
+import styles from '../../src/utils/revisionStyles';
+
+const DireccionScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
-  const articulosMantenimiento = useSelector(
-    (state) => state.revision.articulosMantenimiento,
+  const articulos = useSelector(
+    (state) => state.revision.articulosMantenimiento[1],
   );
+  const orientation = width > 600 ? 'LANDSCAPE' : 'PORTRAIT';
+
   const [modalVisibleArticulo, setModalVisibleArticulo] = useState(false);
   const [modalVisibleRevision, setModalVisibleRevision] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
 
   const handleNext = async () => {
-    const isValid = await ValidateRevisionItems(articulosMantenimiento);
+    const isValid = await ValidateRevisionItems(articulos.Articulos);
 
     if (isValid) {
-      navigation.navigate('ArticulosScreen', {
-        fromScreen: 'ReviewScreen',
-      });
+      navigation.navigate('RodamientosDelanterosScreen');
     } else {
       setCaseType('Notificacion');
       setModalMessage(
@@ -49,15 +54,33 @@ const ReviewScreen = ({ navigation }) => {
       <Header title="Revisión" />
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {articulosMantenimiento.map((categoria) => (
-            <View key={categoria.CAT_CODE} style={styles.section}>
-              <Text style={styles.sectionTitle}>{categoria.CAT_NOMBRE}</Text>
+          <Text style={styles.sectionTitle}>Dirección</Text>
 
-              {categoria.Articulos.length > 0 ? (
-                categoria.Articulos.map((item) => (
-                  <View key={item.ART_CODE} style={styles.row}>
-                    <Text style={styles.itemName}>{item.ART_NOMBRE}</Text>
+          {articulos &&
+          articulos.Articulos &&
+          articulos.Articulos.length > 0 ? (
+            <View
+              style={
+                orientation === 'LANDSCAPE'
+                  ? styles.landscapeContainer
+                  : styles.portraitContainer
+              }
+            >
+              {articulos.Articulos.map((item, index) => (
+                <View
+                  key={item.ART_CODE}
+                  style={[
+                    orientation === 'LANDSCAPE'
+                      ? styles.landscapeItem
+                      : styles.portraitRow,
+                    orientation === 'LANDSCAPE' &&
+                      index % 2 === 1 &&
+                      styles.secondItem,
+                  ]}
+                >
+                  <Text style={styles.itemName}>{item.ART_NOMBRE}</Text>
 
+                  <View style={styles.buttonsContainer}>
                     <TouchableOpacity
                       style={[
                         styles.statusButton,
@@ -78,24 +101,28 @@ const ReviewScreen = ({ navigation }) => {
                       }
                     >
                       <Text style={styles.statusText}>Malo</Text>
+
+                      {/* Mostrar el botón de cámara como notificación */}
+                      {item.ESTADO === false && (
+                        <ArticulosPhotosModal
+                          ART_CODE={item.ART_CODE}
+                          ART_NOMBRE={item.ART_NOMBRE}
+                          showCameraButton={true} // Hacer visible el botón de la cámara
+                        />
+                      )}
                     </TouchableOpacity>
                   </View>
-                ))
-              ) : (
-                <Text style={styles.noItemsText}>
-                  No hay artículos disponibles
-                </Text>
-              )}
+                </View>
+              ))}
             </View>
-          ))}
+          ) : (
+            <Text style={styles.noItemsText}>No hay artículos disponibles</Text>
+          )}
         </ScrollView>
       </View>
 
       <FooterButtonsRevision
-        onBack={() => {
-          setCaseType('CancelRevision');
-          setModalVisibleRevision(true);
-        }}
+        onBack={() => navigation.navigate('SuspencionDelanteraScreen')}
         onDelete={() => setModalVisibleArticulo(true)}
         onNext={handleNext}
       />
@@ -116,89 +143,4 @@ const ReviewScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#333',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 20,
-    marginVertical: 15,
-    marginHorizontal: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#000',
-    marginBottom: 20,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  columnContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  section: {
-    marginBottom: 30, // Añade espacio entre secciones
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 30, // Más margen debajo del título
-    marginTop: 10, // Más margen encima del título
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  itemName: {
-    flex: 2,
-    fontSize: 18,
-    color: '#000',
-  },
-  statusButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 20,
-    marginHorizontal: 5,
-  },
-  selected: {
-    backgroundColor: '#FFD700',
-  },
-  statusText: {
-    fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
-  },
-  addButton: {
-    backgroundColor: '#FFD700',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-  },
-  noItemsText: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    color: '#888',
-  },
-});
-
-export default ReviewScreen;
+export default DireccionScreen;

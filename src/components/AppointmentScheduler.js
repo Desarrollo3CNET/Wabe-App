@@ -36,7 +36,6 @@ const AppointmentScheduler = ({ onAppointmentSelect }) => {
     try {
       const formattedDate = date.toISOString().split('T')[0]; // AAAA-MM-DD
       const availableHours = await getHorasDisponibles(formattedDate);
-      console.log('availableHours', availableHours);
 
       if (!availableHours || availableHours.length === 0) {
         setErrorMessage(
@@ -240,6 +239,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#FFD700',
+    marginTop: 10,
     padding: 12,
     borderRadius: 10,
     alignItems: 'center',

@@ -182,7 +182,7 @@ const Dashboard = ({ navigation }) => {
             />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar por número de cita"
+              placeholder="Buscar..."
               placeholderTextColor="#aaa"
               value={searchQuery}
               onChangeText={handleSearch}
@@ -203,7 +203,7 @@ const Dashboard = ({ navigation }) => {
             style={styles.createButton}
             onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
           >
-            <Text style={styles.createButtonText}>Crear nueva cita</Text>
+            <Text style={styles.createButtonText}>+ Crear</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -262,10 +262,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
-    paddingTop: 10,
   },
   headerSection: {
     backgroundColor: '#333',
+    paddingHorizontal: 10,
   },
   noDataText: {
     fontSize: 18,
@@ -306,7 +306,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD700',
     padding: 10,
     borderRadius: 10,
-    marginHorizontal: 15,
     marginTop: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -364,13 +363,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 5,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3, // Para Android
     borderRadius: 10,
   },
   searchContainer: {
@@ -406,6 +400,7 @@ const styles = StyleSheet.create({
     color: '#000',
     marginLeft: 5,
     fontWeight: 'bold',
+    paddingVertical: 5,
   },
   createButton: {
     flex: 1,
@@ -420,6 +415,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     fontWeight: 'bold',
+    paddingVertical: 5,
   },
   scrollview: {
     backgroundColor: '#333',

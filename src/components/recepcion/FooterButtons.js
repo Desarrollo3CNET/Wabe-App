@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const FooterButtons = ({
@@ -14,20 +14,17 @@ const FooterButtons = ({
     <View style={styles.footer}>
       {showBack && (
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Icon name="arrow-left" size={20} color="#000" />
-          <Text style={styles.buttonText}>Volver</Text>
+          <Icon name="arrow-left" size={30} color="#000" />
         </TouchableOpacity>
       )}
       {showDelete && (
         <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
-          <Icon name="trash" size={20} color="#000" />
-          <Text style={styles.buttonText}>Eliminar Boleta</Text>
+          <Icon name="trash" size={30} color="#000" />
         </TouchableOpacity>
       )}
       {showNext && (
         <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-          <Text style={styles.buttonText}>Siguiente</Text>
-          <Icon name="arrow-right" size={20} color="#000" />
+          <Icon name="arrow-right" size={30} color="#000" />
         </TouchableOpacity>
       )}
     </View>
@@ -43,6 +40,7 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Centrar el icono
     backgroundColor: '#E0E0E0',
     padding: 15,
     borderRadius: 10,
@@ -52,6 +50,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Centrar el icono
     backgroundColor: '#FFD700',
     padding: 15,
     borderRadius: 10,
@@ -61,17 +60,11 @@ const styles = StyleSheet.create({
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Centrar el icono
     backgroundColor: '#E0E0E0',
     padding: 15,
     borderRadius: 10,
     flex: 1,
-    marginHorizontal: 5,
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-    marginLeft: 5,
     marginHorizontal: 5,
   },
 });

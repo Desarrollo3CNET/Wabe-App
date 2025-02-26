@@ -18,7 +18,7 @@ import {
 } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import { getAccesoriesByBoleta } from '../src/services/AccesorioService'; // Importa la función para obtener boletas
 import { getArticulosByBoleta } from '../src/services/ArticulosService';
-import { GetImages } from '../src/services/FotografiasService'; // Importa la función para obtener boletas
+import { GetImagesBoleta } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -28,7 +28,11 @@ import {
   setImages,
 } from '../src/contexts/BoletaSlice';
 
-import { agregarArticulo } from '../src/contexts/RevisionSlice';
+import {
+  agregarArticulo,
+  addImage,
+  resetAllStates,
+} from '../src/contexts/RevisionSlice';
 
 const EntregaScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -50,6 +54,31 @@ const EntregaScreen = ({ navigation }) => {
     try {
       // Obtén los datos de getBoletas en lugar del slice de Redux
       const boletas = await getBoletas(1, user.EMP_CODE);
+
+      // const boletas = [
+      //   {
+      //     BOL_CLI_NOMBRE: 'ROBERTO ITURRIBA',
+      //     BOL_CODE: 174,
+      //     BOL_FECHA: '2025-02-24T12:58:00',
+      //     BOL_VEH_PLACA: 'BCX646',
+      //     CITCLIE_TIPO_CITA: 0,
+      //   },
+      //   {
+      //     BOL_CLI_NOMBRE: 'JEINER PORRAS GOMEZ',
+      //     BOL_CODE: 173,
+      //     BOL_FECHA: '2025-02-24T09:06:00',
+      //     BOL_VEH_PLACA: 'BMH414',
+      //     CITCLIE_TIPO_CITA: 0,
+      //   },
+      //   {
+      //     BOL_CLI_NOMBRE: 'Aldo Sánchez Calvo',
+      //     BOL_CODE: 172,
+      //     BOL_FECHA: '2025-02-21T15:55:00',
+      //     BOL_VEH_PLACA: 'Bvy064',
+      //     CITCLIE_TIPO_CITA: 0,
+      //   },
+      // ];
+
       setData(boletas); // Asigna los datos al estado local
       setFilteredData(boletas); // Asigna también los datos filtrados
     } catch (error) {
@@ -95,13 +124,6 @@ const EntregaScreen = ({ navigation }) => {
     setStartDate(start);
     setEndDate(end);
     filterData(searchPlaca, start, end);
-  };
-
-  const handleClearFilters = () => {
-    setSearchPlaca('');
-    setStartDate(null);
-    setEndDate(null);
-    setFilteredData(data);
   };
 
   const handleNavigateToBoleta = async (item) => {
@@ -151,15 +173,30 @@ const EntregaScreen = ({ navigation }) => {
   const handleNavigateToArticulos = async (item) => {
     setIsLoading(true);
     try {
-      // Llama a la función para obtener los artículos por BoletaId.
+      dispatch(resetAllStates());
       const articulos = await getArticulosByBoleta(item.BOL_CODE);
-      // console.log(articulos);
-      // Extrae las descripciones de los artículos y envíalos al slice.
+
+      // Procesar cada artículo.
       articulos.forEach((articulo) => {
-        dispatch(agregarArticulo({ ART_NOMBRE: articulo, ESTADO: false }));
+        // Agregar el artículo al slice
+        dispatch(
+          agregarArticulo({
+            ART_NOMBRE: `${articulo.ART_DESCRIPCION}-${articulo.ART_CODE}`,
+            ESTADO: false,
+          }),
+        );
+        // Agregar las imágenes del artículo al slice (conversión si es necesaria)
+        articulo.IMAGENES.forEach((imagenBase64) => {
+          dispatch(
+            addImage({
+              ART_CODE: articulo.ART_CODE,
+              image: imagenBase64,
+            }),
+          );
+        });
       });
 
-      // Navega a la pantalla de artículos.
+      // Navegar a la pantalla de artículos
       navigation.navigate('ArticulosScreen', {
         fromScreen: 'EntregaScreen',
       });
@@ -167,10 +204,10 @@ const EntregaScreen = ({ navigation }) => {
       console.error('Error al obtener los artículos:', error);
       setModalMessage(
         'Hubo un error al intentar redirigir a la pantalla de Artículos. Por favor, inténtalo de nuevo.',
-      ); // Mensaje del modal
-      setModalVisible(true); // Mostrar el modal
+      );
+      setModalVisible(true);
     } finally {
-      setIsLoading(false); // Detener el indicador de carga
+      setIsLoading(false);
     }
   };
 
@@ -190,8 +227,8 @@ const EntregaScreen = ({ navigation }) => {
         .toISOString()
         .split('T')[0];
 
-      // Ejecutar GetImages con los parámetros necesarios
-      const images = await GetImages(item.BOL_VEH_PLACA, formattedDate);
+      // Ejecutar GetImagesBoleta con los parámetros necesarios
+      const images = await GetImagesBoleta(item.BOL_VEH_PLACA, formattedDate);
 
       if (Array.isArray(images) && images.length > 0) {
         // Realizamos el dispatch para guardar las imágenes en el slice
@@ -295,29 +332,20 @@ const EntregaScreen = ({ navigation }) => {
         />
       ) : (
         <>
-          <View style={styles.filters}>
-            {/* Campo de búsqueda */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Buscar por placa o cliente"
-                placeholderTextColor="#AAA"
-                value={searchPlaca}
-                onChangeText={handleSearchChange}
-              />
-              {/* Botón de limpiar */}
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={handleClearFilters}
-              >
-                <Text style={styles.clearButtonText}>Limpiar</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={{ marginTop: 10 }}>
+            <DateRangeButton onRangeSelect={handleDateRangeSelect} />
           </View>
-          {/* Botón para seleccionar el rango de fechas */}
-          <DateRangeButton onRangeSelect={handleDateRangeSelect} />
 
-          {/* Verificar si filteredData está vacío */}
+          <View style={styles.filters}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar por placa o cliente"
+              placeholderTextColor="#AAA"
+              value={searchPlaca}
+              onChangeText={handleSearchChange}
+            />
+          </View>
+
           {filteredData.length === 0 ? (
             <View style={styles.noDataContainer}>
               <Text style={styles.noDataText}>
@@ -406,21 +434,21 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#FFF',
   },
-  clearButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FF5252',
-    borderRadius: 5,
-    marginLeft: 5,
-  },
-  clearButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
+  // clearButton: {
+  //   paddingVertical: 8,
+  //   paddingHorizontal: 12,
+  //   backgroundColor: '#FF5252',
+  //   borderRadius: 5,
+  //   marginLeft: 5,
+  // },
+  // clearButtonText: {
+  //   color: '#FFF',
+  //   fontWeight: 'bold',
+  // },
   tableHeader: {
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#FFD700',
     marginTop: 15,
   },
 

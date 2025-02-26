@@ -50,7 +50,7 @@ const appSlice = createSlice({
     setEmpresa: (state, action) => {
       state.empresa = action.payload; // Actualiza la propiedad empresa
     },
-    resetState: () => initialState, // Usa initialState correctamente aquí
+    resetState: () => initialState,
   },
 });
 
