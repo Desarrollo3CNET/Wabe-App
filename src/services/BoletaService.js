@@ -58,8 +58,7 @@ export async function getBoletaById(BoletaId) {
 export async function reenviarCorreo(idBoleta) {
   try {
     const response = await get(
-      // `${controller}/CorreoBoletaApp?idBoleta=${idBoleta}`,
-      `${controller}/CorreoBoletaApsspdddddddd?idBoleta=${idBoleta}`,
+      `${controller}/CorreoBoletaApp?idBoleta=${idBoleta}`,
     );
     return response;
   } catch (error) {

@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   Modal,
+  ScrollView,
 } from 'react-native';
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
@@ -15,7 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker'; // Importar expo-image-picker
 
 import GolpesModal from '../../src/components/recepcion/GolpesModal';
-import VideoModal from '../../src/components/recepcion/VideoModal';
+// import VideoModal from '../../src/components/recepcion/VideoModal';
 
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -179,9 +180,9 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleOpenVideo = async () => {
-    setVideoVisible(!videoVisible);
-  };
+  // const handleOpenVideo = async () => {
+  //   setVideoVisible(!videoVisible);
+  // };
 
   const handleSelectItem = (id) => {
     dispatch(toggleSelectImage(id));
@@ -194,29 +195,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
   const decodeBase64Image = (base64) => {
     return `data:image/jpeg;base64,${base64}`;
   };
-
-  const renderAttachments = () => (
-    <View style={styles.decodedPhotoList}>
-      {attachments.map((base64, index) => (
-        <View key={index} style={styles.decodedPhotoContainer}>
-          <Image
-            source={{ uri: decodeBase64Image(base64) }}
-            style={styles.decodedImage}
-          />
-        </View>
-      ))}
-    </View>
-  );
-
-  const renderEsquema = () => (
-    <View style={styles.esquemaContainer}>
-      <Text style={styles.sectionTitle}>Golpes del vehículo</Text>
-      <Image
-        source={{ uri: decodeBase64Image(esquema) }}
-        style={styles.responsiveDecodedImage}
-      />
-    </View>
-  );
 
   const renderAttachment = ({ item }) => {
     const isSelected = item.selected;
@@ -254,16 +232,75 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Header title="Recepción" />
 
-      {videoVisible && <VideoModal />}
+      {/* {videoVisible && <VideoModal />} */}
 
       <View style={styles.content}>
-        <Text style={styles.title}>Fotografías y Videos</Text>
+        <Text style={styles.title}>Fotografías</Text>
 
-        {fromScreen === 'EntregaScreen' ? (
-          <View>
-            {renderAttachments()}
-            {renderEsquema()}
-          </View>
+        {fromScreen === 'EntregaScreen' || fromScreen === 'CheckOutScreen' ? (
+          <ScrollView
+            contentContainerStyle={{ flexDirection: 'row', padding: 10 }}
+          >
+            {/* Renderizamos las imágenes adjuntas */}
+            {attachments.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.attachmentItem}
+                onPress={() => {
+                  setSelectedImage(decodeBase64Image(item)); // Establecemos la imagen seleccionada
+                  setModalImageVisible(true); // Mostramos el modal
+                }}
+              >
+                <Image
+                  source={{ uri: decodeBase64Image(item) }}
+                  style={styles.thumbnailImage}
+                />
+              </TouchableOpacity>
+            ))}
+
+            {/* Renderizamos el esquema como una imagen más */}
+            {esquema && (
+              <TouchableOpacity
+                style={styles.attachmentItem}
+                onPress={() => {
+                  setSelectedImage(decodeBase64Image(esquema)); // Decodificamos y mostramos el esquema
+                  setModalImageVisible(true); // Mostramos el modal
+                }}
+              >
+                <Image
+                  source={{ uri: decodeBase64Image(esquema) }}
+                  style={styles.thumbnailImage}
+                />
+              </TouchableOpacity>
+            )}
+
+            {/* MODAL PARA MOSTRAR LA IMAGEN */}
+            <Modal
+              visible={isModalImageVisible}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setModalImageVisible(false)}
+            >
+              <TouchableOpacity
+                style={styles.modalContainer}
+                activeOpacity={1}
+                onPress={() => setModalImageVisible(false)}
+              >
+                <View style={styles.modalContent}>
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={styles.fullImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setModalImageVisible(false)}
+                  >
+                    <Icon name="times" size={30} color="white" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </ScrollView>
         ) : (
           // Renderizar el bloque original para otras pantallas
           <>
@@ -387,6 +424,23 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 15,
   },
+  responsiveDecodedImage: {
+    width: '100%', // La imagen ocupará el ancho completo del contenedor
+    height: undefined, // La altura se ajusta según el aspecto
+    aspectRatio: 4 / 3, // Mantiene la relación de aspecto de la imagen
+    resizeMode: 'contain', // Asegura que la imagen no se deforme
+    marginTop: 10,
+  },
+  esquemaContainer: {
+    marginVertical: 20,
+    alignItems: 'center',
+  },
+  attachmentsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
+    marginBottom: 10,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -469,7 +523,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F0F0',
     borderRadius: 10,
     padding: 10,
   },

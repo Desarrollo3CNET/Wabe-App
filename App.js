@@ -130,35 +130,35 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      {/* <SafeAreaView style={{ flex: 1 }}> */}
-      {/* Asegurar que la StatusBar se mantenga visible */}
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="dark-content"
-      />
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Asegurar que la StatusBar se mantenga visible */}
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="dark-content"
+        />
 
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* Pantallas iniciales fuera del contexto del Drawer */}
-          <Stack.Screen name="Index" component={Index} />
-          <Stack.Screen name="Login" component={Login} />
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {/* Pantallas iniciales fuera del contexto del Drawer */}
+            <Stack.Screen name="Index" component={Index} />
+            <Stack.Screen name="Login" component={Login} />
 
-          {/* DrawerNavigator contiene todas las demás pantallas */}
-          <Stack.Screen name="Dashboard" component={DrawerNavigator} />
-          <Stack.Screen
-            name="VehicleDetailsScreen"
-            component={DrawerNavigator}
-          />
-          <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
-          <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
-          <Stack.Screen
-            name="ScheduleAppointmentScreen"
-            component={ScheduleAppointmentScreen}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-      {/* </SafeAreaView> */}
+            {/* DrawerNavigator contiene todas las demás pantallas */}
+            <Stack.Screen name="Dashboard" component={DrawerNavigator} />
+            <Stack.Screen
+              name="VehicleDetailsScreen"
+              component={DrawerNavigator}
+            />
+            <Stack.Screen name="CheckOutScreen" component={CheckOutScreen} />
+            <Stack.Screen name="EntregaScreen" component={EntregaScreen} />
+            <Stack.Screen
+              name="ScheduleAppointmentScreen"
+              component={ScheduleAppointmentScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
     </Provider>
   );
 }

@@ -31,6 +31,26 @@ const FirmaScreen = ({ navigation, route }) => {
   const [caseType, setCaseType] = useState('CancelBoleta'); // Por defecto es "CancelBoleta"
   const [modalMessage, setModalMessage] = useState(''); // Para el mensaje dinámico
 
+  // const handleNext = async () => {
+  //   try {
+  //     const imagenesBase64 = boleta.LIST_IMAGES.map((image) => image.base64);
+
+  //     console.log(boleta.BOL_VEH_PLACA);
+  //     //Prepara el objeto listaFotos con la estructura
+  //     const listaFotos = {
+  //       Fecha: new Date().toISOString(), // Fecha de hoy en formato ISO 8601
+  //       Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
+  //       TipoTrabajo: 'Reparación',
+  //       Imagenes: imagenesBase64, // Imágenes de la boleta
+  //     };
+
+  //     // Llama a saveImagesBoleta y guarda el resultado
+  //     await saveImagesBoleta(listaFotos);
+  //   } catch (error) {
+  //     console.error('Error en handleNext:', error);
+  //   }
+  // };
+
   const handleNext = async () => {
     setCaseType('Notificacion');
     // Verificar si los campos requeridos están completos
@@ -95,7 +115,7 @@ const FirmaScreen = ({ navigation, route }) => {
       };
 
       // Llama a saveImagesBoleta y guarda el resultado
-      //await saveImagesBoleta(listaFotos);
+      await saveImagesBoleta(listaFotos);
 
       const ACC_ACCESORIOS = boleta.ACC_ACCESORIOS.filter(
         (item) => item.habilitado === true,
@@ -151,7 +171,6 @@ const FirmaScreen = ({ navigation, route }) => {
         EMP_CODE: empresa.EMP_CODE,
         EMP_NOMBRE: empresa.EMP_NOMBRE,
         EMP_LOGO: empresa.EMP_LOGO,
-        // EMP_LOGO: '',
         EMP_DIRECCION: empresa.EMP_DIRECCION,
         EMP_EMAIL: empresa.EMP_EMAIL,
         EMP_TELEFONO: empresa.EMP_TELEFONO,
@@ -197,14 +216,11 @@ const FirmaScreen = ({ navigation, route }) => {
         BOL_UPDATEUSER: user.USU_USERNAME,
         BOL_FIRMA_CLIENTE: firma64,
         BOL_FIRMA_CONSENTIMIENTO: firma64,
-        // BOL_FIRMA_CLIENTE: '',
-        // BOL_FIRMA_CONSENTIMIENTO: '',
         BOL_ENTREGADOPOR: user.USU_USERNAME,
         BOL_OBSERVACIONES: boleta.BOL_OBSERVACIONES,
         BOL_RECIBIDOPOR: user.USU_USERNAME,
         BOL_RECIBIDOCONFORME: boleta.BOL_RECIBIDOCONFORME,
         BOL_CAR_EXQUEMA: esquema64,
-        // BOL_CAR_EXQUEMA: boleta.BOL_CAR_EXQUEMA,
         BOL_ESTADO: boleta.BOL_ESTADO,
         BOL_UNWASHED: boleta.BOL_UNWASHED,
         BOL_DELIVERED: boleta.BOL_DELIVERED,
@@ -214,8 +230,7 @@ const FirmaScreen = ({ navigation, route }) => {
         VEH_VEHICULO: VEH_VEHICULO,
       };
 
-      //const respuesta = await createBoleta(boletaData, boleta.CITCLIE_CODE);
-      const respuesta = true;
+      const respuesta = await createBoleta(boletaData, boleta.CITCLIE_CODE);
 
       if (respuesta) {
         dispatch(resetBoleta());

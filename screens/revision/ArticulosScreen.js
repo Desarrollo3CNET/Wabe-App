@@ -92,37 +92,37 @@ const ArticulosScreen = ({ navigation, route }) => {
 
       await saveImagesArticulos(listaFotos);
 
-      //   const todosLosArticulos = [
-      //     ...articulosAgregados,
-      //     ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
-      //   ];
-      //   // Filtra los artículos cuyo ESTADO sea false o "false"
-      //   const filteredArticulos = todosLosArticulos.filter(
-      //     (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
-      //   );
-      //   // Mapea los artículos filtrados para crear el array listArticulos
-      //   const listArticulos = filteredArticulos.map((articulo) => {
-      //     // Verificar si ART_CODE es válido
-      //     const codigoValido =
-      //       articulo.ART_CODE !== null &&
-      //       articulo.ART_CODE !== undefined &&
-      //       articulo.ART_CODE !== '';
-      //     // Construir el string con o sin ART_CODE
-      //     return codigoValido
-      //       ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
-      //       : articulo.ART_NOMBRE;
-      //   });
-      // Llamar a la función SaveArticulos con los parámetros correspondientes
-      // await saveArticulos(
-      //   boleta.BOL_CODE, // idBoleta
-      //   observaciones, // observaciones
-      //   boleta.EMP_CODE, // idEmpresa
-      //   listArticulos, // lista de artículos
-      // );
-      //   dispatch(setCreatingRevisionFalse());
-      //   setObservaciones('');
-      //   setModalMessage(`Se ha finalizado la revisión correctamente`);
-      //   navigation.navigate('CheckOutScreen');
+      const todosLosArticulos = [
+        ...articulosAgregados,
+        ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
+      ];
+      // Filtra los artículos cuyo ESTADO sea false o "false"
+      const filteredArticulos = todosLosArticulos.filter(
+        (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
+      );
+      // Mapea los artículos filtrados para crear el array listArticulos
+      const listArticulos = filteredArticulos.map((articulo) => {
+        // Verificar si ART_CODE es válido
+        const codigoValido =
+          articulo.ART_CODE !== null &&
+          articulo.ART_CODE !== undefined &&
+          articulo.ART_CODE !== '';
+        // Construir el string con o sin ART_CODE
+        return codigoValido
+          ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
+          : articulo.ART_NOMBRE;
+      });
+      //Llamar a la función SaveArticulos con los parámetros correspondientes
+      await saveArticulos(
+        boleta.BOL_CODE, // idBoleta
+        observaciones, // observaciones
+        boleta.EMP_CODE, // idEmpresa
+        listArticulos, // lista de artículos
+      );
+      dispatch(setCreatingRevisionFalse());
+      setObservaciones('');
+      setModalMessage(`Se ha finalizado la revisión correctamente`);
+      navigation.navigate('CheckOutScreen');
     } catch (error) {
       console.error('Error en handleNext:', error);
       // Mensaje de error en caso de excepción
@@ -145,21 +145,44 @@ const ArticulosScreen = ({ navigation, route }) => {
           <ScrollView>
             {articulosAgregados.length > 0 ? (
               articulosAgregados.map((articulo, index) => {
-                // Dividir el nombre y el código
-                const [ART_NAME, ART_CODE] = articulo.ART_NOMBRE.split(' - ');
-                const [prefijo, codigo] = ART_CODE.split('-');
+                console.log('Nombre del artículo:', articulo.ART_NOMBRE);
+
+                let ART_NAME = articulo.ART_NOMBRE;
+                let ART_CODE = 'Código desconocido';
+                let codigoNumerico = 0;
+
+                if (ART_NAME.includes(' - ')) {
+                  // Caso estándar: "Nombre - Prefijo-Código"
+                  const [nombreParte, codigoParte] = ART_NAME.split(' - ');
+                  const [prefijo, codigo] = codigoParte.split('-');
+
+                  ART_NAME = nombreParte;
+                  ART_CODE = codigoParte;
+                  codigoNumerico = parseInt(codigo);
+                } else if (ART_NAME.includes('-')) {
+                  // Caso especial: "Nombre con Prefijo-Código" sin ' - '
+                  const partes = ART_NAME.split('-');
+
+                  if (partes.length === 2) {
+                    // Caso como "Tijereta Inf DI-17781"
+                    ART_NAME = partes[0].trim();
+                    ART_CODE = partes[1].trim();
+                    codigoNumerico = parseInt(ART_CODE);
+                    ART_CODE = `${partes[0].split(' ').pop()}-${ART_CODE}`; // Formato "Prefijo-Código"
+                  }
+                }
 
                 return (
                   <View key={index} style={styles.simpleCard}>
-                    {/* Mostrar ART_NAME en una fila */}
+                    {/* Mostrar el nombre en la primera fila */}
                     <Text style={styles.cardTitle}>{ART_NAME}</Text>
-                    {/* Mostrar ART_CODE en una fila diferente */}
+                    {/* Mostrar el código en la segunda fila */}
                     <Text style={styles.cardTitle}>{ART_CODE}</Text>
 
                     <ArticulosPhotosModal
-                      ART_CODE={parseInt(codigo)} // Usar el código extraído
+                      ART_CODE={codigoNumerico} // Código como número
                       ART_NOMBRE={ART_NAME}
-                      showCameraButton={false} // Hacer visible el botón de la cámara
+                      showCameraButton={false}
                     />
                   </View>
                 );

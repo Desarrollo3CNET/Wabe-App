@@ -55,30 +55,6 @@ const EntregaScreen = ({ navigation }) => {
       // Obtén los datos de getBoletas en lugar del slice de Redux
       const boletas = await getBoletas(1, user.EMP_CODE);
 
-      // const boletas = [
-      //   {
-      //     BOL_CLI_NOMBRE: 'ROBERTO ITURRIBA',
-      //     BOL_CODE: 174,
-      //     BOL_FECHA: '2025-02-24T12:58:00',
-      //     BOL_VEH_PLACA: 'BCX646',
-      //     CITCLIE_TIPO_CITA: 0,
-      //   },
-      //   {
-      //     BOL_CLI_NOMBRE: 'JEINER PORRAS GOMEZ',
-      //     BOL_CODE: 173,
-      //     BOL_FECHA: '2025-02-24T09:06:00',
-      //     BOL_VEH_PLACA: 'BMH414',
-      //     CITCLIE_TIPO_CITA: 0,
-      //   },
-      //   {
-      //     BOL_CLI_NOMBRE: 'Aldo Sánchez Calvo',
-      //     BOL_CODE: 172,
-      //     BOL_FECHA: '2025-02-21T15:55:00',
-      //     BOL_VEH_PLACA: 'Bvy064',
-      //     CITCLIE_TIPO_CITA: 0,
-      //   },
-      // ];
-
       setData(boletas); // Asigna los datos al estado local
       setFilteredData(boletas); // Asigna también los datos filtrados
     } catch (error) {
@@ -173,6 +149,8 @@ const EntregaScreen = ({ navigation }) => {
   const handleNavigateToArticulos = async (item) => {
     setIsLoading(true);
     try {
+      console.log(item.BOL_CODE);
+
       dispatch(resetAllStates());
       const articulos = await getArticulosByBoleta(item.BOL_CODE);
 
