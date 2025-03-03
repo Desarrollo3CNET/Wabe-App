@@ -53,8 +53,8 @@ const GolpesModal = ({ visible, onClose }) => {
   const handleStart = (x, y) => {
     if (!isDrawing) return;
     // Ajustamos las coordenadas para el zoom y panX, panY
-    const adjustedX = (x - panX) / zoom; // Ajustar con el zoom y panX
-    const adjustedY = (y - panY) / zoom; // Ajustar con el zoom y panY
+    const adjustedX = x - panX; // Ajustar con el zoom y panX
+    const adjustedY = y - panY; // Ajustar con el zoom y panY
     const startPoint = `M ${adjustedX},${adjustedY}`; // Crear el punto de inicio ajustado
     setLocalPath(startPoint);
   };
@@ -62,8 +62,8 @@ const GolpesModal = ({ visible, onClose }) => {
   const handleMove = (x, y) => {
     if (!isDrawing || !localPath || isNaN(x) || isNaN(y)) return;
     // Ajustar las coordenadas para el zoom y pan
-    const adjustedX = (x - panX) / zoom; // Ajustar con el zoom y panX
-    const adjustedY = (y - panY) / zoom; // Ajustar con el zoom y panY
+    const adjustedX = x - panX; // Ajustar con el zoom y panX
+    const adjustedY = y - panY; // Ajustar con el zoom y panY
     const newPoint = `L ${adjustedX},${adjustedY}`; // Agregar el nuevo punto ajustado al path
     setLocalPath((prevPath) => `${prevPath} ${newPoint}`);
   };

@@ -16,7 +16,7 @@ import CheckOutScreen from './screens/CheckOutScreen';
 import EntregaScreen from './screens/EntregaScreen';
 import ScheduleAppointmentScreen from './screens/ScheduleAppointmentScreen';
 
-//Pantallas de Revisión
+//Pantallas de Boleta
 import VehicleDetailsScreen from './screens/recepcion/VehicleDetailsScreen';
 import FirmaScreen from './screens/recepcion/FirmaScreen';
 import TipoTrabajoScreen from './screens/recepcion/TipoTrabajoScreen';
@@ -36,6 +36,7 @@ import ArticulosScreen from './screens/revision/ArticulosScreen';
 
 //Pantallas de Entrega
 import BoletaScreen from './screens/entrega/BoletaScreen';
+import GolpesScreen from './screens/entrega/GolpesScreen';
 
 import Menu from './screens/Menu';
 
@@ -68,6 +69,7 @@ const DrawerNavigator = () => {
         component={PhotosAndVideosScreen}
       />
       <Drawer.Screen name="BoletaScreen" component={BoletaScreen} />
+      <Drawer.Screen name="GolpesScreen" component={GolpesScreen} />
 
       <Drawer.Screen name="AccesoriosScreen" component={AccesoriosScreen} />
 

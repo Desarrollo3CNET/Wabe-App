@@ -1,21 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useSelector } from 'react-redux';
-import Svg, { Path } from 'react-native-svg';
+import { Svg, Path, SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Buffer } from 'buffer';
 
 const SignatureInput = ({ label, onEditSignature, fromScreen }) => {
-  // Accede a la firma guardada en Redux
+  // Obtiene la firma desde Redux
   const signaturePaths = useSelector((state) => state.boleta.BOL_FIRMA_CLIENTE);
-  const isCreatingBoleta = useSelector((state) => state.app.isCreatingBoleta); // Obtén el valor de isCreatingBoleta
+  const isCreatingBoleta = useSelector((state) => state.app.isCreatingBoleta);
+
+  // Decodifica Base64 a string
+  const decodeBase64ToString = (base64String) => {
+    if (!base64String) return null;
+    return Buffer.from(base64String, 'base64').toString('utf-8');
+  };
+
+  // Verifica si es un archivo SVG o una imagen PNG/JPG
+  const signatureData = decodeBase64ToString(signaturePaths);
+  const isSVG = signatureData?.trim().startsWith('<svg');
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.signatureBox}>
         {isCreatingBoleta ? (
-          // Si isCreatingBoleta es true, muestra el dibujo de la firma (paths)
-          signaturePaths && signaturePaths.length > 0 ? (
+          signaturePaths &&
+          Array.isArray(signaturePaths) &&
+          signaturePaths.length > 0 ? (
             <Svg
               width="100%"
               height="100%"
@@ -35,13 +47,16 @@ const SignatureInput = ({ label, onEditSignature, fromScreen }) => {
           ) : (
             <Text style={styles.signaturePlaceholder}>[Firma del cliente]</Text>
           )
-        ) : // Si isCreatingBoleta es false, muestra la firma en formato imagen
-        signaturePaths ? (
-          <Image
-            source={{ uri: `data:image/png;base64,${signaturePaths}` }}
-            style={styles.signatureImage}
-            resizeMode="contain"
-          />
+        ) : signatureData ? (
+          isSVG ? (
+            <SvgXml xml={signatureData} width="100%" height="100%" />
+          ) : (
+            <Image
+              source={{ uri: `data:image/png;base64,${signaturePaths}` }}
+              style={styles.signatureImage}
+              resizeMode="contain"
+            />
+          )
         ) : (
           <Text style={styles.signaturePlaceholder}>[Firma del cliente]</Text>
         )}
@@ -82,11 +97,8 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   signatureImage: {
-    height: '50%', // Hace que la imagen sea más pequeña
-    width: '50%', // Ajusta proporcionalmente
-    position: 'absolute', // Permite centrarla
-    top: '25%', // Centra verticalmente
-    left: '25%', // Centra horizontalmente
+    width: '100%',
+    height: '100%',
   },
   editButton: {
     position: 'absolute',

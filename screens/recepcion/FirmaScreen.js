@@ -258,6 +258,7 @@ const FirmaScreen = ({ navigation, route }) => {
           />
         );
       case 'BoletaScreen':
+      case 'GolpesScreen':
         return (
           <FooterButtons
             onBack={() =>
@@ -265,7 +266,7 @@ const FirmaScreen = ({ navigation, route }) => {
                 fromScreen: 'FirmaScreen',
               })
             }
-            showNext={false}
+            onNext={() => navigation.navigate('GolpesScreen')}
             showDelete={false}
           />
         );

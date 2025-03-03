@@ -256,22 +256,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
                   />
                 </TouchableOpacity>
               ))}
-
-              {/* Renderizamos el esquema como una imagen más */}
-              {esquema && (
-                <TouchableOpacity
-                  style={styles.attachmentItem}
-                  onPress={() => {
-                    setSelectedImage(decodeBase64Image(esquema)); // Decodificamos y mostramos el esquema
-                    setModalImageVisible(true); // Mostramos el modal
-                  }}
-                >
-                  <Image
-                    source={{ uri: decodeBase64Image(esquema) }}
-                    style={styles.thumbnailImage}
-                  />
-                </TouchableOpacity>
-              )}
             </View>
 
             {/* MODAL PARA MOSTRAR LA IMAGEN */}

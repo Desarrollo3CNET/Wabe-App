@@ -3,9 +3,14 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux'; // Importar useSelector
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
-
+import moment from 'moment'; // Importamos moment para formatear fechas
+import 'moment/locale/es'; // Importamos el idioma español
 const BoletaScreen = ({ navigation, route }) => {
   const { fromScreen } = route.params || {};
+
+  moment.locale('es');
+  const formatDate = (date) =>
+    moment(date).format('DD [de] MMMM [del] YYYY, h:mm A');
 
   // Recuperar los datos del slice de boleta
   const boleta = useSelector((state) => state.boleta);
@@ -56,8 +61,6 @@ const BoletaScreen = ({ navigation, route }) => {
       {/* Content */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.contentContainer}>
-          <Text style={styles.sectionTitle}>Boleta</Text>
-
           {/* Row Content */}
           <View style={styles.row}>
             {/* Left Section */}
@@ -68,6 +71,9 @@ const BoletaScreen = ({ navigation, route }) => {
               <Text style={styles.label}>Teléfono</Text>
               <Text style={styles.value}>{boleta.BOL_CLI_TELEFONO}</Text>
 
+              <Text style={styles.label}>Correo</Text>
+              <Text style={styles.value}>{boleta.BOL_CLI_CORREO}</Text>
+
               <Text style={styles.label}>Placa</Text>
               <Text style={styles.value}>{boleta.BOL_VEH_PLACA}</Text>
 
@@ -76,6 +82,14 @@ const BoletaScreen = ({ navigation, route }) => {
 
               <Text style={styles.label}>Combustible</Text>
               <Text style={styles.value}>{boleta.BOL_VEH_COMBUSTIBLE}</Text>
+
+              <Text style={styles.label}>Observaciones</Text>
+              <Text style={styles.value}>{boleta.BOL_OBSERVACIONES}</Text>
+
+              <Text style={styles.label}>Estado</Text>
+              <Text style={styles.value}>
+                {boleta.BOL_ESTADO === 1 ? 'Activo' : 'Inactivo'}
+              </Text>
             </View>
 
             {/* Right Section */}
@@ -90,6 +104,48 @@ const BoletaScreen = ({ navigation, route }) => {
               ) : (
                 <Text style={styles.value}>N/A</Text>
               )}
+
+              <Text style={styles.label}>Marca</Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_MARCA}</Text>
+
+              <Text style={styles.label}>Estilo</Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_ESTILO}</Text>
+
+              <Text style={styles.label}>Año</Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_ANIO || 'N/A'}</Text>
+
+              <Text style={styles.label}>Color</Text>
+              <Text style={styles.value}>{boleta.BOL_VEH_COLOR}</Text>
+            </View>
+          </View>
+
+          {/* Additional Information */}
+          <View style={styles.row}>
+            <View style={styles.leftSection}>
+              <Text style={styles.label}>Recibido por</Text>
+              <Text style={styles.value}>
+                {boleta.BOL_RECIBIDOPOR || 'N/A'}
+              </Text>
+
+              <Text style={styles.label}>Entregado por</Text>
+              <Text style={styles.value}>
+                {boleta.BOL_ENTREGADOPOR || 'N/A'}
+              </Text>
+
+              <Text style={styles.label}>No lavado</Text>
+              <Text style={styles.value}>
+                {boleta.BOL_UNWASHED ? 'Sí' : 'No'}
+              </Text>
+            </View>
+
+            <View style={styles.rightSection}>
+              <Text style={styles.label}>Fecha de Creación</Text>
+              <Text style={styles.value}>
+                {formatDate(boleta.BOL_CREATEDATE)}
+              </Text>
+
+              <Text style={styles.label}>Fecha de Entrega</Text>
+              <Text style={styles.value}>{formatDate(boleta.BOL_FECHA)}</Text>
             </View>
           </View>
         </View>
@@ -104,6 +160,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+    padding: 10,
   },
   scrollContent: {
     flexGrow: 1,
