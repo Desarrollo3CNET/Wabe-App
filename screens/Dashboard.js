@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,8 +18,8 @@ import { getCitas } from '../src/services/CitaService';
 import { processCitas } from '../src/utils/processData/processCitas';
 import { clearCitas, addCita } from '../src/contexts/CitasSlice';
 import { getDashboardData } from '../src/services/DashboardService';
-import { ReadEmpresa } from '../src/services/EmpresaService';
-import { setEmpresa } from '../src/contexts/AppSlice';
+
+import eventEmitter from '../src/utils/eventEmitter';
 
 const Dashboard = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -29,43 +30,42 @@ const Dashboard = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dashboardData, setDashboardData] = useState(null); // Datos del dashboard
   const [isLoading, setIsLoading] = useState(true); // Estado para mostrar el spinner
+  const [refreshing, setRefreshing] = useState(false); // Estado para refresh
   const logo = require('../assets/logo.png'); // Logo de la empresa
 
-  // Efecto para cargar citas desde la API
+  const fetchCitas = async () => {
+    setIsLoading(true);
+    try {
+      const dashboardResponse = await getDashboardData(user?.EMP_CODE);
+      const rawCitas = await getCitas(-1, -1, -1);
+      const processedCitas = processCitas(rawCitas);
+
+      setDashboardData(dashboardResponse[0]);
+      setFilteredCitas(processedCitas);
+    } catch (error) {
+      console.error('Error fetching:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // eventEmitter.on('refresh', () => {
+  //   fetchCitas();
+  // });
+
   useEffect(() => {
-    const fetchCitas = async () => {
-      setIsLoading(true); // Show the spinner while loading data
-      try {
-        const empresa = await ReadEmpresa(user.EMP_CODE);
-        dispatch(setEmpresa(empresa));
+    if (user?.EMP_CODE) {
+      fetchCitas();
+    }
+  }, [user?.EMP_CODE]);
 
-        const dashboardResponse = await getDashboardData(user?.EMP_CODE);
-        setDashboardData(dashboardResponse[0]);
-
-        const rawCitas = await getCitas(-1, -1, -1); // Initial parameters for getCitas
-        const processedCitas = processCitas(rawCitas); // Process the citas data
-
-        // Dispatch the citas to Redux store
-        dispatch(clearCitas());
-        processedCitas.forEach((cita) => {
-          dispatch(addCita(cita)); // Add each cita to Redux store
-        });
-
-        // Filter citas based on today's date once and update the state
-        const today = new Date().toISOString().split('T')[0];
-        const filtered = processedCitas.filter(
-          (cita) => cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0] === today,
-        );
-        setFilteredCitas(filtered); // Set filtered citas once
-      } catch (error) {
-        console.error('Error fetching:', error);
-      } finally {
-        setIsLoading(false); // Hide the spinner when done
-      }
-    };
-
-    fetchCitas(); // Call the function on mount
-  }, [dispatch, user]); // Dependencies to only run when necessary (e.g., user code)
+  // ✅ Hacer los cambios en Redux en otro efecto separado
+  useEffect(() => {
+    if (filteredCitas.length > 0) {
+      dispatch(clearCitas());
+      filteredCitas.forEach((cita) => dispatch(addCita(cita)));
+    }
+  }, [filteredCitas]); // ✅ Solo se ejecuta cuando `filteredCitas` cambia
 
   // Función para manejar búsqueda por número de cita
   const handleSearch = (query) => {
@@ -125,129 +125,142 @@ const Dashboard = ({ navigation }) => {
         <Image source={logo} style={styles.logo} />
       </View>
 
-      <View style={styles.headerSection}>
-        {/* Información del usuario */}
-        {user && (
-          <View style={styles.userInfo}>
-            <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
-            <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
-          </View>
-        )}
-
-        {/* Dashboard Data */}
-        {dashboardData && (
-          <View style={styles.dashboardContainer}>
-            <View style={[styles.card, styles.pendingCard]}>
-              <Ionicons
-                name="clipboard-outline"
-                size={20}
-                color="#005EB8"
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardNumber}>{dashboardData.PENDIENTES}</Text>
-              <Text style={styles.cardLabel}>Vehículos Pendientes</Text>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={fetchCitas} />
+        }
+      >
+        <View style={styles.headerSection}>
+          {/* Información del usuario */}
+          {user && (
+            <View style={styles.userInfo}>
+              <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
+              <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
             </View>
-            <View style={[styles.card, styles.receivedCard]}>
-              <Ionicons
-                name="car-outline"
-                size={20}
-                color="#D32F2F"
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
-              <Text style={styles.cardLabel}>Vehículos Recibidos</Text>
-            </View>
-            <View style={[styles.card, styles.deliveredCard]}>
-              <Ionicons
-                name="car-sport-outline"
-                size={20}
-                color="#FFA000"
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardNumber}>{dashboardData.ENTREGADOS}</Text>
-              <Text style={styles.cardLabel}>Vehículos Entregados</Text>
-            </View>
-          </View>
-        )}
+          )}
 
-        {/* Fila de botones */}
-        <View style={styles.buttonRow}>
-          {/* Barra de búsqueda */}
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#999"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar..."
-              placeholderTextColor="#aaa"
-              value={searchQuery}
-              onChangeText={handleSearch}
-            />
-          </View>
-
-          {/* Botón de Filtrar */}
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setFilterModalVisible(true)}
-          >
-            <Ionicons name="options-outline" size={20} color="#000" />
-            <Text style={styles.filterText}>Filtrar</Text>
-          </TouchableOpacity>
-
-          {/* Botón de Crear Nueva Cita */}
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
-          >
-            <Text style={styles.createButtonText}>+ Crear</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Lista de citas o spinner */}
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#FFD700"
-          style={styles.spinner}
-        />
-      ) : filteredCitas.length === 0 ? (
-        <View style={styles.container}>
-          <Text style={styles.noDataText}>
-            No hay datos disponibles. Intenta con otros filtros.
-          </Text>
-        </View>
-      ) : (
-        <ScrollView style={styles.scrollview}>
-          {Object.entries(
-            filteredCitas.reduce((acc, cita) => {
-              const fecha = cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0]; // Solo la fecha (sin hora)
-              if (!acc[fecha]) acc[fecha] = [];
-              acc[fecha].push(cita);
-              return acc;
-            }, {}),
-          ).map(([fecha, citasDelDia]) => (
-            <View key={fecha}>
-              {/* Encabezado único por fecha */}
-              <Text style={styles.dateHeader}>{fecha}</Text>
-              {/* Renderizar las citas correspondientes a esa fecha */}
-              {citasDelDia.map((cita) => (
-                <AppointmentCard
-                  key={cita.CITA.CITCLIE_CODE}
-                  fecha={cita.CITA.CITCLIE_FECHA_RESERVA}
-                  cliente={cita.CLIENTE}
-                  vehiculo={cita.VEHICULO}
-                  cita={cita.CITA}
+          {/* Dashboard Data */}
+          {dashboardData && (
+            <View style={styles.dashboardContainer}>
+              <View style={[styles.card, styles.pendingCard]}>
+                <Ionicons
+                  name="clipboard-outline"
+                  size={20}
+                  color="#005EB8"
+                  style={styles.cardIcon}
                 />
-              ))}
+                <Text style={styles.cardNumber}>
+                  {dashboardData.PENDIENTES}
+                </Text>
+                <Text style={styles.cardLabel}>Vehículos Pendientes</Text>
+              </View>
+              <View style={[styles.card, styles.receivedCard]}>
+                <Ionicons
+                  name="car-outline"
+                  size={20}
+                  color="#D32F2F"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardNumber}>{dashboardData.RECIBIDOS}</Text>
+                <Text style={styles.cardLabel}>Vehículos Recibidos</Text>
+              </View>
+              <View style={[styles.card, styles.deliveredCard]}>
+                <Ionicons
+                  name="car-sport-outline"
+                  size={20}
+                  color="#FFA000"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardNumber}>
+                  {dashboardData.ENTREGADOS}
+                </Text>
+                <Text style={styles.cardLabel}>Vehículos Entregados</Text>
+              </View>
             </View>
-          ))}
-        </ScrollView>
-      )}
+          )}
+
+          {/* Fila de botones */}
+          <View style={styles.buttonRow}>
+            {/* Barra de búsqueda */}
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color="#999"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por número de cita..."
+                placeholderTextColor="#aaa"
+                value={searchQuery}
+                onChangeText={handleSearch}
+              />
+            </View>
+
+            {/* Botón de Filtrar */}
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <Ionicons name="options-outline" size={20} color="#000" />
+              <Text style={styles.filterText}>Filtrar</Text>
+            </TouchableOpacity>
+
+            {/* Botón de Crear Nueva Cita */}
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => navigation.navigate('ScheduleAppointmentScreen')}
+            >
+              <Text style={styles.createButtonText}>+ Crear</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Lista de citas o spinner */}
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#FFD700"
+            style={styles.spinner}
+          />
+        ) : filteredCitas.length === 0 ? (
+          <View style={styles.container}>
+            <Text style={styles.noDataText}>
+              No hay datos disponibles. Intenta con otros filtros.
+            </Text>
+          </View>
+        ) : (
+          <ScrollView style={styles.scrollview}>
+            {Object.entries(
+              filteredCitas.reduce((acc, cita) => {
+                const fecha = cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0]; // Solo la fecha (sin hora)
+                if (!acc[fecha]) acc[fecha] = [];
+                acc[fecha].push(cita);
+                return acc;
+              }, {}),
+            ).map(([fecha, citasDelDia]) => (
+              <View key={fecha}>
+                {/* Encabezado único por fecha */}
+                <Text style={styles.dateHeader}>{fecha}</Text>
+                {/* Renderizar las citas correspondientes a esa fecha */}
+                {citasDelDia.map((cita) =>
+                  cita ? ( // Verifica que la cita no sea nula antes de renderizar
+                    <AppointmentCard
+                      key={cita.CITA.CITCLIE_CODE}
+                      fecha={cita.CITA.CITCLIE_FECHA_RESERVA}
+                      cliente={cita.CLIENTE}
+                      vehiculo={cita.VEHICULO}
+                      cita={cita.CITA}
+                    />
+                  ) : null,
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </ScrollView>
 
       {/* Modal de filtros */}
       <FilterModal

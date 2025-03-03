@@ -238,41 +238,41 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
         <Text style={styles.title}>Fotografías</Text>
 
         {fromScreen === 'EntregaScreen' || fromScreen === 'CheckOutScreen' ? (
-          <ScrollView
-            contentContainerStyle={{ flexDirection: 'row', padding: 10 }}
-          >
+          <ScrollView contentContainerStyle={{ padding: 10 }}>
             {/* Renderizamos las imágenes adjuntas */}
-            {attachments.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.attachmentItem}
-                onPress={() => {
-                  setSelectedImage(decodeBase64Image(item)); // Establecemos la imagen seleccionada
-                  setModalImageVisible(true); // Mostramos el modal
-                }}
-              >
-                <Image
-                  source={{ uri: decodeBase64Image(item) }}
-                  style={styles.thumbnailImage}
-                />
-              </TouchableOpacity>
-            ))}
+            <View style={styles.attachmentWrapper}>
+              {attachments.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.attachmentItem}
+                  onPress={() => {
+                    setSelectedImage(decodeBase64Image(item)); // Establecemos la imagen seleccionada
+                    setModalImageVisible(true); // Mostramos el modal
+                  }}
+                >
+                  <Image
+                    source={{ uri: decodeBase64Image(item) }}
+                    style={styles.thumbnailImage}
+                  />
+                </TouchableOpacity>
+              ))}
 
-            {/* Renderizamos el esquema como una imagen más */}
-            {esquema && (
-              <TouchableOpacity
-                style={styles.attachmentItem}
-                onPress={() => {
-                  setSelectedImage(decodeBase64Image(esquema)); // Decodificamos y mostramos el esquema
-                  setModalImageVisible(true); // Mostramos el modal
-                }}
-              >
-                <Image
-                  source={{ uri: decodeBase64Image(esquema) }}
-                  style={styles.thumbnailImage}
-                />
-              </TouchableOpacity>
-            )}
+              {/* Renderizamos el esquema como una imagen más */}
+              {esquema && (
+                <TouchableOpacity
+                  style={styles.attachmentItem}
+                  onPress={() => {
+                    setSelectedImage(decodeBase64Image(esquema)); // Decodificamos y mostramos el esquema
+                    setModalImageVisible(true); // Mostramos el modal
+                  }}
+                >
+                  <Image
+                    source={{ uri: decodeBase64Image(esquema) }}
+                    style={styles.thumbnailImage}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
 
             {/* MODAL PARA MOSTRAR LA IMAGEN */}
             <Modal
@@ -335,7 +335,7 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
             <FlatList
               data={attachments}
               renderItem={renderAttachment}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item, index) => index.toString()}
               horizontal
               contentContainerStyle={styles.attachmentList}
             />
@@ -418,6 +418,11 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#333', padding: 10 },
+  attachmentWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap', // Permite que las imágenes se ajusten en varias filas
+    justifyContent: 'flex-start', // Alinea las imágenes al principio
+  },
   content: {
     backgroundColor: '#FFF',
     borderRadius: 20,
@@ -467,7 +472,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   attachmentItem: {
-    width: 80,
+    width: 80, // Ajusta el tamaño de la miniatura según lo necesites
     height: 80,
     margin: 5,
     justifyContent: 'center',
@@ -485,18 +490,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
     backgroundColor: '#FFF',
+    zIndex: 9000,
   },
   selected: { backgroundColor: '#FFD700' },
   innerCircle: {
     width: 10,
     height: 10,
+    right: -2,
+    top: 2,
     borderRadius: 5,
     backgroundColor: '#000',
   },
   thumbnailImage: {
-    width: 60, // Ajusta el tamaño de la miniatura según lo necesites
-    height: 60,
-    borderRadius: 10, // Si deseas bordes redondeados
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
     resizeMode: 'cover', // Asegura que la imagen se ajuste al contenedor
   },
   editButton: { flexDirection: 'row', alignSelf: 'flex-end', marginTop: 10 },

@@ -4,6 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { setLoggedIn } from '../src/contexts/AppSlice';
+import { ReadEmpresa } from '../src/services/EmpresaService';
+import { setEmpresa } from '../src/contexts/AppSlice';
+import { addAccesorio } from '../src/contexts/BoletaSlice';
+import { getAccesories } from '../src/services/AccesorioService';
+import { processAccessories } from '../src/utils/processData/processAccessories';
 
 const Index = () => {
   const dispatch = useDispatch();
@@ -12,6 +17,15 @@ const Index = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        // const rawAccessories = await getAccesories();
+        // const processedAccessories = await processAccessories(rawAccessories);
+        // processedAccessories.forEach((accessory) => {
+        //   dispatch(addAccesorio(accessory));
+        // });
+
+        const empresa = await ReadEmpresa(6);
+        dispatch(setEmpresa(empresa));
+
         const session = await AsyncStorage.getItem('session');
         if (session) {
           const sessionObj = JSON.parse(session);

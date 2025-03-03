@@ -24,6 +24,8 @@ import { getSucursales } from '../src/services/BoletaService';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { marcas } from '../src/utils/dataMarcas';
+import eventEmitter from '../src/utils/eventEmitter';
+
 const ScheduleAppointmentScreen = ({ navigation }) => {
   const [appointmentDetails, setAppointmentDetails] = useState({
     placa: '',
@@ -161,6 +163,10 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         const modelosLista = response.data.map((modelo) => modelo.MOD_NAME);
 
         setModelos(modelosLista);
+        setAppointmentDetails((prev) => ({
+          ...prev,
+          ['estilo']: modelosLista[0],
+        }));
       } else {
         setModelos([]);
       }
@@ -191,6 +197,10 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       };
       fetchSucursales();
       fetchModelosByMarca(marcas[0]);
+      setAppointmentDetails((prev) => ({
+        ...prev,
+        ['marca']: marcas[0],
+      }));
     }
   }, [user]);
 
@@ -369,17 +379,13 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     };
 
     try {
-      const response = await crearCita(citaRequestDTO);
+      await crearCita(citaRequestDTO);
 
       // Mostrar mensaje en el modal según la respuesta del backend
       setModalMessage('La cita se agendó correctamente');
+      eventEmitter.emit('refresh');
       setModalVisible(true);
-
       resetForm();
-      // Si la cita se creó correctamente, redirigir al usuario
-      if (response.resultado) {
-        navigation.navigate('Dashboard');
-      }
     } catch (error) {
       setModalMessage('Error al agendar la cita. Inténtalo de nuevo.');
       setModalVisible(true);
@@ -389,16 +395,12 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const resetForm = () => {
     setAppointmentDetails({
       placa: '',
-      marca: '',
-      estilo: '',
       anio: '',
       cedula: '',
       nombre: '',
       telefono: '',
       correo: '',
       direccion: '',
-      fecha: '',
-      hora: '',
       tipoCedula: 1,
     });
 

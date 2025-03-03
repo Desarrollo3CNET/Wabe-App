@@ -21,7 +21,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
   const handleNext = async () => {
     const requiredFields = [
       'BOL_VEH_PLACA',
-      'BOL_VEH_ESTILO',
+      'BOL_VEH_MODELO',
       'BOL_VEH_ANIO',
       'BOL_VEH_KM',
       'horaIngreso',
@@ -66,8 +66,8 @@ const VehicleDetailsScreen = ({ navigation }) => {
       return;
     }
 
-    // Validar que BOL_VEH_ESTILO tenga un máximo de 50 caracteres
-    if (boleta.BOL_VEH_ESTILO.length > 50) {
+    // Validar que BOL_VEH_MODELO tenga un máximo de 50 caracteres
+    if (boleta.BOL_VEH_MODELO.length > 50) {
       setCaseType('Notificacion');
       setModalMessage(
         'El estilo del vehículo no puede superar los 50 caracteres.',
@@ -129,8 +129,8 @@ const VehicleDetailsScreen = ({ navigation }) => {
               <CustomInput
                 label="Estilo del Vehículo"
                 type="text"
-                value={boleta.BOL_VEH_ESTILO}
-                onChange={(value) => handleUpdate('BOL_VEH_ESTILO', value)}
+                value={boleta.BOL_VEH_MODELO}
+                onChange={(value) => handleUpdate('BOL_VEH_MODELO', value)}
               />
             </View>
           </View>

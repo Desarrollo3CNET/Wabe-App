@@ -23,6 +23,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Svg, { Path } from 'react-native-svg';
 import ZoomBar from '../../components/recepcion/ZoomBar';
 
+import ViewShot from 'react-native-view-shot';
+import * as FileSystem from 'expo-file-system';
+
 const GolpesModal = ({ visible, onClose }) => {
   const dispatch = useDispatch();
   const { BOL_VEH_ESTILO, BOL_UNWASHED, paths, undonePaths } = useSelector(
@@ -49,26 +52,26 @@ const GolpesModal = ({ visible, onClose }) => {
 
   const handleStart = (x, y) => {
     if (!isDrawing) return;
-    // Ajustar las coordenadas para el zoom y pan
-    const adjustedX = (x - panX) / zoom;
-    const adjustedY = (y - panY) / zoom;
-    const startPoint = `M ${adjustedX},${adjustedY}`;
+    // Ajustamos las coordenadas para el zoom y panX, panY
+    const adjustedX = (x - panX) / zoom; // Ajustar con el zoom y panX
+    const adjustedY = (y - panY) / zoom; // Ajustar con el zoom y panY
+    const startPoint = `M ${adjustedX},${adjustedY}`; // Crear el punto de inicio ajustado
     setLocalPath(startPoint);
   };
 
   const handleMove = (x, y) => {
     if (!isDrawing || !localPath || isNaN(x) || isNaN(y)) return;
     // Ajustar las coordenadas para el zoom y pan
-    const adjustedX = (x - panX) / zoom;
-    const adjustedY = (y - panY) / zoom;
-    const newPoint = `L ${adjustedX},${adjustedY}`;
+    const adjustedX = (x - panX) / zoom; // Ajustar con el zoom y panX
+    const adjustedY = (y - panY) / zoom; // Ajustar con el zoom y panY
+    const newPoint = `L ${adjustedX},${adjustedY}`; // Agregar el nuevo punto ajustado al path
     setLocalPath((prevPath) => `${prevPath} ${newPoint}`);
   };
 
   const handleEnd = () => {
     if (localPath) {
-      dispatch(addPath(localPath));
-      setLocalPath('');
+      dispatch(addPath(localPath)); // Guardar el path ajustado
+      setLocalPath(''); // Resetear el path local
     }
   };
 
@@ -92,8 +95,40 @@ const GolpesModal = ({ visible, onClose }) => {
     dispatch(toggleDirty());
   };
 
-  const handleSave = () => {
-    onClose();
+  const viewShotRef = useRef();
+
+  const handleUpdate = (key, value) => {
+    dispatch(setProperty({ key, value }));
+  };
+
+  const imageToBase64 = async (imageUri) => {
+    try {
+      // Leemos el archivo de la imagen y lo convertimos a base64
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
+    } catch (error) {
+      console.error('Error al convertir la imagen a base64:', error);
+      return null;
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      // Captura la imagen y obtiene la URI local
+      const imagePath = await viewShotRef.current.capture({
+        format: 'png', // Puedes cambiar a 'jpeg' si lo prefieres
+      });
+
+      // Convertimos la imagen capturada a base64
+      const base64Image = await imageToBase64(imagePath);
+      handleUpdate('BOL_CAR_EXQUEMA', base64Image);
+
+      onClose();
+    } catch (error) {
+      console.log('Error al capturar la imagen', error);
+    }
   };
 
   // Desplazamiento (Pan)
@@ -179,67 +214,75 @@ const GolpesModal = ({ visible, onClose }) => {
             </View>
           </View>
 
-          <View style={styles.canvasContainer}>
-            {/* Agregado el ScrollView horizontal para la imagen */}
-            <Image
-              source={images[BOL_VEH_ESTILO]}
-              style={[
-                styles.vehicleImage,
-                {
-                  transform: [{ scale: zoom }],
-                  width: 'auto', // Ajuste para que la imagen no se deforme
-                },
-              ]}
-              resizeMode="contain"
-            />
+          <ViewShot ref={viewShotRef} style={styles.canvasContainer}>
+            <View style={styles.canvasContainer}>
+              {/* Agregado el ScrollView horizontal para la imagen */}
+              <Image
+                source={images[BOL_VEH_ESTILO]}
+                style={[
+                  styles.vehicleImage,
+                  {
+                    transform: [{ scale: zoom }],
+                    width: 'auto', // Ajuste para que la imagen no se deforme
+                  },
+                ]}
+                resizeMode="contain"
+              />
 
-            <Svg
-              style={styles.canvas}
-              transform={`translate(${panX || 0}, ${panY || 0}) scale(${zoom || 1})`}
-            >
-              {paths.map((path, index) => (
-                <Path
-                  key={`path-${index}`}
-                  d={path}
-                  stroke="yellow"
-                  strokeWidth={4}
-                  fill="none"
-                />
-              ))}
-              {localPath ? (
-                <Path
-                  d={localPath}
-                  stroke="yellow"
-                  strokeWidth={4}
-                  fill="none"
-                />
-              ) : null}
-            </Svg>
+              <Svg
+                style={styles.canvas}
+                transform={`translate(${panX || 0}, ${panY || 0}) scale(${zoom || 1})`}
+              >
+                {paths.map((path, index) => (
+                  <Path
+                    key={`path-${index}`}
+                    d={path}
+                    stroke="yellow"
+                    strokeWidth={4}
+                    fill="none"
+                  />
+                ))}
+                {localPath ? (
+                  <Path
+                    d={localPath}
+                    stroke="yellow"
+                    strokeWidth={4}
+                    fill="none"
+                  />
+                ) : null}
+              </Svg>
 
-            <View
-              style={styles.canvasTouchArea}
-              onStartShouldSetResponder={() => true}
-              onResponderGrant={(e) => {
-                if (isDrawing) {
-                  handleStart(e.nativeEvent.locationX, e.nativeEvent.locationY);
-                } else {
-                  handlePanStart(
-                    e.nativeEvent.locationX,
-                    e.nativeEvent.locationY,
-                  );
-                }
-              }}
-              onResponderMove={(e) => {
-                if (isDrawing) {
-                  handleMove(e.nativeEvent.locationX, e.nativeEvent.locationY);
-                } else {
-                  handlePanMove(e.nativeEvent.deltaX, e.nativeEvent.deltaY);
-                }
-              }}
-              onResponderRelease={handleEnd}
-              onResponderTerminate={handlePanEnd}
-            />
-          </View>
+              <View
+                style={styles.canvasTouchArea}
+                onStartShouldSetResponder={() => true}
+                onResponderGrant={(e) => {
+                  if (isDrawing) {
+                    handleStart(
+                      e.nativeEvent.locationX,
+                      e.nativeEvent.locationY,
+                    );
+                  } else {
+                    handlePanStart(
+                      e.nativeEvent.locationX,
+                      e.nativeEvent.locationY,
+                    );
+                  }
+                }}
+                onResponderMove={(e) => {
+                  if (isDrawing) {
+                    handleMove(
+                      e.nativeEvent.locationX,
+                      e.nativeEvent.locationY,
+                    );
+                  } else {
+                    handlePanMove(e.nativeEvent.deltaX, e.nativeEvent.deltaY);
+                  }
+                }}
+                onResponderRelease={handleEnd}
+                onResponderTerminate={handlePanEnd}
+              />
+            </View>
+          </ViewShot>
 
           <View style={styles.footer}>
             <View style={styles.switchContainer}>

@@ -51,14 +51,13 @@ export async function getModelosByMarca(marca) {
 
 // Función para crear una cita
 export async function crearCita(citaDto) {
-  // try {
-  const response = await post(`${controller}/CrearCitaApp`, citaDto);
-
-  return response;
-  // } catch (error) {
-  //   console.error('Error creando cita:', error);
-  //   throw error;
-  // }
+  try {
+    const response = await post(`${controller}/CrearCitaApp`, citaDto);
+    return response;
+  } catch (error) {
+    console.error('Error creando cita:', error);
+    throw error;
+  }
 }
 
 // Función para obtener citas

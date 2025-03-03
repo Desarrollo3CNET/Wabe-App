@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setProperty } from '../../src/contexts/BoletaSlice';
 import Header from '../../src/components/recepcion/Header';
@@ -15,7 +15,7 @@ import {
   saveImagesBoleta,
 } from '../../src/services/BoletaService';
 import convertSignatureToBase64 from '../../src/utils/convertSignatureToBase64';
-import generateImageWithPathsInBase64 from '../../src/utils/generateImageWithPathsInBase64';
+import eventEmitter from '../../src/utils/eventEmitter';
 
 const FirmaScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -30,26 +30,7 @@ const FirmaScreen = ({ navigation, route }) => {
   const [modalVisibleBoleta, setModalVisibleBoleta] = useState(false); // Modal genérico
   const [caseType, setCaseType] = useState('CancelBoleta'); // Por defecto es "CancelBoleta"
   const [modalMessage, setModalMessage] = useState(''); // Para el mensaje dinámico
-
-  // const handleNext = async () => {
-  //   try {
-  //     const imagenesBase64 = boleta.LIST_IMAGES.map((image) => image.base64);
-
-  //     console.log(boleta.BOL_VEH_PLACA);
-  //     //Prepara el objeto listaFotos con la estructura
-  //     const listaFotos = {
-  //       Fecha: new Date().toISOString(), // Fecha de hoy en formato ISO 8601
-  //       Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
-  //       TipoTrabajo: 'Reparación',
-  //       Imagenes: imagenesBase64, // Imágenes de la boleta
-  //     };
-
-  //     // Llama a saveImagesBoleta y guarda el resultado
-  //     await saveImagesBoleta(listaFotos);
-  //   } catch (error) {
-  //     console.error('Error en handleNext:', error);
-  //   }
-  // };
+  const [isLoading, setIsLoading] = useState(false); // Estado para mostrar el spinner
 
   const handleNext = async () => {
     setCaseType('Notificacion');
@@ -104,17 +85,27 @@ const FirmaScreen = ({ navigation, route }) => {
           break;
       }
 
-      const imagenesBase64 = boleta.LIST_IMAGES.map((image) => image.base64);
+      let imagenesBase64 = [];
 
+      if (Array.isArray(boleta.LIST_IMAGES)) {
+        // Si la lista de imágenes tiene más de una, usamos map, si tiene solo una imagen, se obtiene directamente
+        imagenesBase64 =
+          boleta.LIST_IMAGES.length > 1
+            ? boleta.LIST_IMAGES.map((image) => image.base64)
+            : [boleta.LIST_IMAGES[0]?.base64]; // En caso de que haya solo una imagen, lo convertimos a un array
+      } else {
+        console.error('boleta.LIST_IMAGES no es un arreglo válido');
+      }
       //Prepara el objeto listaFotos con la estructura
       const listaFotos = {
-        Fecha: new Date().toISOString(), // Fecha de hoy en formato ISO 8601
+        Fecha: new Date(), // Fecha de hoy en formato ISO 8601
         Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
         TipoTrabajo: tipoTrabajo,
         Imagenes: imagenesBase64, // Imágenes de la boleta
       };
 
       // Llama a saveImagesBoleta y guarda el resultado
+
       await saveImagesBoleta(listaFotos);
 
       const ACC_ACCESORIOS = boleta.ACC_ACCESORIOS.filter(
@@ -140,10 +131,8 @@ const FirmaScreen = ({ navigation, route }) => {
         TIPACC_TIPO_ACCESORIO: null,
       }));
 
-      let esquema64 = await generateImageWithPathsInBase64(
-        boleta.paths,
-        boleta.BOL_VEH_ESTILO,
-      );
+      console.log(ACC_ACCESORIOS);
+
       let firma64 = await convertSignatureToBase64(boleta.BOL_FIRMA_CLIENTE);
 
       const VEH_VEHICULO = {
@@ -151,7 +140,7 @@ const FirmaScreen = ({ navigation, route }) => {
         EMP_CODE: boleta.EMP_CODE,
         VEH_PLACA: boleta.BOL_VEH_PLACA,
         VEH_MARCA: boleta.BOL_VEH_MARCA,
-        VEH_ESTILO: boleta.BOL_VEH_ESTILO,
+        VEH_ESTILO: boleta.BOL_VEH_MODELO,
         VEH_COLOR: boleta.BOL_VEH_COLOR,
         VEH_VISIBLE: true,
         VEH_CREATEDATE: new Date().toISOString(),
@@ -206,7 +195,7 @@ const FirmaScreen = ({ navigation, route }) => {
         BOL_CLI_TELEFONO: boleta.BOL_CLI_TELEFONO,
         BOL_VEH_PLACA: boleta.BOL_VEH_PLACA,
         BOL_VEH_MARCA: boleta.BOL_VEH_MARCA,
-        BOL_VEH_ESTILO: boleta.BOL_VEH_ESTILO,
+        BOL_VEH_ESTILO: boleta.BOL_VEH_MODELO,
         BOL_VEH_COLOR: boleta.BOL_VEH_COLOR,
         BOL_VEH_KM: boleta.BOL_VEH_KM,
         BOL_VEH_COMBUSTIBLE: boleta.BOL_VEH_COMBUSTIBLE,
@@ -220,7 +209,7 @@ const FirmaScreen = ({ navigation, route }) => {
         BOL_OBSERVACIONES: boleta.BOL_OBSERVACIONES,
         BOL_RECIBIDOPOR: user.USU_USERNAME,
         BOL_RECIBIDOCONFORME: boleta.BOL_RECIBIDOCONFORME,
-        BOL_CAR_EXQUEMA: esquema64,
+        BOL_CAR_EXQUEMA: boleta.BOL_CAR_EXQUEMA,
         BOL_ESTADO: boleta.BOL_ESTADO,
         BOL_UNWASHED: boleta.BOL_UNWASHED,
         BOL_DELIVERED: boleta.BOL_DELIVERED,
@@ -237,7 +226,8 @@ const FirmaScreen = ({ navigation, route }) => {
         dispatch(resetAccesorios());
         dispatch(setCreatingBoletaFalse());
         setModalMessage('Se ha finalizado la boleta correctamente.');
-        navigation.navigate('CheckOutScreen');
+        eventEmitter.emit('refresh');
+        navigation.navigate('Dashboard');
       } else {
         setModalMessage(
           'Hubo un problema al finalizar la boleta. Por favor, inténtalo de nuevo.',
@@ -367,6 +357,13 @@ const FirmaScreen = ({ navigation, route }) => {
         caseType={caseType} // Tipo dinámico del caso
         message={modalMessage} // Mensaje dinámico en caso de "Notificacion"
       />
+      {isLoading && (
+        <ActivityIndicator
+          size="large"
+          color="#FFD700"
+          style={styles.spinner}
+        />
+      )}
     </View>
   );
 };
@@ -376,6 +373,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333',
     padding: 10,
+  },
+  spinner: {
+    marginTop: 30,
   },
   content: {
     backgroundColor: '#FFF',

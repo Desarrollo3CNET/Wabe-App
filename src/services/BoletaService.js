@@ -58,7 +58,7 @@ export async function getBoletaById(BoletaId) {
 export async function reenviarCorreo(idBoleta) {
   try {
     const response = await get(
-      `${controller}/CorreoBoletaApp?idBoleta=${idBoleta}`,
+      `${controller}/CorreoBoletaApp? bbbbbbb idBoleta=${idBoleta}`,
     );
     return response;
   } catch (error) {
@@ -81,17 +81,9 @@ export async function generarOrdenTrabajo(idBoleta) {
 }
 
 // Función para guardar artículos
-export async function saveArticulos(
-  idBoleta,
-  observaciones,
-  idEmpresa,
-  listArticulos,
-) {
+export async function saveArticulos(listArticulos) {
   try {
-    const response = await post(
-      `${controller}/SaveArtApp?idBoleta=${idBoleta}&observaciones=${observaciones}&idEmpresa=${idEmpresa}`,
-      listArticulos,
-    );
+    const response = await post(`${controller}/SaveArtApp`, listArticulos);
     return response;
   } catch (error) {
     console.error('Error guardando artículo:', error);
@@ -100,10 +92,13 @@ export async function saveArticulos(
 }
 
 // Función para guardar fotos
-export async function saveImagesArticulos(listaFotos) {
+export async function saveImagesArticulos(listaArticulos) {
   try {
     // Utiliza el método post para enviar los datos de fotos al endpoint
-    const data = await post(`${controller}/SaveImagesArticulosApp`, listaFotos);
+    const data = await post(
+      `${controller}/SaveImagesArticulosApp`,
+      listaArticulos,
+    );
     return data;
   } catch (error) {
     // Maneja errores en caso de fallos en la solicitud

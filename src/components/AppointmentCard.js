@@ -76,7 +76,7 @@ const AppointmentCard = ({
         BOL_VEH_ANIO: vehiculo.VEH_ANIO.toString(),
         BOL_VEH_MARCA: vehiculo.VEH_MARCA,
         BOL_VEH_ESTILO: 'Sedán',
-        BOL_VEH_MODELO: vehiculo.VEH_MODELO,
+        BOL_VEH_MODELO: vehiculo.VEH_ESTILO,
         BOL_VEH_COLOR: vehiculo.VEH_COLOR,
         BOL_VEH_KM: null,
         BOL_VEH_COMBUSTIBLE: '1/4',

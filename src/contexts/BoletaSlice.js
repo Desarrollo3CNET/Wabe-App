@@ -185,7 +185,7 @@ const boletaSlice = createSlice({
         BOL_VEH_PLACA: '',
         BOL_VEH_ANIO: '',
         BOL_VEH_MARCA: '',
-        BOL_VEH_ESTILO: '',
+        BOL_VEH_ESTILO: 'Sedán',
         BOL_VEH_MODELO: '',
         BOL_VEH_COLOR: '',
         BOL_VEH_KM: '',
@@ -213,6 +213,23 @@ const boletaSlice = createSlice({
         fechaIngreso: '',
         horaIngreso: '',
       });
+
+      // Reiniciar el estado de los accesorios
+      // state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.map((accesorio) => ({
+      //   ...accesorio, // Mantiene las demás propiedades sin cambios
+      //   habilitado: false,
+      //   infoVisible: false,
+      //   ...(accesorio.TIPACC_SETMARCA !== undefined && { TIPACC_SETMARCA: '' }),
+      //   ...(accesorio.TIPACC_SETESTADO !== undefined && {
+      //     TIPACC_SETESTADO: '',
+      //   }),
+      //   ...(accesorio.TIPACC_SETDESCRIPCION !== undefined && {
+      //     TIPACC_SETDESCRIPCION: '',
+      //   }),
+      //   ...(accesorio.TIPACC_SETCANTIDAD !== undefined && {
+      //     TIPACC_SETCANTIDAD: 0,
+      //   }),
+      // }));
     },
   },
 });

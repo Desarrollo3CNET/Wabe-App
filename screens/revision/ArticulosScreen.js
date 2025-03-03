@@ -80,52 +80,40 @@ const ArticulosScreen = ({ navigation, route }) => {
     try {
       setIsLoading(true);
 
-      const imagenesBase64 = fotos.map((articulo) => ({
-        ART_CODE: articulo.ART_CODE,
-        imagenes: articulo.imagenes.map((img) => img.base64), // Extrae solo la propiedad base64
-      }));
-
-      const listaFotos = {
-        BOL_CODE: boleta.BOL_CODE, // Fecha de hoy en formato ISO 8601
-        Articulos: imagenesBase64, // Imágenes de la boleta
-      };
-
-      await saveImagesArticulos(listaFotos);
-
+      // Combinar artículos agregados y de mantenimiento
       const todosLosArticulos = [
         ...articulosAgregados,
         ...articulosMantenimiento.flatMap((categoria) => categoria.Articulos),
       ];
-      // Filtra los artículos cuyo ESTADO sea false o "false"
-      const filteredArticulos = todosLosArticulos.filter(
-        (articulo) => articulo.ESTADO === false || articulo.ESTADO === 'false',
-      );
-      // Mapea los artículos filtrados para crear el array listArticulos
-      const listArticulos = filteredArticulos.map((articulo) => {
-        // Verificar si ART_CODE es válido
-        const codigoValido =
-          articulo.ART_CODE !== null &&
-          articulo.ART_CODE !== undefined &&
-          articulo.ART_CODE !== '';
-        // Construir el string con o sin ART_CODE
-        return codigoValido
-          ? `${articulo.ART_NOMBRE}-${articulo.ART_CODE}`
-          : articulo.ART_NOMBRE;
-      });
-      //Llamar a la función SaveArticulos con los parámetros correspondientes
-      await saveArticulos(
-        boleta.BOL_CODE, // idBoleta
-        observaciones, // observaciones
-        boleta.EMP_CODE, // idEmpresa
-        listArticulos, // lista de artículos
-      );
+
+      // Construcción de la lista de artículos con imágenes correspondientes
+      const listArticulos = {
+        EMP_CODE: boleta.EMP_CODE,
+        BOL_CODE: boleta.BOL_CODE,
+        OBSERVACIONES: observaciones,
+        Articulos: todosLosArticulos.map((articulo) => {
+          // Buscar en fotos el objeto con el mismo ART_CODE
+          const fotoCorrespondiente = fotos.find(
+            (f) => f.ART_CODE === articulo.ART_CODE,
+          );
+
+          return {
+            ART_NOMBRE: articulo.ART_NOMBRE,
+            imagenes: fotoCorrespondiente
+              ? fotoCorrespondiente.imagenes.map((img) => img.base64)
+              : [],
+          };
+        }),
+      };
+
+      await saveArticulos(listArticulos);
       dispatch(setCreatingRevisionFalse());
       setObservaciones('');
       setModalMessage(`Se ha finalizado la revisión correctamente`);
+      // eventEmitter.emit('refresh');
       navigation.navigate('CheckOutScreen');
     } catch (error) {
       console.error('Error en handleNext:', error);
-      // Mensaje de error en caso de excepción
       setModalMessage(
         'Ocurrió un error al guardar los artículos. Por favor, intente de nuevo.',
       );
@@ -145,8 +133,6 @@ const ArticulosScreen = ({ navigation, route }) => {
           <ScrollView>
             {articulosAgregados.length > 0 ? (
               articulosAgregados.map((articulo, index) => {
-                console.log('Nombre del artículo:', articulo.ART_NOMBRE);
-
                 let ART_NAME = articulo.ART_NOMBRE;
                 let ART_CODE = 'Código desconocido';
                 let codigoNumerico = 0;
@@ -237,9 +223,11 @@ const ArticulosScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Artículos Agregados</Text>
           {articulosAgregados.length > 0 ? (
             articulosAgregados.map((articulo, index) => (
-              <View key={index} style={styles.card}>
-                <Text style={styles.cardTitle}>{articulo.ART_NOMBRE}</Text>
-              </View>
+              <>
+                <View key={index} style={styles.card}>
+                  <Text style={styles.cardTitle}>{articulo.ART_NOMBRE}</Text>
+                </View>
+              </>
             ))
           ) : (
             <Text style={styles.noArticles}>

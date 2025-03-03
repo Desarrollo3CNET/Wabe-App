@@ -7,40 +7,41 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const SignatureInput = ({ label, onEditSignature, fromScreen }) => {
   // Accede a la firma guardada en Redux
   const signaturePaths = useSelector((state) => state.boleta.BOL_FIRMA_CLIENTE);
+  const isCreatingBoleta = useSelector((state) => state.app.isCreatingBoleta); // Obtén el valor de isCreatingBoleta
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.signatureBox}>
-        {fromScreen === 'BoletaScreen' ? (
-          // Renderiza la firma como imagen si la variable está en base64
-          signaturePaths ? (
-            <Image
-              source={{ uri: `data:image/png;base64,${signaturePaths}` }}
-              style={styles.signatureImage}
-              resizeMode="contain"
-            />
+        {isCreatingBoleta ? (
+          // Si isCreatingBoleta es true, muestra el dibujo de la firma (paths)
+          signaturePaths && signaturePaths.length > 0 ? (
+            <Svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 300 150"
+              preserveAspectRatio="xMinYMin meet"
+            >
+              {signaturePaths.map((path, index) => (
+                <Path
+                  key={index}
+                  d={path}
+                  stroke="black"
+                  strokeWidth={2}
+                  fill="none"
+                />
+              ))}
+            </Svg>
           ) : (
             <Text style={styles.signaturePlaceholder}>[Firma del cliente]</Text>
           )
-        ) : // Renderiza los paths (dibujo) si no es BoletaScreen
-        signaturePaths && signaturePaths.length > 0 ? (
-          <Svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 300 150"
-            preserveAspectRatio="xMinYMin meet"
-          >
-            {signaturePaths.map((path, index) => (
-              <Path
-                key={index}
-                d={path}
-                stroke="black"
-                strokeWidth={2}
-                fill="none"
-              />
-            ))}
-          </Svg>
+        ) : // Si isCreatingBoleta es false, muestra la firma en formato imagen
+        signaturePaths ? (
+          <Image
+            source={{ uri: `data:image/png;base64,${signaturePaths}` }}
+            style={styles.signatureImage}
+            resizeMode="contain"
+          />
         ) : (
           <Text style={styles.signaturePlaceholder}>[Firma del cliente]</Text>
         )}

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import Header from '../src/components/recepcion/Header';
 import DateRangeButton from './../src/components/DateRangeButton';
@@ -33,7 +34,9 @@ import {
   setBoletaData,
   addAccesorio,
   setImages,
+  resetBoleta,
 } from '../src/contexts/BoletaSlice';
+import eventEmitter from '../src/utils/eventEmitter';
 
 const CheckOutScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -63,6 +66,10 @@ const CheckOutScreen = ({ navigation }) => {
       setRefreshing(false); // Desactiva la animación de refresco
     }
   };
+
+  // eventEmitter.on('refresh', () => {
+  //   fetchData();
+  // });
 
   useEffect(() => {
     fetchData();
@@ -304,72 +311,74 @@ const CheckOutScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header title="Check Out" />
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#FFD700"
-          style={styles.spinner}
-        />
-      ) : (
-        <>
-          <View style={{ marginTop: 10 }}>
-            <DateRangeButton onRangeSelect={handleDateRangeSelect} />
-          </View>
-
-          <View style={styles.filters}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar por placa o cliente"
-              placeholderTextColor="#AAA"
-              value={searchPlaca}
-              onChangeText={handleSearchChange}
-            />
-          </View>
-
-          {filteredData.length === 0 ? (
-            <View style={styles.noDataContainer}>
-              <Text style={styles.noDataText}>
-                No hay datos disponibles. Intenta con otros filtros.
-              </Text>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
+        }
+      >
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#FFD700"
+            style={styles.spinner}
+          />
+        ) : (
+          <>
+            <View style={{ marginTop: 10 }}>
+              <DateRangeButton onRangeSelect={handleDateRangeSelect} />
             </View>
-          ) : (
-            <>
-              <View style={styles.tableHeader}>
-                <View style={styles.cell}>
-                  <Text style={styles.tableHeaderText}>Placa</Text>
-                </View>
-                <View style={styles.cell}>
-                  <Text style={styles.tableHeaderText}>Cliente</Text>
-                </View>
-                <View style={styles.cell}>
-                  <Text style={styles.tableHeaderText}>Fecha Ingreso</Text>
-                </View>
-                <View style={styles.cell}>
-                  <Text style={styles.tableHeaderText}>Acciones</Text>
-                </View>
-              </View>
 
-              <FlatList
-                data={filteredData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.BOL_CODE.toString()}
-                contentContainerStyle={styles.list}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={fetchData}
-                  />
-                }
+            <View style={styles.filters}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por placa o cliente"
+                placeholderTextColor="#AAA"
+                value={searchPlaca}
+                onChangeText={handleSearchChange}
               />
-            </>
-          )}
-        </>
-      )}
+            </View>
+
+            {filteredData.length === 0 ? (
+              <View style={styles.noDataContainer}>
+                <Text style={styles.noDataText}>
+                  No hay datos disponibles. Intenta con otros filtros.
+                </Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.tableHeader}>
+                  <View style={styles.cell}>
+                    <Text style={styles.tableHeaderText}>Placa</Text>
+                  </View>
+                  <View style={styles.cell}>
+                    <Text style={styles.tableHeaderText}>Cliente</Text>
+                  </View>
+                  <View style={styles.cell}>
+                    <Text style={styles.tableHeaderText}>Fecha Ingreso</Text>
+                  </View>
+                  <View style={styles.cell}>
+                    <Text style={styles.tableHeaderText}>Acciones</Text>
+                  </View>
+                </View>
+
+                <FlatList
+                  data={filteredData}
+                  renderItem={renderItem}
+                  keyExtractor={(item) => item.BOL_CODE.toString()}
+                  contentContainerStyle={styles.list}
+                />
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
+
       <GenericModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         caseType="Notificacion"
-        message={modalMessage} // Muestra el mensaje dinámico
+        message={modalMessage}
       />
     </View>
   );
