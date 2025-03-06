@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Svg, Path, SvgXml } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Buffer } from 'buffer';
+import colors from '../../utils/colors';
 
 const SignatureInput = ({ label, onEditSignature, fromScreen }) => {
   // Obtiene la firma desde Redux
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 30,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 10,
   },

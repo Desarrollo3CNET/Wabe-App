@@ -5,6 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateRangeButton from './DateRangeButton'; // Se vuelve a importar
 import { getSucursales } from '../../src/services/BoletaService';
 import { useSelector } from 'react-redux';
+import colors from '../utils/colors';
 
 const FilterModal = ({ visible, onClose, onApplyFilters }) => {
   const user = useSelector((state) => state.app.user);
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   applyButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 5,
     flex: 1,

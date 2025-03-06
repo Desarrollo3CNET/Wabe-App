@@ -123,6 +123,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 type="text"
                 value={boleta.BOL_VEH_PLACA}
                 onChange={(value) => handleUpdate('BOL_VEH_PLACA', value)}
+                enabled={false}
               />
             </View>
             <View style={styles.column}>
@@ -131,6 +132,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 type="text"
                 value={boleta.BOL_VEH_MODELO}
                 onChange={(value) => handleUpdate('BOL_VEH_MODELO', value)}
+                enabled={false}
               />
             </View>
           </View>
@@ -142,6 +144,7 @@ const VehicleDetailsScreen = ({ navigation }) => {
                 type="number"
                 value={boleta.BOL_VEH_ANIO}
                 onChange={(value) => handleUpdate('BOL_VEH_ANIO', value)}
+                enabled={false}
               />
             </View>
             <View style={styles.column}>
@@ -214,6 +217,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+    padding: 10,
   },
   scrollContent: {
     flexGrow: 1,

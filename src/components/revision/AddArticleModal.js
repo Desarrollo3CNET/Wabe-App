@@ -16,6 +16,7 @@ import {
 } from './../../contexts/RevisionSlice';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GenericModal from '../../components/recepcion/GenericModal'; // Importación de GenericModal
+import colors from '../../utils/colors';
 
 const AddArticleModal = ({ visible, onClose }) => {
   const [articleName, setArticleName] = useState('');
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   addButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 5,

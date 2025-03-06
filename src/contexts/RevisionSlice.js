@@ -14,10 +14,22 @@ const revisionSlice = createSlice({
       state.articulosMantenimiento = action.payload;
     },
     resetAllStates: (state) => {
-      state.articulosMantenimiento = [];
+      // Reset articulosAgregados and articulosFotos
       state.articulosAgregados = [];
       state.articulosFotos = [];
+
+      // Recorre articulosMantenimiento y resetea el estado de cada artículo
+      state.articulosMantenimiento = state.articulosMantenimiento.map(
+        (categoria) => ({
+          ...categoria,
+          Articulos: categoria.Articulos.map((articulo) => ({
+            ...articulo,
+            ESTADO: '', // Resetea ESTADO de cada artículo
+          })),
+        }),
+      );
     },
+
     activarArticulo: (state, action) => {
       const artCode = action.payload;
 
@@ -87,17 +99,27 @@ const revisionSlice = createSlice({
       }
     },
 
-    // Remove an image from a specific article by ART_CODE and image index
     removeImage: (state, action) => {
       const { ART_CODE, imageIndex } = action.payload;
 
-      // Find the article in articulosFotos
-      const articulo = state.articulosFotos.find(
+      const articuloIndex = state.articulosFotos.findIndex(
         (item) => item.ART_CODE === ART_CODE,
       );
 
-      if (articulo && articulo.imagenes[imageIndex]) {
-        articulo.imagenes.splice(imageIndex, 1); // Remove image at the specified index
+      if (articuloIndex !== -1) {
+        const updatedImages = state.articulosFotos[
+          articuloIndex
+        ].imagenes.filter((_, index) => index !== imageIndex);
+
+        if (updatedImages.length > 0) {
+          state.articulosFotos[articuloIndex] = {
+            ...state.articulosFotos[articuloIndex],
+            imagenes: updatedImages,
+          };
+        } else {
+          // Si ya no hay imágenes, eliminamos el objeto completo del array
+          state.articulosFotos.splice(articuloIndex, 1);
+        }
       }
     },
 

@@ -9,13 +9,14 @@ import SignatureInput from '../../src/components/recepcion/SignatureInput';
 import DrawingCanvas from '../../src/components/recepcion/DrawingCanvas';
 import GenericModal from '../../src/components/recepcion/GenericModal';
 import { setCreatingBoletaFalse } from '../../src/contexts/AppSlice';
-import { resetBoleta, resetAccesorios } from '../../src/contexts/BoletaSlice';
+import { resetBoleta } from '../../src/contexts/BoletaSlice';
 import {
   createBoleta,
   saveImagesBoleta,
 } from '../../src/services/BoletaService';
 import convertSignatureToBase64 from '../../src/utils/convertSignatureToBase64';
 import eventEmitter from '../../src/utils/eventEmitter';
+import colors from '../../src/utils/colors';
 
 const FirmaScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -66,46 +67,51 @@ const FirmaScreen = ({ navigation, route }) => {
     try {
       setIsLoading(true);
 
-      let tipoTrabajo = '';
-      switch (boleta.TIPTRA_CODE) {
-        case 1:
-          tipoTrabajo = 'Avalúo';
-          break;
-        case 2:
-          tipoTrabajo = 'Reparación';
-          break;
-        case 3:
-          tipoTrabajo = 'Rep. Pendientes';
-          break;
-        case 4:
-          tipoTrabajo = 'Aseguradora';
-          break;
-        default:
-          tipoTrabajo = 'Desconocido';
-          break;
+      // Validar que boleta es un objeto válido
+      if (!boleta || typeof boleta !== 'object') {
+        console.error('Error: boleta no es un objeto válido.');
+        return;
       }
+
+      // Buscar el tipo de trabajo seleccionado, asegurando que existe
+      const selectedTipoTrabajo = Array.isArray(boleta.tipoTrabajos)
+        ? boleta.tipoTrabajos.find((tipo) => tipo.isSelected) || {}
+        : {};
 
       let imagenesBase64 = [];
 
-      if (Array.isArray(boleta.LIST_IMAGES)) {
-        // Si la lista de imágenes tiene más de una, usamos map, si tiene solo una imagen, se obtiene directamente
-        imagenesBase64 =
-          boleta.LIST_IMAGES.length > 1
-            ? boleta.LIST_IMAGES.map((image) => image.base64)
-            : [boleta.LIST_IMAGES[0]?.base64]; // En caso de que haya solo una imagen, lo convertimos a un array
-      } else {
-        console.error('boleta.LIST_IMAGES no es un arreglo válido');
+      // Validar que LIST_IMAGES es un array antes de procesarlo
+      if (Array.isArray(boleta.LIST_IMAGES) && boleta.LIST_IMAGES.length > 0) {
+        imagenesBase64 = boleta.LIST_IMAGES.map((image) =>
+          image?.base64 && typeof image.base64 === 'string' ? image.base64 : '',
+        ).filter((base64) => base64.length > 0); // Eliminar strings vacíos
       }
-      //Prepara el objeto listaFotos con la estructura
+
+      // Asegurar que listaFotos tenga la estructura correcta
       const listaFotos = {
-        Fecha: new Date(), // Fecha de hoy en formato ISO 8601
-        Placa: boleta.BOL_VEH_PLACA, // Placa desde la boleta
-        TipoTrabajo: tipoTrabajo,
-        Imagenes: imagenesBase64, // Imágenes de la boleta
+        Fecha: new Date().toISOString(), // Formato ISO 8601 compatible con .NET
+        Placa:
+          typeof boleta.BOL_VEH_PLACA === 'string'
+            ? boleta.BOL_VEH_PLACA
+            : 'Sin Placa',
+        TipoTrabajo:
+          typeof selectedTipoTrabajo.TIPTRA_NOMBRE === 'string'
+            ? selectedTipoTrabajo.TIPTRA_NOMBRE
+            : 'Desconocido',
+        Imagenes: Array.isArray(imagenesBase64) ? imagenesBase64 : [], // Siempre un array de strings
       };
 
-      // Llama a saveImagesBoleta y guarda el resultado
+      // Asegurar que listaFotos está completamente construido antes de ejecutarlo
+      if (
+        !listaFotos.Fecha ||
+        !listaFotos.Placa ||
+        !listaFotos.TipoTrabajo ||
+        !Array.isArray(listaFotos.Imagenes)
+      ) {
+        throw new Error('❌ Error: listaFotos tiene valores inválidos.');
+      }
 
+      // Ejecutar la función una vez que listaFotos está listo
       await saveImagesBoleta(listaFotos);
 
       const ACC_ACCESORIOS = boleta.ACC_ACCESORIOS.filter(
@@ -130,8 +136,6 @@ const FirmaScreen = ({ navigation, route }) => {
         EMP_EMPRESA: null,
         TIPACC_TIPO_ACCESORIO: null,
       }));
-
-      console.log(ACC_ACCESORIOS);
 
       let firma64 = await convertSignatureToBase64(boleta.BOL_FIRMA_CLIENTE);
 
@@ -189,7 +193,7 @@ const FirmaScreen = ({ navigation, route }) => {
         EMP_CODE: boleta.EMP_CODE,
         CLI_CODE: boleta.CLI_CODE,
         VEH_CODE: boleta.VEH_CODE,
-        TIPTRA_CODE: boleta.TIPTRA_CODE,
+        TIPTRA_CODE: selectedTipoTrabajo.TIPTRA_CODE,
         BOL_FECHA: new Date().toISOString(),
         BOL_CLI_NOMBRE: boleta.BOL_CLI_NOMBRE,
         BOL_CLI_TELEFONO: boleta.BOL_CLI_TELEFONO,
@@ -223,7 +227,6 @@ const FirmaScreen = ({ navigation, route }) => {
 
       if (respuesta) {
         dispatch(resetBoleta());
-        dispatch(resetAccesorios());
         dispatch(setCreatingBoletaFalse());
         setModalMessage('Se ha finalizado la boleta correctamente.');
         eventEmitter.emit('refresh');
@@ -318,16 +321,8 @@ const FirmaScreen = ({ navigation, route }) => {
         <ReusableInput
           label="Nombre y Apellidos"
           placeholder="Escribe el nombre aquí"
-          value={BOL_CLI_NOMBRE}
-          onChangeText={(text) =>
-            dispatch(
-              setProperty({
-                key: 'BOL_CLI_NOMBRE',
-                value: text,
-              }),
-            )
-          }
-          readOnly={fromScreen === 'BoletaScreen'}
+          value={user.USU_USERNAME}
+          readOnly={true}
         />
 
         {/* Input para Firma */}
@@ -361,7 +356,7 @@ const FirmaScreen = ({ navigation, route }) => {
       {isLoading && (
         <ActivityIndicator
           size="large"
-          color="#FFD700"
+          color={colors.primary}
           style={styles.spinner}
         />
       )}

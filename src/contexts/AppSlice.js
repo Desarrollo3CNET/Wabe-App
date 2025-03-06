@@ -9,6 +9,7 @@ const initialState = {
   isCreatingBoleta: false,
   isCreatingRevision: false,
   empresa: null,
+  isTablet: true,
 };
 
 // Slice para la gestión del estado de la aplicación
@@ -50,6 +51,9 @@ const appSlice = createSlice({
     setEmpresa: (state, action) => {
       state.empresa = action.payload; // Actualiza la propiedad empresa
     },
+    setIsTablet: (state, action) => {
+      state.isTablet = action.payload; // Actualiza la orientación
+    },
     resetState: () => initialState,
   },
 });
@@ -63,6 +67,7 @@ export const {
   setCreatingRevisionTrue,
   setCreatingRevisionFalse,
   setEmpresa,
+  setIsTablet,
   resetState,
 } = appSlice.actions;
 

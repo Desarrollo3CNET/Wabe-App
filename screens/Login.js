@@ -15,6 +15,7 @@ import { setLoggedIn } from '../src/contexts/AppSlice';
 import { login } from '../src/services/UserService'; // Importa la función login
 import logonegro from '../assets/logonegro.png';
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importa GenericModal
+import colors from '../src/utils/colors';
 
 const Login = () => {
   const [usuario, setUsuario] = useState({ email: '', password: '' });
@@ -26,7 +27,6 @@ const Login = () => {
 
   const handleInputChange = (name, value) => {
     setUsuario((prevUsuario) => ({ ...prevUsuario, [name]: value }));
-    setErrorMessage(''); // Limpia el mensaje de error al escribir
   };
 
   const handleSubmit = async () => {
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',

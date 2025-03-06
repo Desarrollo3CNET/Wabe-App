@@ -14,6 +14,7 @@ import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 // import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import * as ImagePicker from 'expo-image-picker'; // Importar expo-image-picker
+import colors from '../../src/utils/colors';
 
 import GolpesModal from '../../src/components/recepcion/GolpesModal';
 // import VideoModal from '../../src/components/recepcion/VideoModal';
@@ -41,7 +42,6 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
 
   // Corregir el acceso a las propiedades del estado global
   const attachments = useSelector((state) => state.boleta.LIST_IMAGES);
-  const esquema = useSelector((state) => state.boleta.BOL_CAR_EXQUEMA);
 
   const { fromScreen } = route.params || {};
 
@@ -103,74 +103,109 @@ const PhotosAndVideosScreen = ({ navigation, route }) => {
   };
 
   const handleUploadFile = async () => {
-    // Solicitar permisos para acceder a la galería
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permiso de galería necesario');
-      return;
+    try {
+      setCaseType('Notificacion');
+      // Solicitar permisos para acceder a la galería
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        setModalMessage('Permiso de cámara necesario');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      // Abrir la galería para seleccionar una imagen
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Solo imágenes
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+        base64: true, // Solicitar el base64 de la imagen
+      });
+
+      // Verificar si el usuario canceló la selección
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        setModalMessage('No se tomó ninguna foto.');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      // Obtener la imagen seleccionada
+      const selectedImage = result.assets[0];
+
+      // Asegurarse de que la imagen tenga base64
+      if (!selectedImage.base64) {
+        setModalMessage('Error al obtener la imagen en base64.');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      const newAttachment = {
+        id: Date.now(),
+        uri: selectedImage.uri,
+        type: 'photo',
+        base64: selectedImage.base64, // Guardamos la imagen en base64
+        selected: false,
+      };
+
+      dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
+    } catch (error) {
+      // Capturar cualquier error inesperado
+      setModalMessage(`Error al subir archivo: ${error.message}`);
+      setmodalVisibleBoleta(true);
     }
-
-    // Abrir la galería para seleccionar una imagen
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Solo imágenes
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true, // Solicitar el base64 de la imagen
-    });
-
-    // Verificar si el usuario canceló la selección
-    if (result.canceled || !result.assets || result.assets.length === 0) {
-      return; // No hacer nada si no se seleccionó imagen
-    }
-
-    // Obtener la imagen seleccionada
-    const selectedImage = result.assets[0];
-
-    const newAttachment = {
-      id: Date.now(),
-      uri: selectedImage.uri,
-      type: 'photo',
-      base64: selectedImage.base64, // Guardamos la imagen en base64
-      selected: false,
-    };
-
-    dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
   const handleOpenCamera = async () => {
-    // Solicitar permisos para la cámara
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permiso de cámara necesario');
-      return;
+    setCaseType('Notificacion');
+    try {
+      // Solicitar permisos para la cámara
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        setModalMessage('Permiso de cámara necesario');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      // Abrir la cámara para capturar una foto
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+        base64: true, // Solicitar el base64 de la imagen
+      });
+
+      // Verificar si el usuario canceló la captura
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        setModalMessage('No se tomó ninguna foto.');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      const selectedImage = result.assets[0];
+
+      // Asegurarse de que la imagen tenga base64
+      if (!selectedImage.base64) {
+        setModalMessage('Error al obtener la imagen en base64.');
+        setmodalVisibleBoleta(true);
+        return;
+      }
+
+      const newAttachment = {
+        id: Date.now(),
+        uri: selectedImage.uri,
+        type: 'photo',
+        base64: selectedImage.base64, // Se asegura de que haya base64
+        selected: false,
+      };
+
+      dispatch(addImage(newAttachment)); // Agregar la imagen como adjunto
+    } catch (error) {
+      // Capturar cualquier error inesperado
+      setModalMessage(`Error al abrir la cámara: ${error.message}`);
+      setmodalVisibleBoleta(true);
     }
-
-    // Abrir la cámara para capturar una foto
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true, // Solicitar el base64 de la imagen
-    });
-
-    // Verificar si se ha cancelado la acción o si no se tomó ninguna foto
-    if (result.canceled || !result.assets || result.assets.length === 0) {
-      return; // No hacer nada si no se tomó una foto
-    }
-
-    const selectedImage = result.assets[0]; // Obtén la imagen capturada
-
-    // Verifica si la propiedad base64 está presente en selectedImage
-    const newAttachment = {
-      id: Date.now(),
-      uri: selectedImage.uri,
-      type: 'photo',
-      base64: selectedImage.base64 || '', // Asegúrate de que la propiedad base64 esté presente
-      selected: false,
-    };
-
-    dispatch(addImage(newAttachment)); // Agregamos la imagen como adjunto
   };
 
   const handleEditToggle = () => {
@@ -447,7 +482,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginHorizontal: 5,
   },
@@ -476,7 +511,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     zIndex: 9000,
   },
-  selected: { backgroundColor: '#FFD700' },
+  selected: { backgroundColor: colors.primary },
   innerCircle: {
     width: 10,
     height: 10,
@@ -505,7 +540,7 @@ const styles = StyleSheet.create({
   },
   deleteEditButton: {
     padding: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',

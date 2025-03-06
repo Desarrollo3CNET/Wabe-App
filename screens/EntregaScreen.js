@@ -22,6 +22,7 @@ import { getArticulosByBoleta } from '../src/services/ArticulosService';
 import { GetImagesBoleta } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 import eventEmitter from '../src/utils/eventEmitter';
+import colors from '../src/utils/colors';
 
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -316,7 +317,7 @@ const EntregaScreen = ({ navigation }) => {
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color="#FFD700"
+            color={colors.primary}
             style={styles.spinner}
           />
         ) : (
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     marginTop: 15,
   },
 
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingVertical: 6,
     paddingHorizontal: 8,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
   longActionButton: {
     flex: 1,
     paddingVertical: 6,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,

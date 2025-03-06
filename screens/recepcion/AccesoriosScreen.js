@@ -19,6 +19,7 @@ import {
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
+import colors from '../../src/utils/colors';
 
 const AccesoriosScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -171,7 +172,7 @@ const AccesoriosScreen = ({ navigation }) => {
         {isLoading && (
           <ActivityIndicator
             size="large"
-            color="#FFD700"
+            color={colors.primary}
             style={styles.spinner}
           />
         )}
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   switchOn: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
   },
   switchOff: {
     backgroundColor: '#E0E0E0',
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   infoButton: {
     fontWeight: 'bold',
     flexDirection: 'row',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 15, // Botón más grande

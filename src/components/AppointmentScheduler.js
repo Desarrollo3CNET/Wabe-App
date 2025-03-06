@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Calendar from './Calendar'; // Asegúrate de importar correctamente el componente del calendario
 import { getHorasDisponibles } from '../services/CitaService';
+import colors from '../utils/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeButtonSelected: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
   },
   timeText: {
     fontSize: 14,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   confirmButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     marginTop: 10,
     padding: 12,
     borderRadius: 10,

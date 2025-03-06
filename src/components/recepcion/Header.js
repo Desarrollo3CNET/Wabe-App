@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetState } from '../../contexts/AppSlice'; // Importa la acción de tu slice
+import colors from '../../utils/colors';
 
 const Header = ({ title }) => {
   const navigation = useNavigation();
@@ -45,9 +46,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
+    borderWidth: 1, // Borde minimalista
+    borderColor: colors.secondary || '#ccc', // Color del borde (usa un color secundario si existe)
+    shadowColor: '#000', // Sombra para un efecto elegante
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Sombra en Android
   },
   headerText: {
     fontSize: 18,

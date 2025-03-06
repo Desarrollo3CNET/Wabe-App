@@ -7,6 +7,7 @@ import {
 } from '../../contexts/AppSlice';
 import { resetAllStates } from '../../contexts/RevisionSlice';
 import { resetBoleta } from '../../contexts/BoletaSlice';
+import colors from '../../utils/colors';
 
 const GenericModal = ({
   visible,
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   acceptButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 5,
     flex: 1,

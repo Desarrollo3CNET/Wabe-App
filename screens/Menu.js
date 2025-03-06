@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import GenericModal from '../src/components/recepcion/GenericModal';
+import colors from '../src/utils/colors';
 
 const Menu = ({ navigation }) => {
   const isCreatingBoleta = useSelector((state) => state.app.isCreatingBoleta);
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',

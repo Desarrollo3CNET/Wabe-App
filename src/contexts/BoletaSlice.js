@@ -43,6 +43,7 @@ const boletaSlice = createSlice({
     undonePaths: [],
     fechaIngreso: '',
     horaIngreso: '',
+    tipoTrabajos: [],
   },
   reducers: {
     // Reducer genérico para actualizar cualquier propiedad con {key, value}
@@ -153,22 +154,9 @@ const boletaSlice = createSlice({
         }
       });
     },
-    resetAccesorios: (state) => {
-      state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.map((accesorio) => ({
-        ...accesorio, // Mantiene todas las propiedades del accesorio
-        habilitado: false,
-        infoVisible: false,
-        ...(accesorio.TIPACC_SETMARCA !== undefined && { TIPACC_SETMARCA: '' }),
-        ...(accesorio.TIPACC_SETESTADO !== undefined && {
-          TIPACC_SETESTADO: '',
-        }),
-        ...(accesorio.TIPACC_SETDESCRIPCION !== undefined && {
-          TIPACC_SETDESCRIPCION: '',
-        }),
-        ...(accesorio.TIPACC_SETCANTIDAD !== undefined && {
-          TIPACC_SETCANTIDAD: 0,
-        }),
-      }));
+
+    setTipoTrabajo: (state, action) => {
+      state.tipoTrabajos = action.payload;
     },
 
     // Reducer para limpiar el estado y restablecerlo al estado inicial
@@ -200,7 +188,6 @@ const boletaSlice = createSlice({
         BOL_DELIVERED: '',
         BOL_CLI_CORREO: '',
         CITCLI_CODE: '',
-        ACC_ACCESORIOS: [],
         BOL_FIRMA_CONSENTIMIENTO: '',
         BOL_ENTREGADOPOR: '',
         BOL_OBSERVACIONES: '',
@@ -214,22 +201,27 @@ const boletaSlice = createSlice({
         horaIngreso: '',
       });
 
+      state.tipoTrabajos = state.tipoTrabajos.map((tipo) => ({
+        ...tipo,
+        isSelected: false, // Poner todos los isSelected en false
+      }));
+
       // Reiniciar el estado de los accesorios
-      // state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.map((accesorio) => ({
-      //   ...accesorio, // Mantiene las demás propiedades sin cambios
-      //   habilitado: false,
-      //   infoVisible: false,
-      //   ...(accesorio.TIPACC_SETMARCA !== undefined && { TIPACC_SETMARCA: '' }),
-      //   ...(accesorio.TIPACC_SETESTADO !== undefined && {
-      //     TIPACC_SETESTADO: '',
-      //   }),
-      //   ...(accesorio.TIPACC_SETDESCRIPCION !== undefined && {
-      //     TIPACC_SETDESCRIPCION: '',
-      //   }),
-      //   ...(accesorio.TIPACC_SETCANTIDAD !== undefined && {
-      //     TIPACC_SETCANTIDAD: 0,
-      //   }),
-      // }));
+      state.ACC_ACCESORIOS = state.ACC_ACCESORIOS.map((accesorio) => ({
+        ...accesorio, // Mantiene las demás propiedades sin cambios
+        habilitado: false,
+        infoVisible: false,
+        ...(accesorio.TIPACC_SETMARCA !== undefined && { TIPACC_SETMARCA: '' }),
+        ...(accesorio.TIPACC_SETESTADO !== undefined && {
+          TIPACC_SETESTADO: '',
+        }),
+        ...(accesorio.TIPACC_SETDESCRIPCION !== undefined && {
+          TIPACC_SETDESCRIPCION: '',
+        }),
+        ...(accesorio.TIPACC_SETCANTIDAD !== undefined && {
+          TIPACC_SETCANTIDAD: 0,
+        }),
+      }));
     },
   },
 });
@@ -252,7 +244,8 @@ export const {
   setBoletaData,
   setImages,
   resetBoleta,
-  resetAccesorios,
+  setTipoTrabajo,
+  resetTipoTrabajo,
 } = boletaSlice.actions;
 
 export default boletaSlice.reducer;

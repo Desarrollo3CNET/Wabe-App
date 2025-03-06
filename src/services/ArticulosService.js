@@ -17,10 +17,10 @@ export async function getArticulosByBoleta(BoletaId) {
 }
 
 // Función para obtener el listado de articulos en mantenimiento
-export async function ObtenerArticulosMantenimiento(idEmpresa) {
+export async function ObtenerArticulosMantenimiento() {
   try {
     const response = await get(
-      `${controller}/ObtenerArticulosMantenimientoApp?idEmpresa=${idEmpresa}`,
+      `${controller}/ObtenerArticulosMantenimientoApp`,
     );
     return response;
   } catch (error) {

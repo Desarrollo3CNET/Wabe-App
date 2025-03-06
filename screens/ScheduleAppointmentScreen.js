@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -14,7 +13,6 @@ import FooterButtons from '../src/components/recepcion/FooterButtons';
 import AppointmentScheduler from '../src/components/AppointmentScheduler';
 import GenericModal from '../src/components/recepcion/GenericModal';
 import {
-  getByCedula,
   getByPlaca,
   getModelosByMarca,
   crearCita,
@@ -37,10 +35,16 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     telefono: '',
     correo: '',
     direccion: '',
-    sucursal: '',
+    sucursal: 0,
     fecha: '',
     hora: '',
     tipoCedula: 1,
+  });
+
+  const [fieldEnabled, setFieldEnabled] = useState({
+    marca: true,
+    estilo: true,
+    anio: true,
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -59,74 +63,66 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const handleUpdate = async (field, value) => {
     setAppointmentDetails((prev) => ({ ...prev, [field]: value }));
 
-    if (field === 'placa' && value) {
-      try {
-        const data = await getByPlaca(value);
+    if (field === 'placa') {
+      if (value) {
+        try {
+          const data = await getByPlaca(value);
 
-        if (data) {
-          setAppointmentDetails((prev) => ({
-            ...prev,
-            marca: data.marca,
-            estilo: data.estilo,
-            anio: data.anio.toString(),
-            // nombre: data.cliente.nombre,
-            // telefono: data.cliente.telefono,
-            // correo: data.cliente.correo,
-            // direccion: data.cliente.direccion,
-            // cedula: data.cliente.cedula,
-            // tipoCliente: data.cliente.tipoCliente,
-          }));
+          if (data) {
+            await fetchModelosByMarca(data.marca);
+            setAppointmentDetails((prev) => ({
+              ...prev,
+              marca: data.marca,
+              estilo: data.estilo,
+              anio: data.anio.toString(),
+            }));
+            setMessages((prev) => ({
+              ...prev,
+              placa: 'Vehículo encontrado.',
+            }));
+            setFieldEnabled((prev) => ({
+              ...prev,
+              marca: false,
+              estilo: false,
+              anio: false,
+            }));
+          } else {
+            setMessages((prev) => ({
+              ...prev,
+              placa: 'No se encontraron datos para esta placa.',
+            }));
+            setFieldEnabled((prev) => ({
+              ...prev,
+              marca: true,
+              estilo: true,
+              anio: true,
+            }));
+          }
+        } catch (error) {
           setMessages((prev) => ({
             ...prev,
-            placa: 'Vehículo encontrado.',
+            placa: 'Error al buscar la placa.',
           }));
-          fetchModelosByMarca(data.marca);
-        } else {
-          setMessages((prev) => ({
+          setFieldEnabled((prev) => ({
             ...prev,
-            placa: 'No se encontraron datos para esta placa.',
+            marca: true,
+            estilo: true,
+            anio: true,
           }));
         }
-      } catch (error) {
-        setMessages((prev) => ({
+      } else {
+        // Si la placa se borra, habilitamos los campos nuevamente
+        setFieldEnabled((prev) => ({
           ...prev,
-          placa: 'Error al buscar la placa.',
+          marca: true,
+          estilo: true,
+          anio: true,
         }));
       }
     }
 
-    // if (field === 'cedula' && value) {
-    //   try {
-    //     const data = await getByCedula(value);
-    //     if (data) {
-    //       setAppointmentDetails((prev) => ({
-    //         ...prev,
-    //         nombre: data.nombre,
-    //         telefono: data.telefono,
-    //         correo: data.correo,
-    //         direccion: data.direccion,
-    //         tipoCliente: data.tipoCliente,
-    //       }));
-    //       setMessages((prev) => ({
-    //         ...prev,
-    //         cedula: 'Cliente encontrado.',
-    //       }));
-    //     } else {
-    //       setMessages((prev) => ({
-    //         ...prev,
-    //         cedula: 'No se encontraron datos para esta cédula.',
-    //       }));
-    //     }
-    //   } catch (error) {
-    //     setMessages((prev) => ({
-    //       ...prev,
-    //       cedula: 'Error al buscar la cédula.',
-    //     }));
-    //   }
-    // }
-
     if (field === 'marca' && value) {
-      fetchModelosByMarca(value);
+      await fetchModelosByMarca(value);
     }
   };
 
@@ -261,7 +257,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     }
 
     // Validación de año del vehículo (debe ser un número válido entre 1900 y el año actual)
-    const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear() + 1;
     if (
       !/^\d{4}$/.test(appointmentDetails.anio) ||
       appointmentDetails.anio < 1900 ||
@@ -289,7 +285,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
     }
 
     // Validación de correo electrónico
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(appointmentDetails.correo)) {
+    if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(appointmentDetails.correo)) {
       setModalMessage('El correo electrónico no es válido');
       setModalVisible(true);
       return;
@@ -318,7 +314,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       );
 
       if (citaActiva) {
-        resetForm();
+        // resetForm();
         setModalMessage(
           'El cliente ya tiene una cita activa. No puede agendar otra.',
         );
@@ -372,6 +368,8 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       SUR_CODE: appointmentDetails.sucursal,
     };
 
+    console.log('appointmentDetails.sucursal', appointmentDetails.sucursal);
+
     const citaRequestDTO = {
       Cliente: cliente,
       Cita: cita,
@@ -380,12 +378,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 
     try {
       await crearCita(citaRequestDTO);
-
       // Mostrar mensaje en el modal según la respuesta del backend
       setModalMessage('La cita se agendó correctamente');
       eventEmitter.emit('refresh');
       setModalVisible(true);
-      resetForm();
+      // resetForm();
     } catch (error) {
       setModalMessage('Error al agendar la cita. Inténtalo de nuevo.');
       setModalVisible(true);
@@ -416,11 +413,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flexContainer}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.contentContainer}>
+        <View style={styles.contentContainer}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Datos Vehículo */}
             <Text style={styles.sectionTitle}>Datos del Vehículo</Text>
 
@@ -444,6 +441,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                   options={marcas}
                   value={appointmentDetails.marca}
                   onChange={(value) => handleUpdate('marca', value)}
+                  enabled={fieldEnabled.marca}
                 />
               </View>
               <View style={styles.column}>
@@ -453,6 +451,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                   value={appointmentDetails.estilo}
                   onChange={(value) => handleUpdate('estilo', value)}
                   options={modelos} // Pasamos la lista de modelos como opciones
+                  enabled={fieldEnabled.estilo}
                 />
               </View>
             </View>
@@ -464,6 +463,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                   type="number"
                   value={appointmentDetails.anio}
                   onChange={(value) => handleUpdate('anio', value)}
+                  enabled={fieldEnabled.anio}
                 />
               </View>
             </View>
@@ -558,7 +558,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                   );
 
                   setSucursal(selectedOption ? selectedOption.value : -1);
-                  handleUpdate('sucursal', selectedOption);
+                  handleUpdate('sucursal', selectedOption.value);
                 }}
               />
             </View>
@@ -570,8 +570,8 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
                 handleAppointmentSelect(fecha, hora)
               }
             />
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
 
       <FooterButtons
@@ -590,7 +590,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#333' },
+  container: { flex: 1, backgroundColor: '#333', padding: 10 },
   flexContainer: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 10 },
   contentContainer: {

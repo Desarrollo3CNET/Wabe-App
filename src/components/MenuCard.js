@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import colors from '../utils/colors';
 
 const MenuCard = ({ imageSource, title, onPress }) => {
   return (
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     paddingHorizontal: 15,
     paddingVertical: 10,
   },

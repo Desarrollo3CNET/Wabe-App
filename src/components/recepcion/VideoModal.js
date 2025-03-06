@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Camera } from 'expo-camera';
+import colors from '../../utils/colors';
 
 const VideoModal = () => {
   const [recording, setRecording] = useState(false);
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginHorizontal: 10, // Espaciado uniforme
   },

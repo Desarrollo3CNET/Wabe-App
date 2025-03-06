@@ -10,6 +10,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import Calendar from './Calendar'; // Si usas un componente personalizado para el calendario
 import Icon from 'react-native-vector-icons/FontAwesome'; // Asegúrate de importar el icono
+import colors from '../utils/colors';
 
 const CustomInput = ({
   label,
@@ -90,7 +91,7 @@ const CustomInput = ({
               selectedValue={value}
               style={styles.input}
               onValueChange={(itemValue) => onChange(itemValue)}
-              enabled={options.length > 0} // Desactiva el Picker si no hay opciones
+              enabled={options.length > 0 && enabled} // Desactiva el Picker si no hay opciones
             >
               {options.length > 0 ? (
                 options.map((option, index) => (
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD700', // Mismo color dorado
+    backgroundColor: colors.primary, // Mismo color dorado
     padding: 15,
     borderRadius: 10,
     marginHorizontal: 5,

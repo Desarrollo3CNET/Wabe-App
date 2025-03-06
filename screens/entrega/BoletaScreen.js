@@ -5,6 +5,8 @@ import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import moment from 'moment'; // Importamos moment para formatear fechas
 import 'moment/locale/es'; // Importamos el idioma español
+import colors from '../../src/utils/colors';
+
 const BoletaScreen = ({ navigation, route }) => {
   const { fromScreen } = route.params || {};
 
@@ -59,8 +61,11 @@ const BoletaScreen = ({ navigation, route }) => {
       <Header title="Boleta" />
 
       {/* Content */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.contentContainer}>
+      {/* <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.contentContainer}> */}
+
+      <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Row Content */}
           <View style={styles.row}>
             {/* Left Section */}
@@ -148,8 +153,8 @@ const BoletaScreen = ({ navigation, route }) => {
               <Text style={styles.value}>{formatDate(boleta.BOL_FECHA)}</Text>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {renderFooterButtons()}
     </View>
@@ -161,6 +166,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333',
     padding: 10,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 20,
+    marginVertical: 15,
   },
   scrollContent: {
     flexGrow: 1,
@@ -204,7 +216,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   nextButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',

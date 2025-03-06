@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import colors from '../utils/colors';
 
 const Calendar = ({ currentMonth, onDateSelect }) => {
   const [month, setMonth] = useState(currentMonth || new Date());
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   selectedDay: {
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 20,
   },
   selectedDayText: {

@@ -15,8 +15,10 @@ import {
   saveImagesArticulos,
 } from '../../src/services/BoletaService';
 import { setCreatingRevisionFalse } from '../../src/contexts/AppSlice';
+import { resetAllStates } from '../../src/contexts/RevisionSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import ArticulosPhotosModal from '../../src/components/revision/ArticulosPhotosModal';
+import colors from '../../src/utils/colors';
 
 const ArticulosScreen = ({ navigation, route }) => {
   // State for "Observaciones"
@@ -108,6 +110,7 @@ const ArticulosScreen = ({ navigation, route }) => {
 
       await saveArticulos(listArticulos);
       dispatch(setCreatingRevisionFalse());
+      dispatch(resetAllStates());
       setObservaciones('');
       setModalMessage(`Se ha finalizado la revisión correctamente`);
       // eventEmitter.emit('refresh');
@@ -238,7 +241,7 @@ const ArticulosScreen = ({ navigation, route }) => {
         {isLoading && (
           <ActivityIndicator
             size="large"
-            color="#FFD700"
+            color={colors.primary}
             style={styles.spinner}
           />
         )}

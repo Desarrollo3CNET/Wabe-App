@@ -1,57 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Text,
-  Switch,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Switch } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setProperty } from '../../src/contexts/BoletaSlice';
-import { listTipoTrabajo } from '../../src/services/TipoTrabajoService';
+import { setTipoTrabajo } from '../../src/contexts/BoletaSlice'; // Acción para modificar tipoTrabajo en el slice
 import Header from '../../src/components/recepcion/Header';
 import FooterButtons from '../../src/components/recepcion/FooterButtons';
 import GenericModal from '../../src/components/recepcion/GenericModal';
+import colors from '../../src/utils/colors';
 
 const TipoTrabajoScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const boleta = useSelector((state) => state.boleta);
-  const [tipoTrabajos, setTipoTrabajos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const tipoTrabajos = useSelector((state) => state.boleta.tipoTrabajos);
   const [modalVisibleBoleta, setModalVisibleBoleta] = useState(false);
   const [caseType, setCaseType] = useState('CancelBoleta');
   const [modalMessage, setModalMessage] = useState('');
 
-  useEffect(() => {
-    const fetchTipoTrabajo = async () => {
-      try {
-        const response = await listTipoTrabajo();
-        setTipoTrabajos(response);
-      } catch (error) {
-        console.error('Error obteniendo tipos de trabajo:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTipoTrabajo();
-  }, []);
-
-  const handleUpdate = (key, value) => {
-    dispatch(setProperty({ key, value }));
-  };
-
   const handleSwitchChange = (selectedCode) => {
-    if (boleta.TIPTRA_CODE === selectedCode) {
-      handleUpdate('TIPTRA_CODE', null); // Apagar el switch si ya está encendido
-    } else {
-      handleUpdate('TIPTRA_CODE', selectedCode); // Encender el nuevo switch y apagar los demás
-    }
+    // Actualizamos todos los tipos de trabajo
+    const updatedTipoTrabajos = tipoTrabajos.map((tipo) => ({
+      ...tipo,
+      // Si el código del tipo de trabajo coincide con el seleccionado, setear isSelected en true, sino en false
+      isSelected: tipo.TIPTRA_CODE === selectedCode,
+    }));
+
+    // Actualizar el estado global con el nuevo array de tipoTrabajos
+    dispatch(setTipoTrabajo(updatedTipoTrabajos));
   };
 
-  const handleNext = async () => {
-    if (boleta.TIPTRA_CODE) {
+  // Función para manejar el botón "Next" y validar si hay algún tipo de trabajo seleccionado
+  const handleNext = () => {
+    // Validación para asegurarse de que haya un tipo de trabajo con isSelected: true
+    const selectedTipoTrabajo = tipoTrabajos.some((tipo) => tipo.isSelected);
+
+    if (selectedTipoTrabajo) {
       navigation.navigate('PhotosAndVideosScreen', {
         fromScreen: 'TipoTrabajoScreen',
       });
@@ -72,26 +52,18 @@ const TipoTrabajoScreen = ({ navigation }) => {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Tipo de trabajo</Text>
 
-          {loading ? (
-            <ActivityIndicator size="large" color="#000" />
-          ) : (
-            tipoTrabajos.map((tipo) => (
-              <View key={tipo.TIPTRA_CODE} style={styles.switchContainer}>
-                <Text style={styles.switchLabel}>{tipo.TIPTRA_NOMBRE}</Text>
-                <Switch
-                  style={styles.switch}
-                  value={boleta.TIPTRA_CODE === tipo.TIPTRA_CODE}
-                  onValueChange={() => handleSwitchChange(tipo.TIPTRA_CODE)}
-                  trackColor={{ false: '#767577', true: '#767577' }} // Siempre gris
-                  thumbColor={
-                    boleta.TIPTRA_CODE === tipo.TIPTRA_CODE
-                      ? '#FFD700'
-                      : '#f4f3f4'
-                  } // Amarillo cuando está encendido, gris claro cuando está apagado
-                />
-              </View>
-            ))
-          )}
+          {tipoTrabajos.map((tipo) => (
+            <View key={tipo.TIPTRA_CODE} style={styles.switchContainer}>
+              <Text style={styles.switchLabel}>{tipo.TIPTRA_NOMBRE}</Text>
+              <Switch
+                style={styles.switch}
+                value={tipo.isSelected} // Usamos isSelected del slice
+                onValueChange={() => handleSwitchChange(tipo.TIPTRA_CODE)}
+                trackColor={{ false: '#767577', true: '#767577' }} // Siempre gris
+                thumbColor={tipo.isSelected ? colors.primary : '#f4f3f4'} // Amarillo cuando está encendido, gris claro cuando está apagado
+              />
+            </View>
+          ))}
         </View>
       </ScrollView>
 
@@ -123,6 +95,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+    padding: 10,
   },
   scrollContent: {
     flexGrow: 1,

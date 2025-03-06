@@ -12,12 +12,12 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
 import { addImage, removeImage } from '../../contexts/RevisionSlice';
+import colors from '../../utils/colors';
 
 const ArticulosPhotosModal = ({ ART_CODE, ART_NOMBRE, showCameraButton }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const dispatch = useDispatch();
   const articulosFotos = useSelector((state) => state.revision.articulosFotos);
-
   const [selectedImage, setSelectedImage] = useState(null);
   const [isModalImageVisible, setModalImageVisible] = useState(false);
 
@@ -32,10 +32,11 @@ const ArticulosPhotosModal = ({ ART_CODE, ART_NOMBRE, showCameraButton }) => {
   );
 
   useEffect(() => {
-    // Si el ART_CODE cambia, actualizamos las imágenes
-    if (articuloFotos) {
-      setImages(articuloFotos.imagenes);
-    }
+    const updatedArticuloFotos = articulosFotos.find(
+      (articulo) => articulo.ART_CODE === ART_CODE,
+    );
+
+    setImages(updatedArticuloFotos ? updatedArticuloFotos.imagenes : []);
   }, [ART_CODE, articulosFotos]);
 
   const handleOpenCamera = async () => {
@@ -86,9 +87,10 @@ const ArticulosPhotosModal = ({ ART_CODE, ART_NOMBRE, showCameraButton }) => {
       dispatch(addImage({ ART_CODE, image: newImage }));
     }
   };
-
   const handleDeleteSelected = (index) => {
     dispatch(removeImage({ ART_CODE, imageIndex: index }));
+
+    setImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
   const handleOpenModal = () => {
@@ -108,7 +110,7 @@ const ArticulosPhotosModal = ({ ART_CODE, ART_NOMBRE, showCameraButton }) => {
             {
               top: showCameraButton ? -50 : -45, // Se ajusta según showCameraButton
               right: showCameraButton ? -20 : 0, // Se ajusta según showCameraButton
-              backgroundColor: articuloFotos ? '#FFD700' : '#A9A9A9', // Cambia el color de fondo según articuloFotos
+              backgroundColor: articuloFotos ? colors.primary : '#A9A9A9', // Cambia el color de fondo según articuloFotos
             },
           ]}
           onPress={handleOpenModal}
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginHorizontal: 5,
     justifyContent: 'center',
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
   },
   cameraButtonFloating: {
     position: 'absolute', // Asegura que se posicione encima de otro componente
-    backgroundColor: '#FFD700', // Amarillo para destacar
+    backgroundColor: colors.primary, // Amarillo para destacar
     borderColor: 'black',
     borderWidth: 1,
     borderRadius: 25, // Forma redondeada
@@ -262,13 +264,13 @@ const styles = StyleSheet.create({
     width: '100%', // Ocupará toda la fila y se pondrá debajo del botón "Malo"
     alignItems: 'center', // Centra el ícono dentro del botón
     padding: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginTop: 5, // Espacio entre el botón "Malo" y el botón de la cámara
   },
   deleteEditButton: {
     padding: 10,
-    backgroundColor: '#FFD700', // Amarillo
+    backgroundColor: colors.primary, // Amarillo
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -303,7 +305,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -5,
-    backgroundColor: '#FFD700', // Amarillo
+    backgroundColor: colors.primary, // Amarillo
     borderRadius: 50,
     padding: 5,
   },

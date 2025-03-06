@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { getCitas } from '../src/services/CitaService';
 import { processCitas } from '../src/utils/processData/processCitas';
 import { clearCitas, addCita } from '../src/contexts/CitasSlice';
 import { getDashboardData } from '../src/services/DashboardService';
+import colors from '../src/utils/colors';
 
 import eventEmitter from '../src/utils/eventEmitter';
 
@@ -32,7 +33,10 @@ const Dashboard = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true); // Estado para mostrar el spinner
   const [refreshing, setRefreshing] = useState(false); // Estado para refresh
   const logo = require('../assets/logo.png'); // Logo de la empresa
-
+  const scrollViewRef = useRef(null);
+  const scrollToTop = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
   const fetchCitas = async () => {
     setIsLoading(true);
     try {
@@ -113,32 +117,40 @@ const Dashboard = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.openDrawer()}
-        >
-          <Ionicons name="arrow-back" size={20} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lista de citas</Text>
-        <Image source={logo} style={styles.logo} />
-      </View>
+      <TouchableOpacity style={styles.scrollToTopButton} onPress={scrollToTop}>
+        <Ionicons name="arrow-up" size={25} color={colors.primary} />
+      </TouchableOpacity>
 
       <ScrollView
         style={{ flex: 1 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={fetchCitas} />
         }
+        ref={scrollViewRef}
       >
-        <View style={styles.headerSection}>
-          {/* Información del usuario */}
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => navigation.openDrawer()}
+            >
+              <Ionicons name="arrow-back" size={30} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Lista de citas</Text>
+            <Image source={logo} style={styles.logo} />
+          </View>
+
           {user && (
             <View style={styles.userInfo}>
               <Text style={styles.userText}>Empresa: {user.EMP_NOMBRE}</Text>
               <Text style={styles.userText}>Empleado: {user.EMPL_NOMBRE}</Text>
             </View>
           )}
+        </View>
+
+        <View style={styles.headerSection}>
+          {/* Información del usuario */}
 
           {/* Dashboard Data */}
           {dashboardData && (
@@ -180,25 +192,7 @@ const Dashboard = ({ navigation }) => {
             </View>
           )}
 
-          {/* Fila de botones */}
           <View style={styles.buttonRow}>
-            {/* Barra de búsqueda */}
-            <View style={styles.searchContainer}>
-              <Ionicons
-                name="search"
-                size={20}
-                color="#999"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Buscar por número de cita..."
-                placeholderTextColor="#aaa"
-                value={searchQuery}
-                onChangeText={handleSearch}
-              />
-            </View>
-
             {/* Botón de Filtrar */}
             <TouchableOpacity
               style={styles.filterButton}
@@ -216,13 +210,32 @@ const Dashboard = ({ navigation }) => {
               <Text style={styles.createButtonText}>+ Crear</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Barra de búsqueda */}
+          <View style={styles.buttonRow}>
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color="#999"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por número de cita..."
+                placeholderTextColor="#aaa"
+                value={searchQuery}
+                onChangeText={handleSearch}
+              />
+            </View>
+          </View>
         </View>
 
         {/* Lista de citas o spinner */}
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color="#FFD700"
+            color={colors.primary}
             style={styles.spinner}
           />
         ) : filteredCitas.length === 0 ? (
@@ -232,33 +245,36 @@ const Dashboard = ({ navigation }) => {
             </Text>
           </View>
         ) : (
-          <ScrollView style={styles.scrollview}>
-            {Object.entries(
-              filteredCitas.reduce((acc, cita) => {
-                const fecha = cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0]; // Solo la fecha (sin hora)
-                if (!acc[fecha]) acc[fecha] = [];
-                acc[fecha].push(cita);
-                return acc;
-              }, {}),
-            ).map(([fecha, citasDelDia]) => (
-              <View key={fecha}>
-                {/* Encabezado único por fecha */}
-                <Text style={styles.dateHeader}>{fecha}</Text>
-                {/* Renderizar las citas correspondientes a esa fecha */}
-                {citasDelDia.map((cita) =>
-                  cita ? ( // Verifica que la cita no sea nula antes de renderizar
-                    <AppointmentCard
-                      key={cita.CITA.CITCLIE_CODE}
-                      fecha={cita.CITA.CITCLIE_FECHA_RESERVA}
-                      cliente={cita.CLIENTE}
-                      vehiculo={cita.VEHICULO}
-                      cita={cita.CITA}
-                    />
-                  ) : null,
-                )}
-              </View>
-            ))}
-          </ScrollView>
+          <View style={styles.scrollviewContainer}>
+            {/* Botón de volver al principio, siempre anclado */}
+            <ScrollView style={styles.scrollview}>
+              {Object.entries(
+                filteredCitas.reduce((acc, cita) => {
+                  const fecha = cita.CITA.CITCLIE_FECHA_RESERVA.split('T')[0];
+                  if (!acc[fecha]) acc[fecha] = [];
+                  acc[fecha].push(cita);
+                  return acc;
+                }, {}),
+              ).map(([fecha, citasDelDia]) => (
+                <View key={fecha}>
+                  {/* Encabezado único por fecha */}
+                  <Text style={styles.dateHeader}>{fecha}</Text>
+                  {/* Renderizar las citas correspondientes a esa fecha */}
+                  {citasDelDia.map((cita) =>
+                    cita ? (
+                      <AppointmentCard
+                        key={cita.CITA.CITCLIE_CODE}
+                        fecha={cita.CITA.CITCLIE_FECHA_RESERVA}
+                        cliente={cita.CLIENTE}
+                        vehiculo={cita.VEHICULO}
+                        cita={cita.CITA}
+                      />
+                    ) : null,
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
         )}
       </ScrollView>
 
@@ -275,7 +291,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333',
+    padding: 10,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  scrollviewContainer: {
+    flex: 1,
+    position: 'relative', // Asegura que los elementos dentro de este contenedor se posicionen en relación con él
+  },
+  userInfo: {
+    alignItems: 'center',
+  },
+  userInfoContainer: {
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  scrollToTopButton: {
+    position: 'absolute', // Fija el botón en la pantalla
+    bottom: 20, // Distancia desde la parte inferior
+    right: 20, // Distancia desde la parte derecha
+    backgroundColor: '#333',
+    padding: 15,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5, // Da un poco de sombra
+    zIndex: 99999999999, // Asegura que esté encima del contenido
+  },
+
   headerSection: {
     backgroundColor: '#333',
     paddingHorizontal: 10,
@@ -288,21 +335,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3, // Para Android
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   headerButton: {
     padding: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
   },
   headerTitle: {
@@ -316,20 +361,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   userInfo: {
-    backgroundColor: '#FFD700',
     padding: 10,
     borderRadius: 10,
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3, // Para Android
+    alignItems: 'center',
   },
   userText: {
     fontSize: 16,
     color: '#333',
-    marginVertical: 2,
     fontWeight: 'bold',
   },
 
@@ -354,43 +392,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pendingCard: {
-    borderColor: '#FFD700',
+    borderColor: colors.primary,
   },
   receivedCard: {
-    borderColor: '#FFD700',
+    borderColor: colors.primary,
   },
   deliveredCard: {
-    borderColor: '#FFD700',
+    borderColor: colors.primary,
   },
   cardNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: colors.primary,
     marginTop: 5,
   },
   cardLabel: {
     fontSize: 12,
-    color: '#FFD700',
+    color: colors.primary,
   },
   buttonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
-    paddingHorizontal: 5,
+    justifyContent: 'space-between',
     paddingVertical: 10,
     borderRadius: 10,
   },
   searchContainer: {
-    flex: 2,
+    flex: 3,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F5F5F5',
     borderRadius: 10,
     paddingHorizontal: 10,
-    marginRight: 5,
   },
-  searchIcon: {
-    marginRight: 5,
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    paddingVertical: 10,
   },
   searchInput: {
     flex: 1,
@@ -404,7 +443,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginHorizontal: 5,
   },
@@ -420,9 +459,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 10,
-    marginLeft: 5,
+    marginHorizontal: 5,
   },
   createButtonText: {
     fontSize: 14,

@@ -8,6 +8,7 @@ import {
   PanResponder,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import colors from '../../utils/colors';
 
 const ZoomBar = ({ zoom, setZoom, isModalOpen }) => {
   const pan = useRef(new Animated.ValueXY()).current;
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     width: 30, // Ancho del thumb
     height: 60, // Altura del thumb, para hacerlo más largo verticalmente
     borderRadius: 15, // Para darle forma redonda o más estilizada
-    backgroundColor: '#FFD700', // Color de fondo del thumb
+    backgroundColor: colors.primary, // Color de fondo del thumb
   },
   zoomButton: {
     width: 40,

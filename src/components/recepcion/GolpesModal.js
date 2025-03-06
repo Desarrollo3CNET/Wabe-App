@@ -22,6 +22,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Svg, { Path } from 'react-native-svg';
 import ZoomBar from '../../components/recepcion/ZoomBar';
+import colors from '../../utils/colors';
 
 import ViewShot from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
@@ -237,7 +238,7 @@ const GolpesModal = ({ visible, onClose }) => {
                   <Path
                     key={`path-${index}`}
                     d={path}
-                    stroke="yellow"
+                    stroke={colors.primary}
                     strokeWidth={4}
                     fill="none"
                   />
@@ -245,7 +246,7 @@ const GolpesModal = ({ visible, onClose }) => {
                 {localPath ? (
                   <Path
                     d={localPath}
-                    stroke="yellow"
+                    stroke={colors.primary}
                     strokeWidth={4}
                     fill="none"
                   />
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 8,
   },
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8, // Ajusta la distancia desde la parte superior
     right: -20, // Mueve el botón hacia afuera para evitar la superposición
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 20, // Forma redonda
     padding: 8, // Espaciado dentro del botón
     justifyContent: 'center',
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
   zoomIndicator: {
     position: 'absolute',
     width: '100%',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     height: 10, // Indicador de progreso como en el diseño
     bottom: 0,
   },
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
   toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 6, // Redondeo ajustado para menor tamaño
     paddingVertical: 4, // Reducido para menor altura
     paddingHorizontal: 2, // Reducido para menor anchura
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 15, // Botón más grande

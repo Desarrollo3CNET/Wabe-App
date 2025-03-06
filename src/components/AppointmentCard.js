@@ -11,9 +11,15 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import buttonIcon from '../../assets/buttonIcon.png';
-import { setProperty, resetBoleta } from '../contexts/BoletaSlice';
-import { setCreatingBoletaTrue } from '../contexts/AppSlice'; // Importar acción
-import { addAccesorio } from '../contexts/BoletaSlice';
+import {
+  setProperty,
+  resetBoleta,
+  addAccesorio,
+} from '../contexts/BoletaSlice';
+import { setCreatingBoletaTrue } from '../contexts/AppSlice';
+import { Ionicons } from '@expo/vector-icons';
+import colors from '../utils/colors';
+
 import { getAccesories } from '../services/AccesorioService';
 import { processAccessories } from '../utils/processData/processAccessories';
 
@@ -54,10 +60,9 @@ const AppointmentCard = ({
 
       const rawAccessories = await getAccesories();
       const processedAccessories = await processAccessories(rawAccessories);
-
-      processedAccessories.forEach((accessory) => {
-        dispatch(addAccesorio(accessory));
-      });
+      processedAccessories.map((accessory) =>
+        dispatch(addAccesorio(accessory)),
+      );
 
       const today = new Date();
       const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
@@ -143,8 +148,9 @@ const AppointmentCard = ({
         <TouchableOpacity
           style={styles.moreOptionsButton}
           onPress={handleNavigate}
+          accessibilityLabel="Abrir detalles del vehículo"
         >
-          <Image source={buttonIcon} style={styles.icon} />
+          <Ionicons name="arrow-forward-circle" size={45} color="#333" />
         </TouchableOpacity>
       </View>
     </View>

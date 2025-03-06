@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import colors from '../../utils/colors';
 
 const SignatureModal = ({ visible, onCancel, onSave }) => {
   const [paths, setPaths] = useState([]);
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 5,
     alignSelf: 'flex-end',
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
     flex: 1,

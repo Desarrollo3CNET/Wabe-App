@@ -18,25 +18,19 @@ import {
   generarOrdenTrabajo,
 } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import { getAccesoriesByBoleta } from '../src/services/AccesorioService'; // Importa la función para obtener boletas
-import { ObtenerArticulosMantenimiento } from '../src/services/ArticulosService'; // Importa la función para obtener boletas
-import { processArticulos } from '../src/utils/processData/processArticulos'; // Importa la función para obtener boletas
+import colors from '../src/utils/colors';
 
 import { GetImagesBoleta } from '../src/services/BoletaService'; // Importa la función para obtener boletas
 import GenericModal from '../src/components/recepcion/GenericModal'; // Importación del GenericModal
 
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  resetAllStates,
-  setArticulosMantenimiento,
-} from '../src/contexts/RevisionSlice';
+import { resetAllStates } from '../src/contexts/RevisionSlice';
 import { setCreatingRevisionTrue } from '../src/contexts/AppSlice';
 import {
   setBoletaData,
   addAccesorio,
   setImages,
-  resetBoleta,
 } from '../src/contexts/BoletaSlice';
-import eventEmitter from '../src/utils/eventEmitter';
 
 const CheckOutScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -192,7 +186,7 @@ const CheckOutScreen = ({ navigation }) => {
   const handleNavigateToRevision = async (item) => {
     setIsLoading(true);
     try {
-      dispatch(resetAllStates());
+      // dispatch(resetAllStates());
 
       // Obtener detalles de la boleta
       const boletaDetails = await getBoletaById(item.BOL_CODE);
@@ -200,16 +194,6 @@ const CheckOutScreen = ({ navigation }) => {
       if (boletaDetails) {
         dispatch(setBoletaData(boletaDetails));
       }
-
-      // Obtener los artículos en mantenimiento
-      const articulosMantenimiento = await ObtenerArticulosMantenimiento(
-        user.EMP_CODE,
-      );
-
-      // Agregar la propiedad ESTADO a los artículos
-      const articulosConEstado = processArticulos(articulosMantenimiento);
-      // Guardar en Redux
-      dispatch(setArticulosMantenimiento(articulosConEstado));
 
       dispatch(setCreatingRevisionTrue());
       navigation.navigate('SuspencionDelanteraScreen');
@@ -320,7 +304,7 @@ const CheckOutScreen = ({ navigation }) => {
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color="#FFD700"
+            color={colors.primary}
             style={styles.spinner}
           />
         ) : (
@@ -436,7 +420,7 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     marginTop: 15,
   },
 
@@ -477,7 +461,7 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingVertical: 6,
     paddingHorizontal: 8,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,
@@ -486,7 +470,7 @@ const styles = StyleSheet.create({
   longActionButton: {
     flex: 1,
     paddingVertical: 6,
-    backgroundColor: '#FFD700',
+    backgroundColor: colors.primary,
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,

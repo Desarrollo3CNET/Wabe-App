@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Calendar from './Calendar';
+import colors from '../utils/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,6 +35,13 @@ const DateRangeButton = ({ onRangeSelect }) => {
     if (startDate && endDate && onRangeSelect) {
       onRangeSelect(startDate, endDate);
     }
+  };
+
+  const handleCancel = () => {
+    setModalVisible(false); // Solo cerrar el modal sin realizar ninguna acción
+    setStartDate(null); // Resetear fecha inicial
+    setEndDate(null); // Resetear fecha final
+    setDisplayText(null); // Limpiar texto mostrado
   };
 
   const formatDate = (date) => {
@@ -95,16 +103,27 @@ const DateRangeButton = ({ onRangeSelect }) => {
               </Text>
             </View>
 
-            {/* Botón para confirmar */}
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={handleConfirm}
-              disabled={!startDate || !endDate} // Deshabilitar si falta alguna fecha
-            >
-              <Text style={styles.confirmText}>
-                {startDate && endDate ? 'Confirmar' : 'Selecciona ambas fechas'}
-              </Text>
-            </TouchableOpacity>
+            {/* Contenedor para los botones confirm y cancel */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleConfirm}
+                disabled={!startDate || !endDate} // Deshabilitar si falta alguna fecha
+              >
+                <Text style={styles.buttonText}>
+                  {startDate && endDate ? 'Confirmar' : 'Seleccionar'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleCancel}
+              >
+                <Text style={[styles.buttonText, styles.cancelText]}>
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -159,16 +178,29 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 4,
   },
-  confirmButton: {
-    backgroundColor: '#FFD700', // Amarillo para consistencia
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  button: {
+    backgroundColor: colors.primary,
     padding: 12,
     borderRadius: 10,
+    flex: 1,
+    marginHorizontal: 8, // Espacio entre los botones
     alignItems: 'center',
   },
-  confirmText: {
+  buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+  },
+  cancelButton: {
+    backgroundColor: '#D1D1D1', // Gris para el botón de cancelar
+  },
+  cancelText: {
+    color: '#555', // Texto gris para "Cancelar"
   },
 });
 
